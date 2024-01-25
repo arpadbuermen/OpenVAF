@@ -16,7 +16,7 @@ Buermen.
 
 ## Setting up the dependencies under Debian Bookworm
 
-Get LLVM 15 .(do not use the Debian-supplied version). 
+Get LLVM 15 (do not use the Debian-supplied version). 
 ```
 https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst
 ```
