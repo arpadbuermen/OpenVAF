@@ -85,6 +85,35 @@ impl<'a> BodyRef<'a> {
         }
     }
 
+    pub fn as_literalint(&self, &expr1: &ExprId) -> Option<i32> {
+        match &self.body.exprs[expr1] {
+            hir_def::Expr::Literal(lit) => match &lit {
+                Literal::Int(ii) => Some(*ii), // Int literal
+                _ => None, // other literals
+            }
+            _ => None, // not a literal
+        }
+    }
+
+    pub fn as_literalsignedint(&self, &expr1: &ExprId) -> Option<i32> {
+        match &self.body.exprs[expr1] {
+            hir_def::Expr::Literal(lit) => match &lit { // Literal
+                Literal::Int(ii) => Some(*ii), // Int literal
+                _ => None, // other literals
+            }
+            hir_def::Expr::UnaryOp { expr, op } => { // UnaryOp
+                match op {
+                    UnaryOp::Neg => match self.as_literalint(expr) { // Neg
+                        Some(ii) => Some(-ii), // Neg Int literal
+                        _ => None, // Neg anything else
+                    }
+                    _ => None, // Other UnaryOp
+                }
+            }
+            _ => None, // Neither Literal nor UnaryOp
+        }
+    }
+
     pub fn into_node(&self, expr: ExprId) -> Node {
         let id = self.infere.expr_types[expr].unwrap_node();
         Node { id }

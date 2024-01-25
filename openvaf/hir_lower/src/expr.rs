@@ -654,7 +654,9 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 self.ctx.finish_limit(state, res)
             }
             BuiltIn::discontinuity => {
-                if self.ctx.inside_lim && Some(&Literal::Int(-1)) == self.body.as_literal(args[0]) {
+                // Negative literals are represented as UnaryOp::Neg(Literal)
+                // We have a function for that now. 
+                if self.ctx.inside_lim && Some(-1) == self.body.as_literalsignedint(&args[0]) {
                     self.ctx.call(CallBackKind::LimDiscontinuity, &[]);
                 } else {
                     // TODO implement support for discontinuity?
