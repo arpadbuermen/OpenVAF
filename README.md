@@ -26,12 +26,11 @@ Unpack it in `/opt` as root (creates directory `/opt/LLVM`).
 cd /opt
 zstd -d -c --long=31 <path/to/archive.tar.zst> | tar -xf -
 ```
-During installation select "Customize installation" and set profile to "complete". 
-
 Install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
+During installation select "Customize installation" and set profile to "complete". 
 
 Set LLVM_CONFIG, add LLVM to PATH, and set up the working environment for Rust.
 Add these lines at the end of `.bashrc`
