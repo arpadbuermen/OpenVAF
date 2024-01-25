@@ -8,6 +8,62 @@
 <br>
 <br>
 
+## About this repository
+
+This is a fork of [Pascal Kuthe's OpenVAF repository](https://github.com/pascalkuthe/OpenVAF) by Arpad
+Buermen. 
+ 
+
+## Setting up the dependencies under Debian Bookworm
+
+Get LLVM 15 .(do not use the Debian-supplied version). 
+```
+https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst
+```
+
+Unpack it in `/opt` as root (creates directory `/opt/LLVM`). 
+```
+cd /opt
+zstd -d -c --long=31 <path/to/archive.tar.zst> | tar -xf -
+```
+During installation select "Customize installation" and set profile to "complete". 
+
+Install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Set LLVM_CONFIG, add LLVM to PATH, and set up the working environment for Rust.
+Add these lines at the end of `.bashrc`
+```
+. "$HOME/.cargo/env"
+export LLVM_CONFIG=/opt/LLVM/bin/llvm-config
+export PATH=/opt/LLVM/bin:$PATH
+```
+
+Restart shell. You're good to go. 
+
+
+## Building
+
+To build the release version (`target/release/openvaf`), type
+```
+cargo build --release
+```
+
+To build the debug version (`target/debug/openvaf`), type
+```
+cargo build
+```
+
+
+## Acknowledgement
+
+Kudos to Pascal Kuthe for the great work he did. 
+
+
+## ---- Original README.md below this point ----
+
 OpenVAF is a Verilog-A compiler that can compile Verilog-A files for use in circuit simulator.
 The major aim of this Project is to provide a high-quality standard compliant compiler for Verilog-A.
 Furthermore, the project aims to bring modern compiler construction algorithms/data structures to a field with a lack of such tooling.
