@@ -564,8 +564,9 @@ impl BodyLoweringCtx<'_, '_, '_> {
                             CurrentKind::Port(self.body.into_port_flow(args[0]))
                         ))
                 };
-                let mfactor = self.ctx.use_param(ParamKind::ParamSysFun(ParamSysFun::mfactor));
-                return self.ctx.ins().fdiv(res, mfactor);
+                // let mfactor = self.ctx.use_param(ParamKind::ParamSysFun(ParamSysFun::mfactor));
+                // return self.ctx.ins().fdiv(res, mfactor);
+                return res;
             }
             BuiltIn::potential => {
                 match_signature! {
