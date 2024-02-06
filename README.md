@@ -16,12 +16,9 @@ Buermen.
 
 ## Setting up the dependencies under Debian Bookworm
 
-Get LLVM 15 (do not use the Debian-supplied version). 
-```
-https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst
-```
+Get [LLVM 15 built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst) (do not use the Debian-supplied version). You can also build yout own LLVM and Clang 15.0.7 from [sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7).  
 
-Unpack it in `/opt` as root (creates directory `/opt/LLVM`). 
+Unpack Pascal's binaries in `/opt` as root (creates directory `/opt/LLVM`). You will need zstd for that. 
 ```
 cd /opt
 zstd -d -c --long=31 <path/to/archive.tar.zst> | tar -xf -
@@ -43,16 +40,50 @@ export PATH=/opt/LLVM/bin:$PATH
 Restart shell. You're good to go. 
 
 
+## Setting up the dependencies under Windows
+
+Download [rustup](https://win.rustup.rs), run it to install Rust. 
+During installation select "Customize installation" and set profile to "complete". 
+
+Install Visual Studio 2019 Community Edition (tested with version 16.11.33) 
+Make sure you install CMake Tools that come with VS2019 (also installs Ninja). 
+
+Build LLVM and Clang, download [LLVM 15.0.7](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7) sources (get the .zip file)
+
+Unpack the sources. This creates directory `llvm-project-llvmorg-15.0.7`. Create a directory named `build`. 
+
+Start Visual Studio x64 native command prompt. 
+Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
+Replace `e:\llvm` with the path where you want yout LLVM and Clang binaries and libraries to be installed. 
+```
+cmake -G Ninja -S llvm-project-llvmorg-15.0.7\llvm -B build -DCMAKE_INSTALL_PREFIX=e:\LLVM -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang"
+```
+Run Ninja (build and install)
+```
+ninja -C build
+ninja -C build install 
+```
+Now you have your own LLVM and Clang. Hope it did not take too many Snickers :). 
+
+The LLVM and Clang version [built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-pc-windows-msvc-FULL.tar.zst) did not work for me (the openvaf binary failed to link due to undefined symbols). 
+
+Add LLVM to the PATH (in the above example that would be `e:\llvm\bin`). 
+Set the `LLVM_CONFIG` environmental variable if you have multiple LLVM installations
+(for the above example that would be `e:\llvm\bin\llvm-config.exe`). 
+s
+Restart command prompt. Now you are good to go. 
+
+
 ## Building
 
 To build the release version (`target/release/openvaf`), type
 ```
-cargo build --release
+cargo build --release --bin openvaf
 ```
 
 To build the debug version (`target/debug/openvaf`), type
 ```
-cargo build
+cargo build --bin openvaf
 ```
 
 
