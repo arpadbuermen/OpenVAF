@@ -16,7 +16,9 @@ Buermen.
 
 ## Setting up the dependencies under Debian Bookworm
 
-Get [LLVM 15 built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst) (do not use the Debian-supplied version). You can also build yout own LLVM and Clang 15.0.7 from [sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7).  
+Get [LLVM 15 built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst) 
+(do not use the Debian-supplied version). You can also build your own LLVM and Clang 15.0.7 from 
+[sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7).  
 
 Unpack Pascal's binaries in `/opt` as root (creates directory `/opt/LLVM`). You will need zstd for that. 
 ```
@@ -70,7 +72,7 @@ The LLVM and Clang version [built by Pascal](https://openva.fra1.cdn.digitalocea
 Add LLVM to the PATH (in the above example that would be `e:\llvm\bin`). 
 Set the `LLVM_CONFIG` environmental variable if you have multiple LLVM installations
 (for the above example that would be `e:\llvm\bin\llvm-config.exe`). 
-s
+
 Restart command prompt. Now you are good to go. 
 
 
