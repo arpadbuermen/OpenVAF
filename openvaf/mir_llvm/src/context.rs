@@ -80,7 +80,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     }
 
     pub fn const_str_uninterned(&self, lit: &str) -> &'ll Value {
-        let lit = self.literals.get(lit).unwrap();
+        let lit = self.literals.get(lit).unwrap_or_default();
         self.const_str(lit)
     }
 
