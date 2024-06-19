@@ -240,6 +240,7 @@ impl OsdiModule<'_> {
         literals.get_or_intern_static("Multiplier (Verilog-A $mfactor)");
         literals.get_or_intern_static("deg");
         literals.get_or_intern_static("m");
+        literals.get_or_intern_static("");
 
         for param in self.info.params.values() {
             for alias in &param.alias {
