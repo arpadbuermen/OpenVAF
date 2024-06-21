@@ -54,7 +54,7 @@ pub fn compile(
             mir
         })
         .collect();
-    let name = dst.file_stem().expect("destition is a file").to_owned();
+    let name = dst.file_stem().expect("destination is a file").to_owned();
 
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)
         .map(|i| {
