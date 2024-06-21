@@ -370,7 +370,7 @@ pub fn insert_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>)
     dst.insert(kw::slew, BuiltIn::slew.into());
     dst.insert(kw::transition, BuiltIn::transition.into());
 }
-pub fn insert_modulle_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>) {
+pub fn insert_module_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>) {
     dst.insert(sysfun::mfactor, ParamSysFun::mfactor.into());
     dst.insert(sysfun::xposition, ParamSysFun::xposition.into());
     dst.insert(sysfun::yposition, ParamSysFun::yposition.into());

@@ -295,7 +295,7 @@ fn generate_builtins() {
         }
 
 
-        pub fn insert_modulle_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>){
+        pub fn insert_module_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>){
             #(dst.insert(sysfun::#params,ParamSysFun::#params.into());)*
         }
     };
