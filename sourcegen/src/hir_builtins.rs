@@ -91,6 +91,7 @@ const BUILTINS: [&str; 25] = [
     "atan",
     "atan2",
     "atanh",
+    "ceil",
     "cos",
     "cosh",
     "exp",

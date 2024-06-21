@@ -247,6 +247,7 @@ pub fn insert_builtin_scope(dst: &mut IndexMap<Name, ScopeDefItem, RandomState>)
     dst.insert(kw::atan, BuiltIn::atan.into());
     dst.insert(kw::atan2, BuiltIn::atan2.into());
     dst.insert(kw::atanh, BuiltIn::atanh.into());
+    dst.insert(kw::ceil, BuiltIn::ceil.into());
     dst.insert(kw::cos, BuiltIn::cos.into());
     dst.insert(kw::cosh, BuiltIn::cosh.into());
     dst.insert(kw::exp, BuiltIn::exp.into());
