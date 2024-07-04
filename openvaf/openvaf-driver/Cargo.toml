@@ -6,7 +6,7 @@ edition = "2021"
 license = "GPL-3.0"
 
 [[bin]]
-name = "openvaf"
+name = "openvaf-r"
 path = "src/main.rs"
 doctest = false
 test = false
