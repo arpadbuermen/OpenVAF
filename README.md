@@ -29,7 +29,7 @@ What is on the TODO list?
 Currently I do not have time for that. :) Feel free to do that yourself and send me a pull request. 
 
 What is new in OSDI 0.4? 
-- Support for reading param given flags of parameters in the instance and model data structures. This is pretty much self-explanatory. Look at the OSDI 0.4 header file. 
+- Support for reading param given flags of parameters in the instance and model data structures. This is pretty much self-explanatory. Look at the [OSDI 0.4 header file](openvaf/osdi/header/osdi_0_4.h). 
  
 
 ## Setting up the dependencies under Debian Bookworm
