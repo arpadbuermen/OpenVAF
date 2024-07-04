@@ -17,13 +17,13 @@ extern int strcmp(const char*, const char*);
 #include "string.h"
 #endif
 
-#ifndef OSDI_0_3
-#include "header/osdi_0_3.h"
+#ifndef OSDI_0_4
+#include "header/osdi_0_4.h"
 #endif
 
 // no header was included explicitly so just use the newest version
 #ifndef OSDI_VERSION_MAJOR_CURR
-#include "header/osdi_0_3.h"
+#include "header/osdi_0_4.h"
 #endif
 
 

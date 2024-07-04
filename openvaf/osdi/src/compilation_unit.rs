@@ -20,7 +20,7 @@ use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
 
 use crate::inst_data::OsdiInstanceData;
-use crate::metadata::osdi_0_3::{
+use crate::metadata::osdi_0_4::{
     stdlib_bitcode, OsdiTys, LOG_FMT_ERR, LOG_LVL_DEBUG, LOG_LVL_DISPLAY, LOG_LVL_ERR,
     LOG_LVL_FATAL, LOG_LVL_INFO, LOG_LVL_WARN,
 };

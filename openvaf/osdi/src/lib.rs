@@ -14,7 +14,7 @@ use typed_indexmap::TiSet;
 use std::ffi::CString;
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
-use crate::metadata::osdi_0_3::OsdiTys;
+use crate::metadata::osdi_0_4::OsdiTys;
 use crate::metadata::OsdiLimFunction;
 
 mod access;

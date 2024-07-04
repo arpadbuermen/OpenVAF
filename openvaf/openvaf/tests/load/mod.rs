@@ -16,9 +16,9 @@ use stdx::format_to;
 use stdx::iter::zip;
 
 #[allow(warnings)]
-mod osdi_0_3;
+mod osdi_0_4;
 
-pub use osdi_0_3::*;
+pub use osdi_0_4::*;
 
 impl OsdiDescriptor {
     pub fn nodes(&self) -> &[OsdiNode] {

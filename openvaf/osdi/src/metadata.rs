@@ -15,7 +15,7 @@ use crate::inst_data::{
     OsdiInstanceParam, COLLAPSED, JACOBIAN_PTR_REACT, JACOBIAN_PTR_RESIST, NODE_MAPPING, STATE_IDX,
 };
 use crate::load::JacobianLoadType;
-use crate::metadata::osdi_0_3::{
+use crate::metadata::osdi_0_4::{
     OsdiDescriptor, OsdiJacobianEntry, OsdiNode, OsdiNodePair, OsdiNoiseSource, OsdiParamOpvar,
     OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST, JACOBIAN_ENTRY_RESIST,
     JACOBIAN_ENTRY_RESIST_CONST, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT,
@@ -24,7 +24,7 @@ use crate::metadata::osdi_0_3::{
 use crate::ty_len;
 
 #[allow(unused_parens, dead_code)]
-pub mod osdi_0_3;
+pub mod osdi_0_4;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct OsdiLimFunction {
@@ -34,7 +34,7 @@ pub struct OsdiLimFunction {
 
 impl OsdiLimFunction {
     pub fn to_ll_val<'ll>(self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
-        osdi_0_3::OsdiLimFunction {
+        osdi_0_4::OsdiLimFunction {
             name: ctx.literals.resolve(&self.name).to_owned(),
             num_args: self.num_args,
             func_ptr: ctx.const_null_ptr(),
