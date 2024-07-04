@@ -1,7 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="logo_light.svg">
-  <source media="(prefers-color-scheme: light)" srcset="logo_dark.svg">
-  <img alt="OpenVAF" src="logo_dark.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="logo_light-r.svg">
+  <source media="(prefers-color-scheme: light)" srcset="logo_dark-r.svg">
+  <img alt="OpenVAF" src="logo_dark-r.svg">
 </picture>
 
 <br>    
