@@ -11,7 +11,25 @@
 ## About this repository
 
 This is a fork of [Pascal Kuthe's OpenVAF repository](https://github.com/pascalkuthe/OpenVAF) by Arpad
-Buermen. 
+Buermen. Since forking several bugs have been fixed that prevented OpenVAF from compiling SPICE-like Verilog-A models that could replace builtin SPICE3 models. The last version using the OSDI interface v0.3 is tagged with `osdi_0.3`. Since then the OSDI version has been bumped to 0.4 and the generated binary is now called `openvaf-r` (as in OpenVAF-reloaded). 
+
+## OSDI 0.4
+
+In OSDI 0.4 new members are going to be added to the module descriptor data structure. The descriptor (if cast to the declaration given in the OSDI 0.3 header file) remains compatible with OSDI 0.3 and should work just like before. Ngspice no longer works with openvaf-r generated models. It could, however, support the new OSDI format by 
+- allowing major.minor version 0.4 besides 0.3, 
+- reading the `OSDI_DESCRIPTOR_SIZE` symbol of type `uint32` specifying the descriptor size, 
+- making sure the table of descriptors (pointed to by the `OSDI_DESCRIPTORS` symbol) is traversed in steps of size `OSDI_DESCRIPTOR_SIZE`, and
+- casting each descriptor to the structure declared in the OSDI header file, version 0.3. 
+
+What is on the TODO list?
+- Write a patch for Ngspice that will allow it to use OSDI 0.4 models. 
+- Clean up the repository and keep only OpenVAF. 
+- Update OSDI documentation so that it includes OSDI 0.4 features. 
+
+Currently I do not have time for that. :) Feel free to do that yourself and send me a pull request. 
+
+What is new in OSDI 0.4? 
+- Support for reading param given flags of parameters in the instance and model data structures. 
  
 
 ## Setting up the dependencies under Debian Bookworm
