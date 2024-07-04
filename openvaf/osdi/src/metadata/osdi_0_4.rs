@@ -331,8 +331,8 @@ pub struct OsdiDescriptor<'ll> {
     pub load_jacobian_resist: &'ll llvm::Value,
     pub load_jacobian_react: &'ll llvm::Value,
     pub load_jacobian_tran: &'ll llvm::Value,
-    pub param_given_model: &'ll llvm::Value,
-    pub param_given_instance: &'ll llvm::Value,
+    pub given_flag_model: &'ll llvm::Value,
+    pub given_flag_instance: &'ll llvm::Value,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(&self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
@@ -377,7 +377,9 @@ impl<'ll> OsdiDescriptor<'ll> {
             self.load_spice_rhs_tran,
             self.load_jacobian_resist,
             self.load_jacobian_react,
-            self.load_jacobian_tran,
+            self.load_jacobian_tran, 
+            self.given_flag_model, 
+            self.given_flag_instance, 
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)

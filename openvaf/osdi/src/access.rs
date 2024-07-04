@@ -219,12 +219,15 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn param_given_instance(&self) -> &'ll llvm::Value {
+    pub fn given_flag_instance(&self) -> &'ll llvm::Value {
+        let cx = &self.cx;
+        let void_ptr = cx.ty_ptr();
+        let uint32_t = cx.ty_int();
+        let fun_ty = cx.ty_func(&[void_ptr, uint32_t], uint32_t);
+        let name = &format!("given_flag_instance_{}", &self.module.sym);
+        let llfunc = cx.declare_int_c_fn(name, fun_ty);
+        
         let OsdiCompilationUnit { inst_data, cx, .. } = &self;
-        let args_ = [cx.ty_ptr(), cx.ty_int()];
-        let fun_ty = cx.ty_func(&args_, cx.ty_int());
-        let name = &format!("param_given_instance_{}", self.module.sym);
-        let llfunc = cx.declare_ext_fn(name, fun_ty);
         
         unsafe {
             let zero = cx.const_int(0);
@@ -276,12 +279,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn param_given_model(&self) -> &'ll llvm::Value {
+    pub fn given_flag_model(&self) -> &'ll llvm::Value {
         let OsdiCompilationUnit { inst_data, model_data, cx, .. } = &self;
         let args_ = [cx.ty_ptr(), cx.ty_int()];
         let fun_ty = cx.ty_func(&args_, cx.ty_int());
-        let name = &format!("param_given_model_{}", self.module.sym);
-        let llfunc = cx.declare_ext_fn(name, fun_ty);
+        let name = &format!("given_flag_model_{}", self.module.sym);
+        let llfunc = cx.declare_int_c_fn(name, fun_ty);
         
         unsafe {
             let zero = cx.const_int(0);

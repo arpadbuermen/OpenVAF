@@ -106,7 +106,7 @@ pub fn compile(
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
             });
-
+            
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_model_{}", &module.sym);
