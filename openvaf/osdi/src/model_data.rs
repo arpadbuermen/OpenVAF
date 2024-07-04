@@ -86,14 +86,18 @@ impl<'ll> OsdiModelData<'ll> {
         Some((ptr, ty))
     }
 
+    // build code for getting the pointer to the storage of pos-th parameter within ptr
     pub unsafe fn nth_param_ptr(
         &self,
         pos: u32,
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
     ) -> (&'ll llvm::Value, &'ll llvm::Type) {
+        // unwrap() returns a tuple holding parameter and type, .1 selects type (ref to ref)
         let ty = self.params.get_index(pos as usize).unwrap().1;
+        // index of element, skip NUM_CONST_FIELDS
         let elem = NUM_CONST_FIELDS + pos;
+        // retrieve pointer to parameter storage within model data structure pointed to by ptr
         let ptr = LLVMBuildStructGEP2(llbuilder, self.ty, ptr, elem, UNNAMED);
         (ptr, ty)
     }
@@ -105,8 +109,11 @@ impl<'ll> OsdiModelData<'ll> {
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
     ) -> (&'ll llvm::Value, &'ll llvm::Type) {
+        // get the type, but this time from inst_data because pos is the instance parameter index
         let ty = inst_data.params.get_index(pos as usize).unwrap().1;
+        // index of element, skip NUM_CONST_FIELDS, then skip model parameter fields
         let elem = NUM_CONST_FIELDS + self.params.len() as u32 + pos;
+        // retrieve pointer to parameter storage within model data structure pointed to by ptr
         let ptr = LLVMBuildStructGEP2(llbuilder, self.ty, ptr, elem, UNNAMED);
         (ptr, ty)
     }

@@ -3,7 +3,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm::{LLVMDisposeTargetData, OptLevel};
+use llvm::{LLVMDisposeTargetData, OptLevel, LLVMABISizeOfType};
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
@@ -29,7 +29,7 @@ mod load;
 mod noise;
 mod setup;
 
-const OSDI_VERSION: (u32, u32) = (0, 3);
+const OSDI_VERSION: (u32, u32) = (0, 4);
 
 pub fn compile(
     db: &CompilationDB,
@@ -194,6 +194,18 @@ pub fn compile(
             "OSDI_VERSION_MINOR",
             cx.ty_int(),
             cx.const_unsigned_int(OSDI_VERSION.1),
+            true,
+        );
+        
+        let descr_size: u32;
+        unsafe {
+            descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
+        }
+
+        cx.export_val(
+            "OSDI_DESCRIPTOR_SIZE",
+            cx.ty_int(),
+            cx.const_unsigned_int(descr_size),
             true,
         );
 

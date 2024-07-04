@@ -308,6 +308,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 num_states: self.module.intern.lim_state.len() as u32,
                 load_limit_rhs_resist: self.load_lim_rhs(false),
                 load_limit_rhs_react: self.load_lim_rhs(true),
+                param_given_model: self.param_given_model(), 
+                param_given_instance: self.param_given_instance(), 
             }
         }
     }

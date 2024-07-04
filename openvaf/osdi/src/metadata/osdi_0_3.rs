@@ -292,6 +292,8 @@ impl OsdiTyBuilder<'_, '_, '_> {
         self.osdi_noise_source = Some(ty);
     }
 }
+
+// Defines order of descriptor entries
 pub struct OsdiDescriptor<'ll> {
     pub name: String,
     pub num_nodes: u32,
@@ -329,6 +331,8 @@ pub struct OsdiDescriptor<'ll> {
     pub load_jacobian_resist: &'ll llvm::Value,
     pub load_jacobian_react: &'ll llvm::Value,
     pub load_jacobian_tran: &'ll llvm::Value,
+    pub param_given_model: &'ll llvm::Value,
+    pub param_given_instance: &'ll llvm::Value,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(&self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
@@ -417,6 +421,9 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),
+            ctx.ty_ptr(),
+            ctx.ty_ptr(),
+            // 0.3 ends here
             ctx.ty_ptr(),
             ctx.ty_ptr(),
         ];
