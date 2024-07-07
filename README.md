@@ -13,7 +13,7 @@
 OpenVAF is a Verilog-A compiler written by Pascal Kuthe. The compiler outputs a dynamic library whose functionality can be acessed via the OSDI API (version 0.3). The original compiler received no support since end of 2023. This fork of [the original repository](https://github.com/pascalkuthe/OpenVAF) was started by Arpad
 Buermen in early 2024. Since then several small bugs were fixed that prevented the use of OpenVAF for building SPICE3 equivalent device models. 
 
-New functionality will be added to OpenVAF in the future. In order to achieve this the OSDI interface was modified to accommodate the changes. Consequently the current version of OSDI API is 0.4. OSDI API 0.4 differs from verion 0.3 in the module descriptor. It also exports `OSDI_DESCRIPTOR_SIZE` which can be used to traverse the array of descriptors without relying on the definition of the `OsdiDescriptor` structure. New members are added after the first part of the descriptor which still complies with OSDI specification v0.3. Simulators that rely on OSDI v0.3 can still use compiled models using the newer OSDI API by applying some minor changes. 
+New functionality will be added to OpenVAF in the future. In order to achieve this the OSDI interface was modified to accommodate the changes. Consequently the current version of OSDI API is 0.4. OSDI API 0.4 differs from version 0.3 in the module descriptor. It also exports `OSDI_DESCRIPTOR_SIZE` which can be used to traverse the array of descriptors without relying on the definition of the `OsdiDescriptor` structure. New members are added after the first part of the descriptor which still complies with OSDI specification v0.3. Simulators that rely on OSDI v0.3 can still use compiled models using the newer OSDI API by applying some minor changes. 
 
 The last version of OpenVAF that produces models with OSDI API version 0.3 is tagged with `osdi_0.3`. After that the project was renamed to **OpenVAF-reloaded** and the binary was renamed to `openvaf-r`. 
 
@@ -96,7 +96,7 @@ Unpack the sources. This creates directory `llvm-project-llvmorg-15.0.7`. Create
 
 Start Visual Studio x64 native command prompt. 
 Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
-Replace `e:\llvm` with the path where you want yout LLVM and Clang binaries and libraries to be installed. 
+Replace `e:\llvm` with the path where you want your LLVM and Clang binaries and libraries to be installed. 
 ```
 cmake -G Ninja -S llvm-project-llvmorg-15.0.7\llvm -B build -DCMAKE_INSTALL_PREFIX=e:\LLVM -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang"
 ```
