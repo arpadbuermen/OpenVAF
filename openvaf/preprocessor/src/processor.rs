@@ -248,6 +248,14 @@ impl<'a> Processor<'a> {
                     }
                     p.bump();
                 }
+                CompilerDirective::ResetAll => {
+                    let name = p.current_text();
+                    err.push(PreprocessorDiagnostic::UnsupportedCompDir {
+                        name: name.to_owned(),
+                        span: p.current_span()
+                    });
+                    p.bump();
+                }
                 CompilerDirective::Macro => {
                     let (call, range) =
                         parse_macro_call(p, err, &[], &mut self.source_map, p.end());

@@ -305,6 +305,7 @@ impl<'a, 'd> Parser<'a, 'd> {
             "`elsif" => CompilerDirective::ElseIf,
             "`endif" => CompilerDirective::EndIf,
             "`undef" => CompilerDirective::Undef,
+            "`resetall" => CompilerDirective::ResetAll,
             _ => CompilerDirective::Macro,
         }
     }
@@ -332,5 +333,6 @@ pub enum CompilerDirective {
     ElseIf,
     EndIf,
     Undef,
+    ResetAll,
     Macro,
 }

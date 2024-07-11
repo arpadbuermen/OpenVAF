@@ -11,6 +11,7 @@ pub enum PreprocessorDiagnostic {
     MacroNotFound { name: String, span: CtxSpan },
     MacroNotDefined { name: String, span: CtxSpan },
     MacroRecursion { name: String, span: CtxSpan },
+    UnsupportedCompDir { name: String, span: CtxSpan },
     FileNotFound { file: String, error: io::ErrorKind, span: Option<CtxSpan> },
     InvalidTextFormat { span: Option<CtxSpan>, file: VfsPath, err: InvalidTextFormatErr },
     UnexpectedEof { expected: &'static str, span: CtxSpan },
@@ -26,6 +27,7 @@ impl_display! {
         MacroNotFound{name,..} =>  "macro '`{}' has not been declared", name;
         MacroNotDefined{name,..} =>  "cannot undefine macro '`{}'", name;
         MacroRecursion { name,..} => "macro '`{}' was called recursively",name;
+        UnsupportedCompDir { name,.. } => "unsupported compiler directive {}",name;
         FileNotFound { file, error, .. } => "failed to read '{}': {}", file, std::io::Error::from(*error);
         InvalidTextFormat {  file, ..} => "failed to read {}: file contents are not valid text", file;
         UnexpectedEof { expected ,..} => "unexpected EOF, expected {}",expected;
