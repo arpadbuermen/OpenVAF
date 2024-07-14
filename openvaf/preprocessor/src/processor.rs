@@ -6,6 +6,7 @@ use ahash::AHashMap;
 use stdx::{impl_debug_display, impl_idx_from};
 use text_size::{TextRange, TextSize};
 use tokens::parser::SyntaxKind;
+use tokens::SyntaxKind::{L_PAREN, R_PAREN};
 // use tracing::{debug, debug_span, trace};
 use typed_index_collections::{TiSlice, TiVec};
 use vfs::{FileId, VfsPath};
@@ -166,11 +167,22 @@ impl<'a> Processor<'a> {
                 })
                 .collect();
 
-            if new_args.len() == def.arg_cnt {
+            if new_args.len() == def.arg_cnt || def.arg_cnt == 0 {
                 let ctx = self.source_map.add_ctx(def.span.to_file_span(&self.source_map), span);
                 for ParsedToken { kind, range } in &def.body {
                     let span = CtxSpan { range: range - def.span.range.start(), ctx };
                     self.process_macro_token(kind, span, &new_args, dst, errors)
+                }
+                if new_args.len() > def.arg_cnt {
+                    // macro definition has no arguments, but some were parsed as part of the call
+                    // so put the arguments back
+                    dst.push( Token { kind:L_PAREN, span } );
+                    for arg in new_args {
+                        for tok in arg {
+                            dst.push(tok)
+                        }
+                    }
+                    dst.push( Token { kind:R_PAREN, span } );
                 }
             } else {
                 errors.push(MacroArgumentCountMismatch {
