@@ -168,6 +168,7 @@ double store_lim(void *sim_info_, int idx, double val) {
 int analysis(void *sim_info_, char *name) {
   OsdiSimInfo *sim_info = (OsdiSimInfo *)sim_info_;
   uint32_t flags = sim_info->flags;
+  // AB: fixed bug, missing ! in front of strcmp()
   return ((flags & ANALYSIS_AC) && !strcmp(name, "ac")) ||
          ((flags & ANALYSIS_DC) && !strcmp(name, "dc")) ||
          ((flags & ANALYSIS_NOISE) && !strcmp(name, "noise")) ||
