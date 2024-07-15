@@ -227,7 +227,8 @@ impl Function {
     }
 
     pub fn arg(self, idx: usize, db: &CompilationDB) -> FunctionArg {
-        debug_assert!(db.function_data(self.id).args.len() >= idx);
+        // AB: debug assertion should be > because length>index
+        debug_assert!(db.function_data(self.id).args.len() > idx);
         FunctionArg { fun_id: self.id, arg_id: idx.into() }
     }
     pub fn args(self, db: &CompilationDB) -> impl Iterator<Item = FunctionArg> + Clone {
