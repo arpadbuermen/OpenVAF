@@ -7,7 +7,7 @@ use hir_ty::inference;
 use hir_ty::types::{Signature, Ty};
 
 pub use hir_def::expr::Event;
-pub use hir_def::{expr::CaseCond, BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type};
+pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type};
 pub use syntax::ast::{BinaryOp, UnaryOp};
 
 use crate::{Branch, CompilationDB, Node};

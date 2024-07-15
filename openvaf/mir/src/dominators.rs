@@ -9,6 +9,7 @@ use bitset::SparseBitMatrix;
 use stdx::packed_option::PackedOption;
 use typed_index_collections::{TiSlice, TiVec};
 
+/* AB: unused
 trait CfgREVERSE {
     type Successors;
     type Predecessors;
@@ -18,6 +19,7 @@ trait CfgREVERSE {
 }
 
 trait ToIter {}
+*/
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct DomTreeNode {

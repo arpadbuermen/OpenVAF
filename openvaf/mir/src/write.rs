@@ -345,6 +345,7 @@ impl<'a> fmt::Display for DisplayValues<'a> {
     }
 }
 
+/* AB: unused
 struct DisplayValuesWithDelimiter<'a>(&'a [Value], char);
 
 impl<'a> fmt::Display for DisplayValuesWithDelimiter<'a> {
@@ -359,6 +360,7 @@ impl<'a> fmt::Display for DisplayValuesWithDelimiter<'a> {
         Ok(())
     }
 }
+*/
 
 /// A lasso resolver that always returns `"<DUMMY>"`.
 /// Mainly useful for debugging
