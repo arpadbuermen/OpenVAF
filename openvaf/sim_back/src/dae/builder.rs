@@ -545,6 +545,7 @@ impl<'a> Builder<'a> {
                 matches!(self.system.unknowns[unknown], SimUnknownKind::KirchoffLaw(_));
             residual.map_vals(|val| ensure_optbarrier(val, is_kirchoff));
         }
+        ensure_optbarrier(mfactor, false);
 
         for noise_src in &mut self.system.noise_sources {
             noise_src.map_vals(|val| ensure_optbarrier(val, false));

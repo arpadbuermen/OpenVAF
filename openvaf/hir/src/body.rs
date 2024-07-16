@@ -7,7 +7,7 @@ use hir_ty::inference;
 use hir_ty::types::{Signature, Ty};
 
 pub use hir_def::expr::Event;
-pub use hir_def::{expr::CaseCond, BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type};
+pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type};
 pub use syntax::ast::{BinaryOp, UnaryOp};
 
 use crate::{Branch, CompilationDB, Node};
@@ -85,6 +85,7 @@ impl<'a> BodyRef<'a> {
         }
     }
 
+    // AB: get integer literal
     pub fn as_literalint(&self, &expr1: &ExprId) -> Option<i32> {
         match &self.body.exprs[expr1] {
             hir_def::Expr::Literal(lit) => match &lit {
@@ -95,6 +96,7 @@ impl<'a> BodyRef<'a> {
         }
     }
 
+    // AB: get integer literal with optional negative sign
     pub fn as_literalsignedint(&self, &expr1: &ExprId) -> Option<i32> {
         match &self.body.exprs[expr1] {
             hir_def::Expr::Literal(lit) => match &lit { // Literal

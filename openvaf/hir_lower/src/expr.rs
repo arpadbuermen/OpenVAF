@@ -564,6 +564,10 @@ impl BodyLoweringCtx<'_, '_, '_> {
                             CurrentKind::Port(self.body.into_port_flow(args[0]))
                         ))
                 };
+                // AB: Do not divide flow probe. 
+                //     Flow unknowns correspond to the flow of a single parallel instance. 
+                //     HIR equation describes a single parallel instance. 
+                //     Handle $mfactor at a lower level. 
                 // let mfactor = self.ctx.use_param(ParamKind::ParamSysFun(ParamSysFun::mfactor));
                 // return self.ctx.ins().fdiv(res, mfactor);
                 return res;
@@ -655,8 +659,8 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 self.ctx.finish_limit(state, res)
             }
             BuiltIn::discontinuity => {
-                // Negative literals are represented as UnaryOp::Neg(Literal)
-                // We have a function for that now. 
+                // AB: Negative literals are represented as UnaryOp::Neg(Literal)
+                //     We have a function for that now. 
                 if self.ctx.inside_lim && Some(-1) == self.body.as_literalsignedint(&args[0]) {
                     self.ctx.call(CallBackKind::LimDiscontinuity, &[]);
                 } else {
@@ -666,12 +670,12 @@ impl BodyLoweringCtx<'_, '_, '_> {
             }
             BuiltIn::finish | BuiltIn::stop => GRAVESTONE,
 
-            /* TODO: absdealy
+            /* TODO: absdelay
             BuiltIn::absdelay => {
                 let arg = self.lower_expr(args[0]);
                 let mut delay = self.lower_expr(args[1]);
-                let (eq1, res) = self.ctx.implicit_eqation(ImplicitEquationKind::Absdelay);
-                let (eq2, intermediate) = self.ctx.implicit_eqation(ImplicitEquationKind::Absdelay);
+                let (eq1, res) = self.ctx.implicit_equation(ImplicitEquationKind::Absdelay);
+                let (eq2, intermediate) = self.ctx.implicit_equation(ImplicitEquationKind::Absdelay);
                 if signature == ABSDELAY_MAX {
                     let max_delay = self.lower_expr(args[2]);
                     let use_delay = self.ctx.ins().fle(delay, max_delay);
@@ -702,7 +706,7 @@ impl BodyLoweringCtx<'_, '_, '_> {
     }
 
     fn lower_integral(&mut self, kind: IdtKind, args: &[ExprId]) -> Value {
-        let (equation, val) = self.ctx.implicit_eqation(ImplicitEquationKind::Idt(kind));
+        let (equation, val) = self.ctx.implicit_equation(ImplicitEquationKind::Idt(kind));
 
         let mut enable_integral = self.ctx.use_param(ParamKind::EnableIntegration);
         let residual = if kind.has_ic() {
