@@ -10,12 +10,12 @@
 
 # OpenVAF-reloaded
 
-OpenVAF is a Verilog-A compiler written by Pascal Kuthe. The compiler outputs a dynamic library whose functionality can be acessed via the OSDI API (version 0.3). The original compiler received no support since end of 2023. This fork of [the original repository](https://github.com/pascalkuthe/OpenVAF) was started by Arpad
-Buermen in early 2024. Since then several small bugs were fixed that prevented the use of OpenVAF for building SPICE3 equivalent device models. 
+OpenVAF is a Verilog-A compiler written by Pascal Kuthe. The compiler outputs a dynamic library whose functionality can be acessed via the OSDI API (version 0.3). The original compiler received no support since end of 2023. This fork of [the original repository](https://github.com/pascalkuthe/OpenVAF) was started by Árpád
+Bűrmen in early 2024. Since then several small bugs were fixed that prevented the use of OpenVAF for building SPICE3 equivalent device models. 
 
 New functionality will be added to OpenVAF in the future. In order to achieve this the OSDI interface was modified to accommodate the changes. Consequently the current version of OSDI API is 0.4. OSDI API 0.4 differs from version 0.3 in the module descriptor. It also exports `OSDI_DESCRIPTOR_SIZE` which can be used to traverse the array of descriptors without relying on the definition of the `OsdiDescriptor` structure. New members are added after the first part of the descriptor which still complies with OSDI specification v0.3. Simulators that rely on OSDI v0.3 can still use compiled models using the newer OSDI API by applying some minor changes. 
 
-The last version of OpenVAF that produces models with OSDI API version 0.3 is tagged with `osdi_0.3`. After that the project was renamed to **OpenVAF-reloaded** and the binary was renamed to `openvaf-r`. 
+The last version of OpenVAF before the project was renamed to **OpenVAF-reloaded** and the binary was renamed to `openvaf-r` is tagged with `osdi_0.3`. Currently two branches are maintained: `master` branch using the OSDI 0.4 API and a branch named `branches/osdi_0.3` using the old OSDI 0.3 API. Both branches include bugfixes by Geoffrey Coram with the exception of [477e71c](https://github.com/pascalkuthe/OpenVAF/commit/477e71c8b2fcf146d0e0ff2cb7a67580c2241669) which crashes when compiling Cogenda BSIM4 with `__XYCE_VAMS__` not defined. 
 
 
 # OSDI 0.4
@@ -49,7 +49,7 @@ Yes, binaries for 64-bit Linux and Windows are available [here](https://fides.fe
 openvaf-reloaded-<version>-<platform>
 ```
 
-The version name is generated with `git --describe`. The OpenVAF-reloaded that produces models with the OSDI API v0.3 is version `osdi_0.3`. All newer versions produce models with OSDI API v0.4. 
+The version name is generated with `git --describe`. The OpenVAF-reloaded that produces models with the OSDI API v0.3 is version `osdi_0.3`. All newer versions (`osdi_0.4`) produce models with OSDI API v0.4. 
 
 
 # Building OpenVAF-reloaded
@@ -131,6 +131,10 @@ cargo build --bin openvaf-r
 # Acknowledgement
 
 Kudos to Pascal Kuthe for the great work he did. 
+
+Some minor bugfixes are authored by Árpád Bűrmen. 
+
+Several bugfixes by Geoffrey Coram are also included. 
 
 
 # Copyright
