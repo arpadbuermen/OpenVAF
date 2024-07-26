@@ -19,8 +19,11 @@
                     "kind": "bin"
                 }
             },
-            "args": [ "builtin.va" ],
-            "cwd": "${workspaceFolder}/.."
+            "args": [ "resistor.va" ],
+            "cwd": "${workspaceFolder}/..",
+            "env": {
+                "RAYON_NUM_THREADS": "1" 
+            }
         }
     ]
 }

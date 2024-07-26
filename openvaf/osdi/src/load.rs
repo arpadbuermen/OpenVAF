@@ -332,7 +332,73 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             LLVMBuildRetVoid(llbuilder);
             LLVMDisposeBuilder(llbuilder);
         }
-
+        
         llfunc
     }
+    
+    // write_jacobian_array_{resist|react|tran}(void* instance, void* model, double* destination [, alpha])
+    // Writes Jacobian entries into a double array of size num_jacobian_entries
+    // If a particular entry is not present, nothing is loaded. 
+    // Array of doubles need not be zeroed before calling this function. 
+    pub fn write_jacobian_array(&self, kind: JacobianLoadType) -> &'ll llvm::Value {
+        let OsdiCompilationUnit { cx, module, .. } = *self;
+        let args = [cx.ty_ptr(), cx.ty_ptr(), cx.ty_ptr()];
+        let fun_ty = cx.ty_func(&args, cx.ty_void());
+        let name = &format!("write_jacobian_array_{}_{}", kind.name(), &module.sym,);
+        let llfunc = cx.declare_int_c_fn(name, fun_ty);
+
+        unsafe {
+            let entry = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
+            let llbuilder = LLVMCreateBuilderInContext(cx.llcx);
+
+            LLVMPositionBuilderAtEnd(llbuilder, entry);
+            // get params
+            let inst = LLVMGetParam(llfunc, 0);
+            let model = LLVMGetParam(llfunc, 1);
+            let dest_array = LLVMGetParam(llfunc, 2);
+
+            // Destination array type
+            let len = {
+                if kind.read_resistive() {
+                    module.dae_system.num_resistive
+                } else {
+                    module.dae_system.num_reactive
+                }
+            };
+            let dest_ty = cx.ty_array(cx.ty_double(), len as u32);
+            
+            let mut pos : u32 = 0;
+            for entry in module.dae_system.jacobian.keys() {
+                let res = {
+                    if kind.read_resistive() {
+                        // Load resistive Jacobian value from instance structure
+                        self.load_jacobian_entry(entry, inst, model, llbuilder, false)
+                    } else {
+                        // Load reactive Jacobian value from instance structure
+                        self.load_jacobian_entry(entry, inst, model, llbuilder, true)
+                    }
+                };
+                
+                // Do we have any result in res
+                if let Some(res) = res {
+                    // Store it in array pointed to by ptr
+                    self.inst_data.write_jacobian_contrib(
+                        self.cx,
+                        pos, 
+                        dest_ty, 
+                        dest_array,
+                        llbuilder,
+                        res,
+                    );
+                    pos = pos + 1;
+                }
+            }
+    
+            LLVMBuildRetVoid(llbuilder);
+            LLVMDisposeBuilder(llbuilder);
+        }
+        
+        llfunc
+    }
+
 }

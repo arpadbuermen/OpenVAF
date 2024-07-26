@@ -724,6 +724,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         }
     }
 
+    // Adds Jacobian contribution to destination
     pub unsafe fn store_jacobian_contrib(
         &self,
         cx: &CodegenCx<'_, 'll>,
@@ -733,22 +734,55 @@ impl<'ll> OsdiInstanceData<'ll> {
         reactive: bool,
         val: &'ll llvm::Value,
     ) {
+        // Field number within instance structure
         let field = if reactive { JACOBIAN_PTR_REACT } else { JACOBIAN_PTR_RESIST };
+        // Get pointer to array of double* pointers
         let ptr = LLVMBuildStructGEP2(llbuilder, self.ty, ptr, field, UNNAMED);
         let zero = cx.const_int(0);
+        // Get entry index
         let entry = if reactive {
+            // For reactive Jacobian get index of reactive entry
             self.jacobian[entry].react_off.unwrap_unchecked().into()
         } else {
+            // For resistive Jacobian the u32 value within MatrixEntryId is the index
             entry.into()
         };
+        // Convert to LLVM u32
         let entry = cx.const_unsigned_int(entry);
+        // Prepare type of Jacobian entry pointers array
         let ty = if reactive { self.jacobian_ptr_react } else { self.jacobian_ptr };
+        // Create pointer to array entry with index entry
         let ptr = LLVMBuildGEP2(llbuilder, ty, ptr, [zero, entry].as_ptr(), 2, UNNAMED);
+        // Load value from destination pointed to by ptr (get pointer to Jacobian entry destination)
         let dst = LLVMBuildLoad2(llbuilder, cx.ty_ptr(), ptr, UNNAMED);
+        // Load value from where the Jacobian entry should be added (pointed to by dst)
         let old = LLVMBuildLoad2(llbuilder, cx.ty_double(), dst, UNNAMED);
+        // Add value to old
         let val = LLVMBuildFAdd(llbuilder, old, val, UNNAMED);
+        // Set fast math flags on result
         LLVMSetFastMath(val);
+        // Store value where dst pointer points to
         LLVMBuildStore(llbuilder, val, dst);
+    }
+
+    // Writes Jacobian contribution to corresponding slot in array of doubles
+    pub unsafe fn write_jacobian_contrib(
+        &self,
+        cx: &CodegenCx<'_, 'll>,
+        entry: u32,
+        ty: &'ll llvm::Type, 
+        ptr: &'ll llvm::Value,
+        llbuilder: &llvm::Builder<'ll>,
+        val: &'ll llvm::Value,
+    ) {
+        let zero = cx.const_int(0);
+        
+        // Convert to LLVM u32
+        let entry = cx.const_unsigned_int(entry);
+        // Create pointer to array entry with index entry
+        let ptr = LLVMBuildGEP2(llbuilder, ty, ptr, [zero, entry].as_ptr(), 2, UNNAMED);
+        // Store value where dst pointer points to
+        LLVMBuildStore(llbuilder, val, ptr);
     }
 
     pub fn cache_slot_elem(&self, slot: CacheSlot) -> u32 {

@@ -332,7 +332,13 @@ pub struct OsdiDescriptor<'ll> {
     pub load_jacobian_react: &'ll llvm::Value,
     pub load_jacobian_tran: &'ll llvm::Value,
     pub given_flag_model: &'ll llvm::Value,
-    pub given_flag_instance: &'ll llvm::Value,
+    pub given_flag_instance: &'ll llvm::Value, 
+    pub num_resistive_jacobian_entries: u32,
+    pub num_reactive_jacobian_entries: u32,
+    pub write_jacobian_array_resist: &'ll llvm::Value,
+    pub write_jacobian_array_react: &'ll llvm::Value,
+    pub num_inputs: u32, 
+    pub inputs: Vec<OsdiNodePair>, 
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(&self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
@@ -341,6 +347,7 @@ impl<'ll> OsdiDescriptor<'ll> {
         let arr_7: Vec<_> = self.collapsible.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_9: Vec<_> = self.noise_sources.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_14: Vec<_> = self.param_opvar.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
+        let arr_inputs: Vec<_> = self.inputs.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let fields = [
             ctx.const_str_uninterned(&self.name),
             ctx.const_unsigned_int(self.num_nodes),
@@ -380,6 +387,12 @@ impl<'ll> OsdiDescriptor<'ll> {
             self.load_jacobian_tran, 
             self.given_flag_model, 
             self.given_flag_instance, 
+            ctx.const_unsigned_int(self.num_resistive_jacobian_entries), 
+            ctx.const_unsigned_int(self.num_reactive_jacobian_entries), 
+            self.write_jacobian_array_resist,
+            self.write_jacobian_array_react,
+            ctx.const_unsigned_int(self.num_inputs),
+            ctx.const_arr_ptr(tys.osdi_node_pair, &arr_inputs),
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)
@@ -426,8 +439,14 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             // 0.3 ends here
-            ctx.ty_ptr(),
-            ctx.ty_ptr(),
+            ctx.ty_ptr(), // given_flag_model()
+            ctx.ty_ptr(), // given_flag_instance()
+            ctx.ty_int(), // num_resistive_jacobian_entries
+            ctx.ty_int(), // num_reactive_jacobian_entries
+            ctx.ty_ptr(), // write_jacobian_array_resist()
+            ctx.ty_ptr(), // write_jacobian_array_react()
+            ctx.ty_int(), // num_inputs
+            ctx.ty_ptr(), // inputs
         ];
         let ty = ctx.ty_struct("OsdiDescriptor", &fields);
         self.osdi_descriptor = Some(ty);

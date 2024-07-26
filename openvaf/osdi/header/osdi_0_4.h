@@ -195,6 +195,12 @@ typedef struct OsdiDescriptor {
   // 0.3 ends here
   uint32_t (*given_flag_model)(void *model, uint32_t id);
   uint32_t (*given_flag_instance)(void *inst, uint32_t id);
+  uint32_t num_resistive_jacobian_entries;
+  uint32_t num_reactive_jacobian_entries;
+  void (*write_jacobian_array_resist)(void *inst, void* model, double* destination);
+  void (*write_jacobian_array_react)(void *inst, void* model, double* destination);
+  uint32_t num_inputs;
+  OsdiNodePair* inputs;
 }OsdiDescriptor;
 
 
