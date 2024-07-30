@@ -10,6 +10,7 @@ doctest = false
 
 [dependencies]
 
+tokens = { version = "0.0.0", path = "../tokens" }
 basedb = { version = "0.0.0", path = "../basedb" }
 sim_back = { version = "0.0.0", path = "../sim_back" }
 osdi = { version = "0.0.0", path = "../osdi" }

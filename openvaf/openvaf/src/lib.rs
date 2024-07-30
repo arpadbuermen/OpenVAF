@@ -117,7 +117,22 @@ pub fn expand(opts: &Opts) -> Result<CompilationTermination> {
     for token in preprocess.ts.iter() {
         let span = token.span.to_file_span(&preprocess.sm);
         let text = db.file_text(span.file).unwrap();
-        print!("{}", &text[span.range]);
+        match token.kind {
+            tokens::parser::SyntaxKind::COMMENT => {
+                // Block comments are ok
+                // Line comments should be dumped with a newline
+                if !text[span.range].starts_with("/*") {
+                    println!("{}", &text[span.range])
+                } else {
+                    print!("{}", &text[span.range])
+                }
+            }, 
+            _ => {
+                // Add a space after each token
+                print!("{} ", &text[span.range])
+            }
+
+        };
     }
     println!();
 
