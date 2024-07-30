@@ -979,6 +979,7 @@ dependencies = [
  "stdx",
  "target",
  "termcolor",
+ "tokens",
 ]
 
 [[package]]
