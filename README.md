@@ -15,7 +15,7 @@ Bűrmen in early 2024. Since then several small bugs were fixed that prevented t
 
 New functionality will be added to OpenVAF in the future. In order to achieve this the OSDI interface was modified to accommodate the changes. Consequently the current version of OSDI API is 0.4. OSDI API 0.4 differs from version 0.3 in the module descriptor. It also exports `OSDI_DESCRIPTOR_SIZE` which can be used to traverse the array of descriptors without relying on the definition of the `OsdiDescriptor` structure. New members are added after the first part of the descriptor which still complies with OSDI specification v0.3. Simulators that rely on OSDI v0.3 can still use compiled models using the newer OSDI API by applying some minor changes. 
 
-The last version of OpenVAF before the project was renamed to **OpenVAF-reloaded** and the binary was renamed to `openvaf-r` is tagged with `osdi_0.3`. Currently two branches are maintained: `master` branch using the OSDI 0.4 API and a branch named `branches/osdi_0.3` using the old OSDI 0.3 API. Both branches include bugfixes by Geoffrey Coram and Dietmar Warning with the exception of [477e71c](https://github.com/pascalkuthe/OpenVAF/commit/477e71c8b2fcf146d0e0ff2cb7a67580c2241669) which crashes when compiling Cogenda BSIM4 with `__XYCE_VAMS__` not defined. 
+The last version of OpenVAF before the project was renamed to **OpenVAF-reloaded** and the binary was renamed to `openvaf-r` is tagged with `osdi_0.3`. Currently two branches are maintained: `master` branch using the OSDI 0.4 API and a branch named `branches/osdi_0.3` using the old OSDI 0.3 API. Both branches include bugfixes by Geoffrey Coram and Dietmar Warning. 
 
 
 # OSDI 0.4
