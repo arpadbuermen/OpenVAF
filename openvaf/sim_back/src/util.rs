@@ -46,11 +46,22 @@ pub fn update_optbarrier(
 }
 
 pub fn add(cursor: &mut FuncCursor, dst: &mut Value, val: Value, negate: bool) {
+    // Create MIR instruction that takes the destination value and adds or subtracts val. 
+    // Returns the resulting value produced by fadd/fsub. 
+    // Sets dst to this new value. 
     match (*dst, val) {
+        // val is zero, nothing to do
         (_, F_ZERO) => (),
+        // dst is zero, negate val by creating "fneg val"
         (F_ZERO, _) if negate => *dst = cursor.ins().fneg(val),
-//        (F_ZERO, _) => *dst = val, // why no cursor.ins()?
+        // dst is zero, no negate, create optbarrier
+        // If not a node with only a voltage noise contribution will produce a singular Jacobian
+        // The KCL entry of the node in the Jacobian will be missing the branch current contribution
+        // (F_ZERO, _) => *dst = val, 
+        (F_ZERO, _) => *dst = cursor.ins().optbarrier(val), 
+        // negate, create "fsub dst, val"
         (old, _) if negate => *dst = cursor.ins().fsub(old, val),
+        // do not negate, create "fadd dst, val"
         (old, _) => *dst = cursor.ins().fadd(old, val),
     }
 }
