@@ -57,7 +57,7 @@ openvaf-reloaded-<version>-<platform>
 
 The version name is generated with `git --describe`. The OpenVAF-reloaded that produces models with the OSDI API v0.3 is version `osdi_0.3`. All newer versions (`osdi_0.4`) produce models with OSDI API v0.4. 
 
-If the binary is named `openvaf` it comes from the `osdi_0.3` branch and produces models with the OSDI 0.3 API. If the binary is named `openvaf-r` it comes from the `master` branch and produces models with the OSDI 0.4 API. 
+If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch and produces models with the OSDI 0.3 API. If the binary is named `openvaf-r` it comes from the `master` branch and produces models with the OSDI 0.4 API. 
 
 
 # Building OpenVAF-reloaded
