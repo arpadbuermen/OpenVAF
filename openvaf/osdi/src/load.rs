@@ -275,13 +275,27 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn load_jacobian(&self, kind: JacobianLoadType) -> &'ll llvm::Value {
+    pub fn load_jacobian(&self, kind: JacobianLoadType, with_offset: bool) -> &'ll llvm::Value {
         let OsdiCompilationUnit { cx, module, .. } = *self;
-        let args_ = [cx.ty_ptr(), cx.ty_ptr(), cx.ty_double()];
-        let args = if kind.read_reactive() { &args_ } else { &args_[0..2] };
-        let fun_ty = cx.ty_func(args, cx.ty_void());
-        let name = &format!("load_jacobian_{}_{}", kind.name(), &module.sym,);
-        let llfunc = cx.declare_int_c_fn(name, fun_ty);
+        let fun_ty = if !with_offset {
+            if kind.read_reactive() { 
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_double()], cx.ty_void())
+             } else { 
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr()], cx.ty_void())
+            }
+        } else {
+            if kind.read_reactive() {
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_double(), cx.ty_size()], cx.ty_void())
+            } else {
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_size()], cx.ty_void())
+            }
+        };
+        let name = if with_offset {
+            format!("load_jacobian_offset_{}_{}", kind.name(), &module.sym,)
+        } else {
+            format!("load_jacobian_{}_{}", kind.name(), &module.sym,)
+        };
+        let llfunc = cx.declare_int_c_fn(&name, fun_ty);
 
         unsafe {
             let entry = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
@@ -292,6 +306,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let inst = LLVMGetParam(llfunc, 0);
             let model = LLVMGetParam(llfunc, 1);
             let alpha = if kind.read_reactive() { LLVMGetParam(llfunc, 2) } else { inst };
+            let offset = if with_offset {
+                if kind.read_reactive() {
+                    LLVMGetParam(llfunc, 3)
+                } else {
+                    LLVMGetParam(llfunc, 2)
+                }
+            } else {
+                // Some dummy 
+                inst
+            };
 
             for entry in module.dae_system.jacobian.keys() {
                 let mut res = None;
@@ -324,6 +348,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst,
                         llbuilder,
                         kind.dst_reactive(),
+                        with_offset, 
+                        offset, 
                         res,
                     );
                 }

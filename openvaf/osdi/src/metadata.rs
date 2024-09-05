@@ -313,9 +313,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 load_residual_react: self.load_residual(true),
                 load_spice_rhs_dc: self.load_spice_rhs(false),
                 load_spice_rhs_tran: self.load_spice_rhs(true),
-                load_jacobian_resist: self.load_jacobian(JacobianLoadType::Resist),
-                load_jacobian_react: self.load_jacobian(JacobianLoadType::React),
-                load_jacobian_tran: self.load_jacobian(JacobianLoadType::Tran),
+                load_jacobian_resist: self.load_jacobian(JacobianLoadType::Resist, false),
+                load_jacobian_react: self.load_jacobian(JacobianLoadType::React, false),
+                load_jacobian_tran: self.load_jacobian(JacobianLoadType::Tran, false),
                 num_states: self.module.intern.lim_state.len() as u32,
                 load_limit_rhs_resist: self.load_lim_rhs(false),
                 load_limit_rhs_react: self.load_lim_rhs(true),
@@ -327,6 +327,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 write_jacobian_array_react: self.write_jacobian_array(JacobianLoadType::React),
                 num_inputs: inputs.len() as u32, 
                 inputs: inputs, 
+                load_jacobian_offset_resist: self.load_jacobian(JacobianLoadType::Resist, true),
+                load_jacobian_offset_react: self.load_jacobian(JacobianLoadType::React, true),
             }
         }
     }

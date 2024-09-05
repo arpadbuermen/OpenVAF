@@ -55,6 +55,8 @@
 
 # OSDI 0.4 descriptor entries 
 
+## Given flags access
+
     uint32_t (*given_flag_model)(void *model, uint32_t id);
 
 Returns true if given flag is set for model parameter with given OSDI id. 
@@ -64,6 +66,12 @@ If id is not a valid model parameter, returns false.
     
 Returns true if given flag is set for instance parameter with given OSDI id.
 If id is not a valid instance parameter, returns false. 
+
+
+## Loading Jacobian entries into an array
+
+These functions are used for extracting Jacobian contributions of a single instance. 
+They can be used for checking whether an instance is converged. 
 
     uint32_t num_resistive_jacobian_entries;
     
@@ -87,13 +95,41 @@ Writes reactive Jacobian contributions to an array of doubles of length num_reac
 The entries appear in the same order as in jacobian_entries. 
 Entries with JACOBIAN_ENTRY_REACT flag not set are left out. 
 
+
+## List of model inputs
+
+Obtains the list of input quantities to a model (just like they appear in Verilog-A code). 
+This information is useful when checking whether an instance is converged. 
+Only inputs that cause nonlinear response are listed. 
+
     uint32_t num_inputs;
 
-Number of model inputs. Only inputs that cause nonlinear response are listed. 
+Number of model inputs. 
 
     OsdiNodePair* inputs;
 
-Model inputs as node pairs. If a node is UINT32_MAX, it corresponds to global ground node. 
+Model inputs as node pairs. If a node in a node pair is UINT32_MAX, 
+it corresponds to global ground node. 
+
+
+## Loading Jacobian entries with an offset
+
+These functions are used for adding Jacobian contributions of a single instance
+to an address shifted by an offset from the given Jacobian entry pointers. 
+This is useful in analyses like HB where we need to evaluate the circuit at multiple 
+timepoints and store the results in vectors. 
+
+    void load_jacobian_offset_resist(void *inst, void* model, size_t offset);
+
+Like load_jacobian_resist(), except that it adds an offset to the Jacobian entry pointer. 
+Offset of 1 means that the address in memory where the entry is added to is 
+the address pointed to by the Jacobian entry pointer increased by the size of one double (8). 
+
+    void load_jacobian_offset_react(void *inst, void* model, double alpha, size_t offset);
+
+Like load_jacobian_react(), except that it adds an offset to the Jacobian entry pointer. 
+Offset of 1 means that the address in memory where the entry is added to is 
+the address pointed to by the Jacobian entry pointer increased by the size of one double (8). 
 
 
 # OSDI 0.4 symbols in the generated dynamic library. 
