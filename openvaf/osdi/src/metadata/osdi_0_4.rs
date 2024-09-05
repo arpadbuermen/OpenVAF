@@ -339,8 +339,8 @@ pub struct OsdiDescriptor<'ll> {
     pub write_jacobian_array_react: &'ll llvm::Value,
     pub num_inputs: u32, 
     pub inputs: Vec<OsdiNodePair>, 
-    pub load_jacobian_offset_resist: &'ll llvm::Value,
-    pub load_jacobian_offset_react: &'ll llvm::Value,
+    pub load_jacobian_with_offset_resist: &'ll llvm::Value,
+    pub load_jacobian_with_offset_react: &'ll llvm::Value,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(&self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
@@ -395,8 +395,8 @@ impl<'ll> OsdiDescriptor<'ll> {
             self.write_jacobian_array_react,
             ctx.const_unsigned_int(self.num_inputs),
             ctx.const_arr_ptr(tys.osdi_node_pair, &arr_inputs), 
-            self.load_jacobian_offset_resist,
-            self.load_jacobian_offset_react,
+            self.load_jacobian_with_offset_resist,
+            self.load_jacobian_with_offset_react,
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)

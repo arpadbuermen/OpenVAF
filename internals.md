@@ -119,16 +119,16 @@ to an address shifted by an offset from the given Jacobian entry pointers.
 This is useful in analyses like HB where we need to evaluate the circuit at multiple 
 timepoints and store the results in vectors. 
 
-    void load_jacobian_offset_resist(void *inst, void* model, size_t offset);
+    void load_jacobian_with_offset_resist(void *inst, void* model, size_t offset);
 
 Like load_jacobian_resist(), except that it adds an offset to the Jacobian entry pointer. 
 Offset of 1 means that the address in memory where the entry is added to is 
 the address pointed to by the Jacobian entry pointer increased by the size of one double (8). 
 
-    void load_jacobian_offset_react(void *inst, void* model, double alpha, size_t offset);
+    void load_jacobian_with_offset_react(void *inst, void* model, size_t offset);
 
 Like load_jacobian_react(), except that it adds an offset to the Jacobian entry pointer. 
-Offset of 1 means that the address in memory where the entry is added to is 
+Assumes alpha=1. Offset of 1 means that the address in memory where the entry is added to is 
 the address pointed to by the Jacobian entry pointer increased by the size of one double (8). 
 
 

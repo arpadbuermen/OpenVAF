@@ -327,8 +327,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 write_jacobian_array_react: self.write_jacobian_array(JacobianLoadType::React),
                 num_inputs: inputs.len() as u32, 
                 inputs: inputs, 
-                load_jacobian_offset_resist: self.load_jacobian(JacobianLoadType::Resist, true),
-                load_jacobian_offset_react: self.load_jacobian(JacobianLoadType::React, true),
+                load_jacobian_with_offset_resist: self.load_jacobian(JacobianLoadType::Resist, true),
+                load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
             }
         }
     }
