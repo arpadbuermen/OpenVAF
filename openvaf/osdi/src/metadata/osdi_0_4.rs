@@ -451,6 +451,8 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(), // write_jacobian_array_react()
             ctx.ty_int(), // num_inputs
             ctx.ty_ptr(), // inputs
+            ctx.ty_ptr(), // load_jacobian_with_offset_resist()
+            ctx.ty_ptr(), // load_jacobian_with_offset_react()
         ];
         let ty = ctx.ty_struct("OsdiDescriptor", &fields);
         self.osdi_descriptor = Some(ty);
