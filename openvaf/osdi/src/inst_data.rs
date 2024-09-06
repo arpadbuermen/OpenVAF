@@ -732,6 +732,8 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
         reactive: bool,
+        has_offset: bool, 
+        offset: &'ll llvm::Value,
         val: &'ll llvm::Value,
     ) {
         // Field number within instance structure
@@ -754,7 +756,11 @@ impl<'ll> OsdiInstanceData<'ll> {
         // Create pointer to array entry with index entry
         let ptr = LLVMBuildGEP2(llbuilder, ty, ptr, [zero, entry].as_ptr(), 2, UNNAMED);
         // Load value from destination pointed to by ptr (get pointer to Jacobian entry destination)
-        let dst = LLVMBuildLoad2(llbuilder, cx.ty_ptr(), ptr, UNNAMED);
+        let mut dst = LLVMBuildLoad2(llbuilder, cx.ty_ptr(), ptr, UNNAMED);
+        // Add offset to destination
+        if has_offset {
+            dst = LLVMBuildGEP2(llbuilder, cx.ty_double(), dst, [offset].as_ptr(), 1, UNNAMED);
+        }
         // Load value from where the Jacobian entry should be added (pointed to by dst)
         let old = LLVMBuildLoad2(llbuilder, cx.ty_double(), dst, UNNAMED);
         // Add value to old

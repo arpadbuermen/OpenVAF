@@ -201,6 +201,8 @@ typedef struct OsdiDescriptor {
   void (*write_jacobian_array_react)(void *inst, void* model, double* destination);
   uint32_t num_inputs;
   OsdiNodePair* inputs;
+  void (*load_jacobian_with_offset_resist)(void *inst, void* model, size_t offset);
+  void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
 }OsdiDescriptor;
 
 

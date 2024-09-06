@@ -275,23 +275,52 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn load_jacobian(&self, kind: JacobianLoadType) -> &'ll llvm::Value {
+    pub fn load_jacobian(&self, kind: JacobianLoadType, with_offset: bool) -> &'ll llvm::Value {
         let OsdiCompilationUnit { cx, module, .. } = *self;
-        let args_ = [cx.ty_ptr(), cx.ty_ptr(), cx.ty_double()];
-        let args = if kind.read_reactive() { &args_ } else { &args_[0..2] };
-        let fun_ty = cx.ty_func(args, cx.ty_void());
-        let name = &format!("load_jacobian_{}_{}", kind.name(), &module.sym,);
-        let llfunc = cx.declare_int_c_fn(name, fun_ty);
+        let fun_ty = if !with_offset {
+            if kind.read_reactive() { 
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_double()], cx.ty_void())
+             } else { 
+                cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr()], cx.ty_void())
+            }
+        } else {
+            // with_offset assumes alpha=1 for the reactive Jacobian loader
+            cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_size()], cx.ty_void())
+        };
+        let name = if with_offset {
+            format!("load_jacobian_with_offset_{}_{}", kind.name(), &module.sym,)
+        } else {
+            format!("load_jacobian_{}_{}", kind.name(), &module.sym,)
+        };
+        let llfunc = cx.declare_int_c_fn(&name, fun_ty);
 
         unsafe {
             let entry = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
             let llbuilder = LLVMCreateBuilderInContext(cx.llcx);
 
             LLVMPositionBuilderAtEnd(llbuilder, entry);
-            // get params
+            // Get params
             let inst = LLVMGetParam(llfunc, 0);
             let model = LLVMGetParam(llfunc, 1);
-            let alpha = if kind.read_reactive() { LLVMGetParam(llfunc, 2) } else { inst };
+            let alpha = if with_offset {
+                // Some dummy
+                inst
+            } else {
+                // without offset, need alpha
+                if kind.read_reactive() { 
+                    // Reactive part 
+                    LLVMGetParam(llfunc, 2) 
+                } else { 
+                    // Some dummy
+                    inst 
+                }
+            };
+            let offset = if with_offset {
+                LLVMGetParam(llfunc, 2)
+            } else {
+                // Some dummy 
+                inst
+            };
 
             for entry in module.dae_system.jacobian.keys() {
                 let mut res = None;
@@ -303,8 +332,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     if let Some(mut val) =
                         self.load_jacobian_entry(entry, inst, model, llbuilder, true)
                     {
-                        val = LLVMBuildFMul(llbuilder, val, alpha, UNNAMED);
-                        LLVMSetFastMath(val);
+                        // with_offset assumes alpha=1
+                        if !with_offset {
+                            val = LLVMBuildFMul(llbuilder, val, alpha, UNNAMED);
+                            LLVMSetFastMath(val);
+                        }
                         val = match res {
                             Some(resist) => {
                                 let val = LLVMBuildFAdd(llbuilder, resist, val, UNNAMED);
@@ -324,6 +356,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst,
                         llbuilder,
                         kind.dst_reactive(),
+                        with_offset, 
+                        offset, 
                         res,
                     );
                 }
