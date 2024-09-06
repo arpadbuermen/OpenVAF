@@ -302,18 +302,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             // Get params
             let inst = LLVMGetParam(llfunc, 0);
             let model = LLVMGetParam(llfunc, 1);
-            let alpha = if with_offset {
+            let alpha = if !with_offset && kind.read_reactive() {
+                // Reactive part 
+                LLVMGetParam(llfunc, 2) 
+            } else { 
                 // Some dummy
-                inst
-            } else {
-                // without offset, need alpha
-                if kind.read_reactive() { 
-                    // Reactive part 
-                    LLVMGetParam(llfunc, 2) 
-                } else { 
-                    // Some dummy
-                    inst 
-                }
+                inst 
             };
             let offset = if with_offset {
                 LLVMGetParam(llfunc, 2)
