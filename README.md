@@ -10,8 +10,7 @@
 
 # OpenVAF-reloaded
 
-OpenVAF is a Verilog-A compiler written by Pascal Kuthe. The compiler outputs a dynamic library whose functionality can be acessed via the OSDI API (version 0.3). The original compiler received no support since end of 2023. This fork of [the original repository](https://github.com/pascalkuthe/OpenVAF) was started by Árpád
-Bűrmen in early 2024. Since then several small bugs were fixed that prevented the use of OpenVAF for building SPICE3 equivalent device models. 
+OpenVAF is a Verilog-A compiler written by Pascal Kuthe. The compiler outputs a dynamic library whose functionality can be accessed via the OSDI API (version 0.3). The original compiler received no support since end of 2023. This fork of [the original repository](https://github.com/pascalkuthe/OpenVAF) was started by Árpád Bűrmen in early 2024. Since then several small bugs were fixed that prevented the use of OpenVAF for building SPICE3 equivalent device models. 
 
 New functionality will be added to OpenVAF in the future. In order to achieve this the OSDI interface was modified to accommodate the changes. Consequently the current version of OSDI API is 0.4. OSDI API 0.4 differs from version 0.3 in the module descriptor. It also exports `OSDI_DESCRIPTOR_SIZE` which can be used to traverse the array of descriptors without relying on the definition of the `OsdiDescriptor` structure. New members are added after the first part of the descriptor which still complies with OSDI specification v0.3. Simulators that rely on OSDI v0.3 can still use compiled models using the newer OSDI API by applying some minor changes. 
 
@@ -135,6 +134,13 @@ To build the debug version (`target/debug/openvaf-r`), type
 ```
 cargo build --bin openvaf-r
 ```
+
+# Debugging OpenVAF-reloaded in Visual Studio Code 
+
+You will need two extensions: CodeLLDB and rust-analyzer. In the `.vscode` directory there are two files: `launch-openvaf-r.json` (for working with the master branch) and `launch-openvaf.json` (for working with the branches/osdi_0.3 branch). Copy the one that matches your branch to `launch.json`. There is a debug setup in that file. Set your breakpoints and run the program. If there are any changes since the last build they will be applied upon which the program will be started and then stop at the first breakpoint. 
+
+The debug configuration disables rayon running the .osdi file build process in parallel so that debugging the last step of compilation is somewhat easier. 
+
 
 # Acknowledgement
 
