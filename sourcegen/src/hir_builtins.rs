@@ -82,7 +82,7 @@ const ANALOG_OPERATORS_SYSFUN: [&str; 1] = ["$limit"];
 const ANALYSIS_FUNS: [&str; 6] =
     ["analysis", "ac_stim", "noise_table", "noise_table_log", "white_noise", "flicker_noise"];
 
-const BUILTINS: [&str; 25] = [
+const BUILTINS: [&str; 26] = [
     "abs",
     "acos",
     "acosh",

@@ -1,4 +1,4 @@
-function %(v19, v20, v21, v32) {
+function %(v19, v20, v21, v31) {
     inst0 = const fn %analysis(1) -> 1
     v3 = fconst 0.0
     v16 = sconst "<DUMMY>"
@@ -14,17 +14,18 @@ function %(v19, v20, v21, v32) {
 
                                 block4:
                                     v28 = phi [v22, block2], [v3, block5]
-                                    v33 = phi [v20, block2], [v3, block5]
-                                    v31 = fneg v28
-                                    v34 = fneg v33
-                                    v38 = fmul v32, v28
-                                    v37 = optbarrier v38
-                                    v40 = fmul v32, v31
-                                    v39 = optbarrier v40
-                                    v42 = fmul v32, v33
+                                    v34 = phi [v20, block2], [v3, block5]
+                                    v40 = fmul v31, v28
+                                    v32 = optbarrier v40
+                                    v33 = fneg v28
+                                    v35 = fneg v34
+                                    v44 = fmul v31, v34
+                                    v37 = optbarrier v44
+                                    v47 = fmul v31, v35
+                                    v39 = optbarrier v47
+                                    v42 = fmul v31, v33
                                     v41 = optbarrier v42
-                                    v44 = fmul v32, v34
-                                    v43 = optbarrier v44
-                                    v45 = optbarrier v44
-                                    v47 = optbarrier v42
+                                    v43 = optbarrier v31
+                                    v45 = optbarrier v47
+                                    v48 = optbarrier v44
 }

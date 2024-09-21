@@ -5,7 +5,7 @@ DaeSystem {
     },
     residual: {
         sim_node0: Residual {
-            resist: v35,
+            resist: v29,
             react: v3,
             resist_small_signal: v3,
             react_small_signal: v3,
@@ -13,7 +13,7 @@ DaeSystem {
             react_lim_rhs: v3,
         },
         sim_node1: Residual {
-            resist: v37,
+            resist: v39,
             react: v3,
             resist_small_signal: v3,
             react_small_signal: v3,
@@ -25,25 +25,25 @@ DaeSystem {
         j0: MatrixEntry {
             row: sim_node0,
             col: sim_node0,
-            resist: v39,
+            resist: v35,
             react: v3,
         },
         j1: MatrixEntry {
             row: sim_node0,
             col: sim_node1,
-            resist: v41,
+            resist: v43,
             react: v3,
         },
         j2: MatrixEntry {
             row: sim_node1,
             col: sim_node0,
-            resist: v43,
+            resist: v37,
             react: v3,
         },
         j3: MatrixEntry {
             row: sim_node1,
             col: sim_node1,
-            resist: v45,
+            resist: v46,
             react: v3,
         },
     },
