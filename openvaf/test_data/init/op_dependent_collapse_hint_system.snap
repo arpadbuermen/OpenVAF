@@ -1,10 +1,10 @@
 {
-    v21: cslot0,
+    v22: cslot0,
 }
 {
     cslot0: (
         (
-            Some(ClassId(8)),
+            Some(ClassId(7)),
             0,
         ),
         Real,
