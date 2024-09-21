@@ -13,5 +13,5 @@ function %_init(v17, v19) {
 
                                 block4:
                                     v18 = fmul v19, v7
-                                    v21 = optbarrier v18
+                                    v22 = optbarrier v18
 }

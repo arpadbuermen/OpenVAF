@@ -8,6 +8,7 @@
 **.lib
 **.dot
 /target/
+/target-*/
 /crates/*/target/
 /libs/*/target/
 /openvaf/*/target/

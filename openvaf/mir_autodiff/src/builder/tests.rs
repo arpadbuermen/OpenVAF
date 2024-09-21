@@ -117,16 +117,18 @@ fn phi() {
 
         block1:
             v13 = exp v10
+            v102 = exp v10
             jmp block3
 
         block2:
             v14 = exp v11
+            v101 = exp v11
             jmp block3
 
         block3:
             v15 = phi [v13, block1], [v14, block2]
-            v101 = phi [v13, block1], [v3, block2]
-            v102 = phi [v3, block1], [v14, block2]
+            v103 = phi [v102, block1], [v3, block2]
+            v104 = phi [v3, block1], [v101, block2]
             v100 = optbarrier v3
         }
     "#]];
@@ -148,7 +150,7 @@ fn exp_second_order() {
             v15 = call fn0 (v14)
             v100 = optbarrier v15
         }"##;
-    let expect = expect![[r#"
+    /*let expect = expect![[r#"
         function %bar(v10, v11, v12) {
             inst0 = const fn %ddx_v10(1) -> 1
 
@@ -162,6 +164,27 @@ fn exp_second_order() {
             v103 = fadd v13, v101
             v104 = fadd v13, v102
             v100 = optbarrier v104
+        }
+    "#]];*/
+    let expect = expect![[r#"
+        function %bar(v10, v11, v12) {
+            inst0 = const fn %ddx_v10(1) -> 1
+
+        block0:
+            v13 = exp v10
+            v101 = exp v10
+            v102 = exp v10
+            v16 = fmul v10, v11
+            v17 = exp v16
+            v103 = exp v16
+            v104 = fmul v11, v103
+            v105 = exp v16
+            v106 = fmul v11, v105
+            v107 = fmul v106, v11
+            v18 = fadd v13, v17
+            v108 = fadd v101, v104
+            v109 = fadd v102, v107
+            v100 = optbarrier v109
         }
     "#]];
     check_simple(src, expect);
@@ -223,13 +246,20 @@ fn sin_exp_second_order() {
             v102 = sin v10
             v103 = fneg v102
             v13 = exp v10
+            v104 = exp v10
+            v105 = exp v10
             v16 = fmul v12, v13
-            v104 = fmul v101, v13
-            v105 = fadd v104, v16
-            v106 = fmul v103, v13
-            v107 = fadd v106, v104
-            v108 = fadd v107, v105
-            v100 = optbarrier v108
+            v106 = fmul v101, v13
+            v107 = fmul v104, v12
+            v108 = fadd v106, v107
+            v109 = fmul v103, v13
+            v110 = fmul v104, v101
+            v111 = fadd v109, v110
+            v112 = fmul v105, v12
+            v113 = fmul v101, v104
+            v114 = fadd v112, v113
+            v115 = fadd v111, v114
+            v100 = optbarrier v115
         }
     "#]];
     check_simple(src, expect);
@@ -263,41 +293,60 @@ fn third_order_ln_sin_exp() {
             v104 = cos v10
             v105 = fneg v104
             v13 = exp v10
+            v106 = exp v10
+            v107 = exp v10
+            v108 = exp v10
             v16 = fmul v12, v13
-            v106 = fmul v101, v13
-            v107 = fadd v106, v16
-            v108 = fmul v103, v13
-            v109 = fadd v108, v106
-            v110 = fadd v109, v107
-            v111 = fmul v105, v13
-            v112 = fadd v111, v108
-            v113 = fadd v112, v109
-            v114 = fadd v113, v110
+            v109 = fmul v101, v13
+            v110 = fmul v106, v12
+            v111 = fadd v109, v110
+            v112 = fmul v103, v13
+            v113 = fmul v106, v101
+            v114 = fadd v112, v113
+            v115 = fmul v107, v12
+            v116 = fmul v101, v106
+            v117 = fadd v115, v116
+            v118 = fadd v114, v117
+            v119 = fmul v105, v13
+            v120 = fmul v106, v103
+            v121 = fadd v119, v120
+            v122 = fmul v107, v101
+            v123 = fmul v103, v106
+            v124 = fadd v122, v123
+            v125 = fadd v121, v124
+            v126 = fmul v108, v12
+            v127 = fmul v101, v107
+            v128 = fadd v126, v127
+            v129 = fmul v103, v106
+            v130 = fmul v107, v101
+            v131 = fadd v129, v130
+            v132 = fadd v128, v131
+            v133 = fadd v125, v132
             v17 = ln v16
-            v115 = fdiv v107, v16
-            v116 = fmul v16, v16
-            v117 = fdiv v110, v16
-            v118 = fmul v107, v107
-            v119 = fdiv v118, v116
-            v120 = fsub v117, v119
-            v121 = fmul v16, v16
-            v122 = fmul v116, v116
-            v123 = fmul v107, v16
-            v124 = fmul v107, v16
-            v125 = fadd v123, v124
-            v126 = fdiv v114, v16
-            v127 = fmul v107, v110
-            v128 = fdiv v127, v121
-            v129 = fsub v126, v128
-            v130 = fmul v110, v107
-            v131 = fmul v110, v107
-            v132 = fadd v130, v131
-            v133 = fdiv v132, v116
-            v134 = fmul v125, v118
-            v135 = fdiv v134, v122
-            v136 = fsub v133, v135
-            v137 = fsub v129, v136
-            v100 = optbarrier v137
+            v134 = fdiv v111, v16
+            v135 = fmul v16, v16
+            v136 = fdiv v118, v16
+            v137 = fmul v111, v111
+            v138 = fdiv v137, v135
+            v139 = fsub v136, v138
+            v140 = fmul v16, v16
+            v141 = fmul v135, v135
+            v142 = fmul v111, v16
+            v143 = fmul v111, v16
+            v144 = fadd v142, v143
+            v145 = fdiv v133, v16
+            v146 = fmul v111, v118
+            v147 = fdiv v146, v140
+            v148 = fsub v145, v147
+            v149 = fmul v118, v111
+            v150 = fmul v118, v111
+            v151 = fadd v149, v150
+            v152 = fdiv v151, v135
+            v153 = fmul v144, v137
+            v154 = fdiv v153, v141
+            v155 = fsub v152, v154
+            v156 = fsub v148, v155
+            v100 = optbarrier v156
         }
     "#]];
 
@@ -333,41 +382,60 @@ fn third_order_ln_sinh_exp() {
             v102 = sinh v10
             v103 = cosh v10
             v13 = exp v10
+            v104 = exp v10
+            v105 = exp v10
+            v106 = exp v10
             v16 = fmul v12, v13
-            v104 = fmul v101, v13
-            v105 = fadd v104, v16
-            v106 = fmul v102, v13
-            v107 = fadd v106, v104
-            v108 = fadd v107, v105
-            v109 = fmul v103, v13
-            v110 = fadd v109, v106
-            v111 = fadd v110, v107
-            v112 = fadd v111, v108
+            v107 = fmul v101, v13
+            v108 = fmul v104, v12
+            v109 = fadd v107, v108
+            v110 = fmul v102, v13
+            v111 = fmul v104, v101
+            v112 = fadd v110, v111
+            v113 = fmul v105, v12
+            v114 = fmul v101, v104
+            v115 = fadd v113, v114
+            v116 = fadd v112, v115
+            v117 = fmul v103, v13
+            v118 = fmul v104, v102
+            v119 = fadd v117, v118
+            v120 = fmul v105, v101
+            v121 = fmul v102, v104
+            v122 = fadd v120, v121
+            v123 = fadd v119, v122
+            v124 = fmul v106, v12
+            v125 = fmul v101, v105
+            v126 = fadd v124, v125
+            v127 = fmul v102, v104
+            v128 = fmul v105, v101
+            v129 = fadd v127, v128
+            v130 = fadd v126, v129
+            v131 = fadd v123, v130
             v17 = ln v16
-            v113 = fdiv v105, v16
-            v114 = fmul v16, v16
-            v115 = fdiv v108, v16
-            v116 = fmul v105, v105
-            v117 = fdiv v116, v114
-            v118 = fsub v115, v117
-            v119 = fmul v16, v16
-            v120 = fmul v114, v114
-            v121 = fmul v105, v16
-            v122 = fmul v105, v16
-            v123 = fadd v121, v122
-            v124 = fdiv v112, v16
-            v125 = fmul v105, v108
-            v126 = fdiv v125, v119
-            v127 = fsub v124, v126
-            v128 = fmul v108, v105
-            v129 = fmul v108, v105
-            v130 = fadd v128, v129
-            v131 = fdiv v130, v114
-            v132 = fmul v123, v116
-            v133 = fdiv v132, v120
-            v134 = fsub v131, v133
-            v135 = fsub v127, v134
-            v100 = optbarrier v135
+            v132 = fdiv v109, v16
+            v133 = fmul v16, v16
+            v134 = fdiv v116, v16
+            v135 = fmul v109, v109
+            v136 = fdiv v135, v133
+            v137 = fsub v134, v136
+            v138 = fmul v16, v16
+            v139 = fmul v133, v133
+            v140 = fmul v109, v16
+            v141 = fmul v109, v16
+            v142 = fadd v140, v141
+            v143 = fdiv v131, v16
+            v144 = fmul v109, v116
+            v145 = fdiv v144, v138
+            v146 = fsub v143, v145
+            v147 = fmul v116, v109
+            v148 = fmul v116, v109
+            v149 = fadd v147, v148
+            v150 = fdiv v149, v133
+            v151 = fmul v142, v135
+            v152 = fdiv v151, v139
+            v153 = fsub v150, v152
+            v154 = fsub v146, v153
+            v100 = optbarrier v154
         }
     "#]];
 
