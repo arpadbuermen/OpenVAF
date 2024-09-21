@@ -18,7 +18,7 @@ use crate::api::{Opts, VfsEntry};
 use crate::compiler_db::{CompilationDB, ModelInfo};
 use crate::middle::{build_module_mir, build_param_init_mir};
 use crate::opts::abs_path;
-pub use llvm::OptLevel;
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 
 #[cfg(windows)]
 use libloading::os::windows::Library;

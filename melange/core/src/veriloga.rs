@@ -9,7 +9,8 @@ use libc::c_void;
 use libloading::Library;
 use log::{debug, error, info, warn};
 use openvaf::{
-    AbsPathBuf, CompilationDestination, CompilationTermination, LintLevel, OptLevel, Target,
+    AbsPathBuf, CompilationDestination, CompilationTermination, LLVMCodeGenOptLevel, LintLevel,
+    Target,
 };
 
 use crate::devices::DeviceImpl;
@@ -37,7 +38,7 @@ pub struct Opts {
     pub cache_dir: Option<Utf8PathBuf>,
     pub lints: Vec<(String, LintLevel)>,
     include: Vec<AbsPathBuf>,
-    pub opt_lvl: Option<OptLevel>,
+    pub opt_lvl: Option<LLVMCodeGenOptLevel>,
 }
 
 impl Opts {
@@ -69,7 +70,7 @@ pub fn compile_va(path: &Utf8Path, opts: &Opts) -> Result<Vec<Box<dyn DeviceImpl
         input: path.to_owned(),
         output: CompilationDestination::Cache { cache_dir },
         include: opts.include.clone(),
-        opt_lvl: opts.opt_lvl.unwrap_or(OptLevel::Aggressive),
+        opt_lvl: opts.opt_lvl.unwrap_or(LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive),
         target: Target::host_target()
             .context("openvaf does currently not support this hardware/os")?,
         target_cpu: "native".to_owned(),

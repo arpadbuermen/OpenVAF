@@ -651,6 +651,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+
+[[package]]
 name = "lexer"
 version = "0.0.0"
 dependencies = [
@@ -709,12 +715,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "llvm"
-version = "0.0.0"
+name = "llvm-sys"
+version = "181.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d320f9d2723c97d4b78f9190a61ed25cc7cfbe456668c08e6e7dd8e50ceb8500"
 dependencies = [
- "ahash 0.8.6",
+ "anyhow",
  "cc",
+ "lazy_static",
  "libc",
+ "regex-lite",
+ "semver",
 ]
 
 [[package]]
@@ -872,7 +883,7 @@ dependencies = [
  "base_n",
  "lasso",
  "libc",
- "llvm",
+ "llvm-sys",
  "log",
  "mir",
  "target",
@@ -969,7 +980,7 @@ dependencies = [
  "libc",
  "libloading",
  "linker",
- "llvm",
+ "llvm-sys",
  "md5",
  "mini_harness",
  "mir_llvm",
@@ -993,6 +1004,7 @@ dependencies = [
  "clap",
  "directories-next",
  "env_logger",
+ "llvm-sys",
  "log",
  "mimalloc",
  "mini_harness",
@@ -1016,7 +1028,7 @@ dependencies = [
  "hir_lower",
  "indexmap 2.0.2",
  "lasso",
- "llvm",
+ "llvm-sys",
  "log",
  "mini_harness",
  "mir",
@@ -1199,6 +1211,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-lite"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53a49587ad06b26609c52e423de037e7f57f20d53535d66e08c695f347df952a"
+
+[[package]]
 name = "rowan"
 version = "0.15.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1277,6 +1295,12 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "semver"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "sim_back"
@@ -1493,7 +1517,7 @@ dependencies = [
  "lasso",
  "libloading",
  "linker",
- "llvm",
+ "llvm-sys",
  "md5",
  "mir",
  "mir_autodiff",

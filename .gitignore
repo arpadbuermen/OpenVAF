@@ -30,3 +30,4 @@ markus_notes
 !.vscode/launch-openvaf*.json
 *~
 /target_0.3/
+.aider*

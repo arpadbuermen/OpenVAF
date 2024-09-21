@@ -15,7 +15,7 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 pub use basedb::lints::builtin as builtin_lints;
 pub use basedb::lints::LintLevel;
-pub use llvm::OptLevel;
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 pub use paths::AbsPathBuf;
 pub use target::host_triple;
 pub use target::spec::{get_target_names, Target};
@@ -42,7 +42,7 @@ pub struct Opts {
     pub input: Utf8PathBuf,
     pub output: CompilationDestination,
     pub include: Vec<AbsPathBuf>,
-    pub opt_lvl: OptLevel,
+    pub opt_lvl: LLVMCodeGenOptLevel,
     pub target: Target,
     pub target_cpu: String,
 }

@@ -22,7 +22,8 @@ mir_llvm = { version = "0.0.0", path = "../../openvaf/mir_llvm" }
 mir_opt = { version = "0.0.0", path = "../../openvaf/mir_opt" }
 mir_autodiff = { version = "0.0.0", path = "../../openvaf/mir_autodiff" }
 
-llvm = { version = "0.0.0", path = "../../openvaf/llvm" }
+#llvm = { version = "0.0.0", path = "../../openvaf/llvm" }
+llvm-sys = "181.1.1"
 target = { version = "0.0.0", path = "../../openvaf/target" }
 linker = { version = "0.0.0", path = "../../openvaf/linker" }
 
