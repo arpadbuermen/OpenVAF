@@ -328,7 +328,7 @@ pub unsafe fn load_osdi_lib(path: &Utf8Path) -> Result<&'static [OsdiDescriptor]
     let major_version: &u32 = *lib.get(b"OSDI_VERSION_MAJOR\0")?;
     let minor_version: &u32 = *lib.get(b"OSDI_VERSION_MINOR\0")?;
 
-    if *major_version != 0 || *minor_version != 3 {
+    if *major_version != 0 || *minor_version != 4 {
         bail!("invalid version v{major_version}.{minor_version}",);
     }
 

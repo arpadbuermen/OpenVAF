@@ -151,4 +151,16 @@ DaeSystem {
             factor: v607,
         },
     ],
+    model_inputs: [
+        (
+            0,
+            3,
+        ),
+        (
+            3,
+            1,
+        ),
+    ],
+    num_resistive: 14,
+    num_reactive: 6,
 }
