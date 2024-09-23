@@ -4,7 +4,7 @@ use std::vec;
 use ahash::AHashMap;
 use bitset::BitSet;
 use hir::{BranchWrite, CompilationDB, Node, ParamSysFun};
-use hir_lower::{HirInterner, ImplicitEquation, ParamKind};
+use hir_lower::{HirInterner, ImplicitEquation, ParamKind, CurrentKind};
 use indexmap::IndexSet;
 use mir::builder::InstBuilder;
 use mir::cursor::{Cursor, FuncCursor};
@@ -106,6 +106,13 @@ impl<'a> Builder<'a> {
         self.build_jacobian(&sim_unknown_reads, &derivative_info, &derivatives);
         self.build_lim_rhs(&derivative_info, derivatives);
         self.ensure_optbarriers();
+
+        self.build_input_unknown_pairs();
+
+        let (nres, nreact) = self.count_jacobian_entries();
+        self.system.num_resistive = nres;
+        self.system.num_reactive = nreact;
+        
         self.system
     }
 
@@ -145,6 +152,69 @@ impl<'a> Builder<'a> {
                 }
             })
             .collect()
+    }
+
+    // Create a list of input node pairs corresponding to all model inputs
+    fn build_input_unknown_pairs(&mut self) {
+        self.system.model_inputs.clear();
+        for (_, &kind, _) in self.intern
+        .live_params(&self.cursor.func.dfg) {
+            match kind {
+                ParamKind::Voltage { hi, lo } => {
+                    let mut ih = std::u32::MAX;
+                    let mut il = std::u32::MAX;
+                    let uh = SimUnknownKind::KirchoffLaw(hi);
+                    if let Some(uh) = self.system.unknowns.index(&uh) {
+                        ih = u32::from(uh);
+                    } 
+                    if let Some(lo) = lo {
+                        let ul = SimUnknownKind::KirchoffLaw(lo);
+                        if let Some(ul) = self.system.unknowns.index(&ul) {
+                            il = u32::from(ul);
+                        }
+                    }
+                    if ih!=std::u32::MAX && il!=std::u32::MAX {
+                        self.system.model_inputs.push((ih, il));
+                    }
+                }, 
+                ParamKind::Current ( cur_kind ) => {
+                    match cur_kind {
+                        CurrentKind::Port (_) => {
+                            // TODO?
+                        },
+                        _ => {
+                            let u = SimUnknownKind::Current(cur_kind);
+                            if let Some(u) = self.system.unknowns.index(&u) {
+                                self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                            }
+                        }
+                    }
+                }, 
+                ParamKind::ImplicitUnknown(ieq_kind) => {
+                    let u = SimUnknownKind::Implicit(ieq_kind);
+                    if let Some(u) = self.system.unknowns.index(&u) {
+                        self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                    }
+                }, 
+                _ => {}
+            }
+        }
+    }
+    
+    fn count_jacobian_entries(&mut self) -> (u32, u32) {
+        // Count resistive and reactive Jacobian entries
+        let mut nres: u32 = 0;
+        let mut nreact: u32 = 0;
+        for key in self.system.jacobian.keys() {
+            if self.system.jacobian[key].resist != F_ZERO {
+                nres = nres + 1;
+            }
+
+            if self.system.jacobian[key].react != F_ZERO {
+                nreact = nreact + 1;
+            }
+        }
+        (nres, nreact)
     }
 
     fn build_lim_rhs(

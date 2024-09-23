@@ -8,7 +8,7 @@
 
 
 #define OSDI_VERSION_MAJOR_CURR 0
-#define OSDI_VERSION_MINOR_CURR 3
+#define OSDI_VERSION_MINOR_CURR 4
 
 #define PARA_TY_MASK 3
 #define PARA_TY_REAL 0
@@ -192,6 +192,17 @@ typedef struct OsdiDescriptor {
   void (*load_jacobian_resist)(void *inst, void* model);
   void (*load_jacobian_react)(void *inst, void* model, double alpha);
   void (*load_jacobian_tran)(void *inst, void* model, double alpha);
+  // 0.3 ends here
+  uint32_t (*given_flag_model)(void *model, uint32_t id);
+  uint32_t (*given_flag_instance)(void *inst, uint32_t id);
+  uint32_t num_resistive_jacobian_entries;
+  uint32_t num_reactive_jacobian_entries;
+  void (*write_jacobian_array_resist)(void *inst, void* model, double* destination);
+  void (*write_jacobian_array_react)(void *inst, void* model, double* destination);
+  uint32_t num_inputs;
+  OsdiNodePair* inputs;
+  void (*load_jacobian_with_offset_resist)(void *inst, void* model, size_t offset);
+  void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
 }OsdiDescriptor;
 
 
