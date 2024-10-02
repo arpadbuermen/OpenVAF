@@ -382,7 +382,7 @@ impl<'a> Builder<'a> {
                     self.intern,
                 );
                 // most cases that look like switch branches are just node collapsing
-                // so make sure we don't crate switch branches when they aren't needed
+                // so make sure we don't create switch branches when they aren't needed
                 if op_dependent
                     || requires_current_unknown
                     || !contributions.voltage_src.is_trivial()

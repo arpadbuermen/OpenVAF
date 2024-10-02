@@ -8,6 +8,7 @@
 **.lib
 **.dot
 /target/
+/target_*/
 /crates/*/target/
 /libs/*/target/
 /openvaf/*/target/
@@ -27,4 +28,5 @@ perf.data
 verilogae/__pycache__
 markus_notes
 .vscode/*
+!.vscode/launch-openvaf*.json
 *~
