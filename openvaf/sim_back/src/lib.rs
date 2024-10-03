@@ -73,7 +73,7 @@ impl<'a> CompiledModule<'a> {
         dae_system.sparsify(&mut cx);
         
         // For debugging - print DAE system
-        if cfg!(debug_assertions) {
+        if false && cfg!(debug_assertions) {
             println!("dae system of {:?}", module.module);
             let str = format!("{dae_system:#?}");
             println!("{}", str);
@@ -92,7 +92,7 @@ impl<'a> CompiledModule<'a> {
         debug_assert!(cx.func.validate());
 
         // For debugging - print MIR
-        if cfg!(debug_assertions) {
+        if false && cfg!(debug_assertions) {
             println!("Init function");
             println!("{:?}", init.func);
             println!("");

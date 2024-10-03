@@ -512,19 +512,24 @@ impl<'a> Builder<'a> {
     fn mfactor_multiply(&mut self, mfactor: Value, srcfactor : Value) -> Value {
         match (mfactor, srcfactor) {
             // Leave srcfactor unchanged if mfactor is 1
-            // Replace src.factor with mfactor if src.factor is 1
-            (F_ONE, fac) | (fac, F_ONE) => fac,
-            // Neither mfactor nor factor is 1
+            (F_ONE, fac) => fac,
+            // mfactor is not 1
             // Note that srcfactor is the signal scaling factor. 
             // Because power scales with mfactor the signal scales with 
             // sqrt(mfactor). 
             (mfactor, srcfactor) => {
                 let sqrt_mfactor = self.cursor
                     .ins()
-                    .sqrt(mfactor);                 
-                self.cursor
-                    .ins()
-                    .fmul(srcfactor, sqrt_mfactor)
+                    .sqrt(mfactor);
+                if srcfactor == F_ONE {
+                    // Old factor is 1, replace it with sqrt(mfactor)
+                    sqrt_mfactor
+                } else {
+                    // Multiply old factor with sqrt(mfactor)
+                    self.cursor
+                        .ins()
+                        .fmul(srcfactor, sqrt_mfactor)
+                }
             }
         }
     }
@@ -533,7 +538,7 @@ impl<'a> Builder<'a> {
         match (mfactor, srcfactor) {
             // Leave srcfactor unchanged if mfactor is 1
             (F_ONE, fac) => fac,
-            // Neither mfactor nor factor is 1
+            // mfactor is not 1
             // Note that srcfactor is the signal scaling factor. 
             // Because power scales with mfactor the signal scales with 
             // sqrt(mfactor). 

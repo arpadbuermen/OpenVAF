@@ -12,7 +12,7 @@ function %_init(v17, v18, v25, v28, v30, v44, v37, v33, v39, v53) {
 @0053                               v34 = pow v14, v32
 @0054                               v35 = fsub v6, v34
 @0058                               v36 = fmul v37, v35
-                                    v56 = optbarrier v36
+                                    v58 = optbarrier v36
                                     v43 = fgt v44, v18
 @0098                               br v43, block13, block12
 
@@ -30,6 +30,8 @@ function %_init(v17, v18, v25, v28, v30, v44, v37, v33, v39, v53) {
 
                                 block16:
                                     v49 = optbarrier v45
-                                    v52 = fmul v49, v53
-                                    v57 = optbarrier v52
+                                    v52 = sqrt v53
+                                    v59 = optbarrier v52
+                                    v54 = fmul v49, v52
+                                    v60 = optbarrier v54
 }
