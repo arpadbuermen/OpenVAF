@@ -71,18 +71,32 @@ impl<'a> CompiledModule<'a> {
         cx.compute_cfg();
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
+        
+        // For debugging - print DAE system
+        if cfg!(debug_assertions) {
+            println!("dae system of {:?}", module.module);
+            let str = format!("{dae_system:#?}");
+            println!("{}", str);
+            println!("");
+        
+            println!("CX function");
+            println!("{:?}", cx.func);
+            println!("");
+        }
+        
         debug_assert!(cx.func.validate());
-
-        // For debugging
-        // println!("{:?}", cx.func);
 
         cx.refresh_op_dependent_insts();
         let mut init = Initialization::new(&mut cx, gvn);
         let node_collapse = NodeCollapse::new(&init, &dae_system, &cx);
         debug_assert!(cx.func.validate());
-        
-        // For debugging
-        // println!("{:?}", init.func);
+
+        // For debugging - print MIR
+        if cfg!(debug_assertions) {
+            println!("Init function");
+            println!("{:?}", init.func);
+            println!("");
+        }
         
         debug_assert!(init.func.validate());
         
