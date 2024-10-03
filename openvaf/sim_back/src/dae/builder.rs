@@ -515,10 +515,16 @@ impl<'a> Builder<'a> {
             // Replace src.factor with mfactor if src.factor is 1
             (F_ONE, fac) | (fac, F_ONE) => fac,
             // Neither mfactor nor factor is 1
+            // Note that srcfactor is the signal scaling factor. 
+            // Because power scales with mfactor the signal scales with 
+            // sqrt(mfactor). 
             (mfactor, srcfactor) => {
+                let sqrt_mfactor = self.cursor
+                    .ins()
+                    .sqrt(mfactor);                 
                 self.cursor
                     .ins()
-                    .fmul(srcfactor, mfactor)
+                    .fmul(srcfactor, sqrt_mfactor)
             }
         }
     }
@@ -528,10 +534,16 @@ impl<'a> Builder<'a> {
             // Leave srcfactor unchanged if mfactor is 1
             (F_ONE, fac) => fac,
             // Neither mfactor nor factor is 1
+            // Note that srcfactor is the signal scaling factor. 
+            // Because power scales with mfactor the signal scales with 
+            // sqrt(mfactor). 
             (mfactor, srcfactor) => {
+                let sqrt_mfactor = self.cursor
+                    .ins()
+                    .sqrt(mfactor);                 
                 self.cursor
                     .ins()
-                    .fdiv(srcfactor, mfactor)
+                    .fdiv(srcfactor, sqrt_mfactor)
             }
         }
     }
