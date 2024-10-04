@@ -1,4 +1,4 @@
-function %(v16, v19, v21, v39) {
+function %(v16, v19, v21, v31) {
     // v1 = bconst false
     // v2 = bconst true
     v3 = fconst 0.0
@@ -22,21 +22,23 @@ function %(v16, v19, v21, v39) {
 
                                 block7:
                                     v29 = phi [v21, block4], [v19, block6]
-                                    v33 = phi [v3, block4], [v6, block6]
-                                    v34 = phi [v6, block4], [v3, block6]
+                                    v36 = phi [v3, block4], [v6, block6]
+                                    v37 = phi [v6, block4], [v3, block6]
                                     v30 = phi [v25, block4], [v27, block6]
-                                    v31 = fsub v30, v29
-                                    v35 = fsub v3, v33
-                                    v36 = fsub v3, v34
-                                    v32 = fneg v21
-                                    v41 = fmul v39, v21
-                                    v40 = optbarrier v41
-                                    v43 = fmul v39, v32
-                                    v42 = optbarrier v43
-                                    v44 = optbarrier v31
-                                    v48 = fmul v39, v7
+                                    v32 = optbarrier v30
+                                    v33 = fsub v32, v29
+                                    v38 = fsub v3, v36
+                                    v39 = fsub v3, v37
+                                    v46 = fmul v31, v21
+                                    v34 = optbarrier v46
+                                    v35 = fneg v21
+                                    v52 = fmul v31, v7
+                                    v42 = optbarrier v52
+                                    v44 = optbarrier v38
+                                    v45 = optbarrier v39
+                                    v48 = fmul v31, v35
                                     v47 = optbarrier v48
-                                    v49 = optbarrier v35
-                                    v50 = optbarrier v33
-                                    v51 = optbarrier v36
+                                    v49 = optbarrier v33
+                                    v50 = optbarrier v31
+                                    v53 = optbarrier v36
 }
