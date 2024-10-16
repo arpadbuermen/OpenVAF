@@ -345,11 +345,13 @@ impl<'a> Builder<'a> {
                 if requires_unknown {
                     self.add_source_equation(
                         &contrib,
+                        // &contributions.current_src,
                         contributions.current_src.unknown.unwrap(),
                         branch,
                     );
                 } else {
                     self.add_kirchoff_law(&contrib, branch);
+                    // self.add_kirchoff_law(&contributions.current_src, branch);
                 }
             }
             // If it is constant TRUE; this is a voltage branch
@@ -503,7 +505,7 @@ impl<'a> Builder<'a> {
             resist: current_src.resist,
             react: current_src.react,
             resist_small_signal: current_src.resist_small_signal,
-            react_small_signal: current_src.resist_small_signal,
+            react_small_signal: current_src.react_small_signal,
             noise,
         }
     }
@@ -528,7 +530,7 @@ impl<'a> Builder<'a> {
             resist: voltage_src.resist,
             react: voltage_src.react,
             resist_small_signal: voltage_src.resist_small_signal,
-            react_small_signal: voltage_src.resist_small_signal,
+            react_small_signal: voltage_src.react_small_signal,
             noise,
         }
     }
