@@ -138,7 +138,7 @@ cargo build --bin openvaf-r
 
 # Debugging OpenVAF-reloaded in Visual Studio Code 
 
-You will need two extensions: CodeLLDB and rust-analyzer. In the `.vscode` directory there are two files: `launch-openvaf-r.json` (for working with the master branch) and `launch-openvaf.json` (for working with the branches/osdi_0.3 branch). Copy the one that matches your branch to `launch.json`. There is a debug setup in that file. Set your breakpoints and run the program. If there are any changes since the last build they will be applied upon which the program will be started and then stop at the first breakpoint. 
+You will need two extensions: CodeLLDB (under Linux) / Microsoft C++ (under Windows) and rust-analyzer. In the `.vscode` directory there are two files: `launch-openvaf-r.json` (for working with the master branch) and `launch-openvaf.json` (for working with the branches/osdi_0.3 branch). Copy the one that matches your branch to `launch.json`. There are two debug setups available in that file (Linux and Windows). Set your breakpoints and run the program. If there are any changes since the last build they will be applied upon which the program will be started and then stop at the first breakpoint. 
 
 The debug configuration disables rayon running the .osdi file build process in parallel so that debugging the last step of compilation is somewhat easier. 
 
