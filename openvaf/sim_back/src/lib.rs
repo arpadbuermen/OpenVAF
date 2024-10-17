@@ -71,10 +71,18 @@ impl<'a> CompiledModule<'a> {
         cx.compute_cfg();
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
-        
+
         // For debugging - print DAE system
         if false && cfg!(debug_assertions) {
-            println!("dae system of {:?}", module.module);
+            let cu = db.compilation_unit();
+            println!("Compilation unit: {}", cu.name(db));
+                        
+            let m = module.module;
+            println!("Module: {:?}", m.name(db));
+            println!("Ports: {:?}", m.ports(db));
+            println!("Internal nodes: {:?}", m.internal_nodes(db));
+                        
+            println!("DAE system");
             let str = format!("{dae_system:#?}");
             println!("{}", str);
             println!("");
