@@ -455,7 +455,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     // Writes Jacobian entries into a double array of size num_jacobian_entries
     // If a particular entry is not present, nothing is loaded. 
     // Array of doubles need not be zeroed before calling this function. 
-    pub fn write_jacobian_array(&self, kind: JacobianLoadType) -> &'ll llvm::Value {
+    pub fn write_jacobian_array(&self, kind: JacobianLoadType) -> &'ll llvm_sys::LLVMValue {
         let OsdiCompilationUnit { cx, module, .. } = *self;
         let args = [cx.ty_ptr(), cx.ty_ptr(), cx.ty_ptr()];
         let fun_ty = cx.ty_func(&args, cx.ty_void());
