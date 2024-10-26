@@ -186,8 +186,7 @@ fn test_optimization_constant_folding() {
     let literals = Rodeo::new();
     let ctx = CodegenCx::new(&literals, &module, &target);
     
-    // Create function that returns a constant expression
-    // Modify the function to take parameters
+    // Create function that returns a constant expression using parameters
     let int_ty = ctx.ty_int();
     let fn_ty = ctx.ty_func(&[int_ty, int_ty, int_ty], int_ty);
     let test_fn = ctx.declare_int_fn("test_const_fold", fn_ty);
@@ -207,7 +206,7 @@ fn test_optimization_constant_folding() {
 
         llvm_sys::core::LLVMPositionBuilderAtEnd(builder.as_ptr(), bb.as_ptr());
         
-        // Use parameters instead of constants
+        // Use parameters to ensure the function is not optimized away
         let param_two = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 0);
         let param_three = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 1);
         let param_four = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 2);
@@ -246,5 +245,5 @@ fn test_optimization_constant_folding() {
 
     // Check if the optimization has simplified the function
     // Adjust the expected result based on actual optimization behavior
-    assert!(after_opt.contains("ret"), "Optimized function does not contain a return instruction");
+    assert!(after_opt.contains("ret i32"), "Optimized function does not contain a return instruction");
 }
