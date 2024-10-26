@@ -739,7 +739,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         &*LLVMBuildLoad2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
+            ptr,
             UNNAMED,
         )
     }
@@ -965,9 +965,9 @@ impl<'ll> OsdiInstanceData<'ll> {
         // Convert to LLVM u32
         let entry = cx.const_unsigned_int(entry);
         // Create pointer to array entry with index entry
-        let ptr = LLVMBuildGEP2(llbuilder, ty, ptr, [zero, entry].as_ptr(), 2, UNNAMED);
+        let ptr = LLVMBuildGEP2(NonNull::from(llbuilder).as_ptr(), NonNull::from(ty).as_ptr(), NonNull::from(ptr).as_ptr(), llvm_array_nonnull![zero, entry], 2, UNNAMED);
         // Store value where dst pointer points to
-        LLVMBuildStore(llbuilder, val, ptr);
+        LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), NonNull::from(val).as_ptr(), ptr);
     }
 
     pub fn cache_slot_elem(&self, slot: CacheSlot) -> u32 {

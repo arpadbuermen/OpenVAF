@@ -223,7 +223,7 @@ pub fn compile(
         
         let descr_size: u32;
         unsafe {
-            descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
+            descr_size = LLVMABISizeOfType(NonNull::from(target_data).as_ptr(), NonNull::from(tys.osdi_descriptor).as_ptr()) as u32;
         }
 
         cx.export_val(
