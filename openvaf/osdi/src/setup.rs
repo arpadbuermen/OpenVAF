@@ -19,7 +19,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let name = &format!("collapse_{}", &self.module.sym);
         let llfunc = cx.declare_int_c_fn(name, fn_type);
 
+        // Debug: Building constants and function
         unsafe {
+            // Debug: Building constants
             let entry = LLVMAppendBasicBlockInContext(NonNull::from(cx.llcx).as_ptr(), NonNull::from(llfunc).as_ptr(), UNNAMED);
             let llbuilder = LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
             LLVMPositionBuilderAtEnd(llbuilder, entry);
@@ -108,7 +110,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     }
                 }
                 OsdiInstanceParam::User(param) => {
+                    // Debug: Processing OsdiInstanceParam::User
                     let dst = intern.params.unwrap_index(&ParamKind::Param(param));
+                    // Debug: Destination index for user param: dst
                     builder.params[dst] = BuilderVal::Eager(val);
                     let dst = intern.params.unwrap_index(&ParamKind::ParamGiven { param });
                     builder.params[dst] = BuilderVal::Eager(is_given);
@@ -135,6 +139,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         let invalid_param_err = Self::invalid_param_err(cx);
+        // Debug: invalid_param_err retrieved
 
         let ret_flags = unsafe { builder.alloca(cx.ty_int()) };
         unsafe { builder.store(ret_flags, cx.const_int(0)) };
@@ -185,7 +190,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         builder.select_bb(exit_bb);
+        // Debug: Selected exit_bb
         unsafe { builder.ret_void() }
+        // Debug: Function returns void
 
         llfunc
     }
@@ -214,13 +221,17 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     }
 
     pub fn setup_instance(&mut self) -> &'ll llvm_sys::LLVMValue {
+        // Debug: Entering setup_instance
         let mark_collapsed = self.mark_collapsed();
+        // Debug: mark_collapsed output: (llfunc, fn_type)
         let llfunc = self.setup_instance_prototype();
+        // Debug: setup_instance_prototype output: llfunc
         let OsdiCompilationUnit { inst_data, model_data, tys, cx, module, .. } = self;
 
         let func = &module.init.func;
         let intern = &module.init.intern;
         let mut builder = Builder::new(cx, func, llfunc);
+        // Debug: Builder initialized
 
         let handle = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 0) };
         let instance = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 1) };
@@ -229,35 +240,46 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let connected_terminals = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 4) };
         let simparam = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 5) };
         let res = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 6) };
+        // Debug: Parameters retrieved
 
         let ret_flags = unsafe { builder.alloca(cx.ty_int()) };
         unsafe { builder.store(ret_flags, cx.const_int(0)) };
+        // Debug: ret_flags initialized
 
         builder.params = vec![BuilderVal::Undef; intern.params.len()].into();
 
         let true_ = cx.const_bool(true);
+        // Debug: true_ constant created
 
         for (i, param) in inst_data.params.keys().enumerate() {
             let i = i as u32;
 
+            // Debug: Processing inst_data.params
             let is_inst_given =
                 unsafe { inst_data.is_nth_param_given(cx, i, instance, builder.llbuilder) };
+            // Debug: is_inst_given for param {}: is_inst_given
             let is_given = unsafe {
                 let is_given_model =
                     model_data.is_nth_inst_param_given(cx, i, model, builder.llbuilder);
                 builder.select(is_inst_given, true_, is_given_model)
             };
+            // Debug: is_given for param {}: is_given
 
             let inst_val = unsafe { inst_data.read_nth_param(i, instance, builder.llbuilder) };
+            // Debug: inst_val for param {}: inst_val
             let model_val =
                 unsafe { model_data.read_nth_inst_param(inst_data, i, model, builder.llbuilder) };
+            // Debug: model_val for param {}: model_val
             let val = unsafe { builder.select(is_inst_given, inst_val, model_val) };
+            // Debug: Selected val for param {}: val
 
             match *param {
                 OsdiInstanceParam::Builtin(builtin) => {
                     let default_val = builtin.default_value();
                     let default_val = cx.const_real(default_val);
+                    // Debug: Processing OsdiInstanceParam::Builtin
                     let val = unsafe { builder.select(is_given, val, default_val) };
+                    // Debug: Selected val for builtin param: val
                     unsafe {
                         inst_data.store_nth_param(i, instance, val, builder.llbuilder);
                     }
@@ -314,7 +336,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         unsafe { inst_data.store_temperature(&mut builder, instance, &*temperature) };
         unsafe { inst_data.store_connected_ports(&mut builder, instance, &*connected_terminals) };
 
+        // Debug: Setting up trivial callbacks
         let trivial_cb = cx.trivial_callbacks(&[]);
+        // Debug: trivial_cb initialized
 
         let err_cap = unsafe { builder.alloca(cx.ty_int()) };
 
@@ -381,7 +405,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             builder.build_consts();
             builder.build_func();
         }
+        // Debug: Building function
         let exit_bb = func.layout.last_block().unwrap();
+        // Debug: exit_bb determined
 
         // store parameters
         for (i, param) in inst_data.params.keys().enumerate() {
