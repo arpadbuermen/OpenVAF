@@ -468,13 +468,13 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 NonNull::from(llfunc).as_ptr(),
                 UNNAMED,
             );
-            let llbuilder = LLVMCreateBuilderInContext(cx.llcx);
+            let llbuilder = LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
 
             LLVMPositionBuilderAtEnd(llbuilder, entry);
             // get params
-            let inst = LLVMGetParam(llfunc, 0);
-            let model = LLVMGetParam(llfunc, 1);
-            let dest_array = LLVMGetParam(llfunc, 2);
+            let inst = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 0);
+            let model = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 1);
+            let dest_array = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 2);
 
             // Destination array type
             let len = {
