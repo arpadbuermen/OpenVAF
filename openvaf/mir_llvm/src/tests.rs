@@ -1,5 +1,6 @@
 
 use llvm_sys::target::{LLVM_InitializeAllTargetInfos, LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs, LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers};
+use llvm_sys::core::LLVMGetEnumAttributeKindForName;
 use super::*;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use target::spec::Target;
