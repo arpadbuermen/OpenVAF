@@ -33,6 +33,12 @@ use std::ptr::NonNull;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
 
+macro_rules! llvm_array_nonnull {
+    ($($element:expr),+ $(,)?) => {{
+        let mut temp = [$(core::ptr::NonNull::from($element).as_ptr()),+];
+        temp.as_mut_ptr()
+    }};
+}
 fn function_iter(
     module: &llvm_sys::LLVMModule,
 ) -> impl Iterator<Item = *mut llvm_sys::LLVMValue> + '_ {
@@ -468,11 +474,9 @@ fn print_callback<'ll>(
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
 
         unsafe {
-            let mut incoming_values =
-                [NonNull::from(lvl).as_ptr(), NonNull::from(lvl_and_err).as_ptr()];
-
-            let mut incoming_blocks = [write_bb, err_bb];
-            LLVMAddIncoming(flags, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
+            let mut incoming_values =llvm_array_nonnull![lvl, lvl_and_err];
+            let mut incoming_blocks =  [write_bb,err_bb];
+            LLVMAddIncoming(flags, incoming_values, incoming_blocks.as_mut_ptr(), 2);
         }
 
         let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);

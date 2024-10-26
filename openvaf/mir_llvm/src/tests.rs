@@ -1,8 +1,27 @@
+use llvm_sys::{
+    target::{
+        LLVM_InitializeAllTargetInfos, LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs,
+        LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers,
+    },
+    target_machine::LLVMCodeGenOptLevel,
+    core::{
+        LLVMContextCreate, LLVMContextDispose, LLVMModuleCreateWithNameInContext, LLVMDisposeModule,
+        LLVMInt32TypeInContext, LLVMFunctionType, LLVMAddFunction, LLVMSetLinkage, LLVMVoidTypeInContext,
+        LLVMPositionBuilderAtEnd, LLVMAppendBasicBlockInContext, LLVMGetParam,
+        LLVMBuildRetVoid, LLVMPrintModuleToString, LLVMDisposeMessage, LLVMBuildStore,
+        LLVMCreateBuilderInContext, LLVMDisposeBuilder,
+    },
+    prelude::{LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef},
+    LLVMTypeKind,
+    analysis::LLVMVerifyModule,
+};
 
-use llvm_sys::target::{LLVM_InitializeAllTargetInfos, LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs, LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers};
 use super::*;
-use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use target::spec::Target;
+use llvm_sys::LLVMLinkage;
+use std::ffi::CStr;
+use std::ptr::NonNull;
+use mir::Function;
 
 fn create_test_target() -> Target {
     Target {
@@ -270,3 +289,160 @@ fn test_optimization_constant_folding() {
     assert!(after_opt.contains("ret i32"), "Optimized function does not contain a return instruction");
 }
 
+#[test]
+fn test_builder_alloca() {
+    unsafe {
+        // Step 1: Initialize LLVM context and module with proper error handling
+        let context = LLVMContextCreate();
+        if context.is_null() {
+            panic!("Failed to create LLVM context");
+        }
+
+        let module_name = std::ffi::CString::new("test_module").expect("Failed to create module name");
+        let module = LLVMModuleCreateWithNameInContext(module_name.as_ptr(), context);
+        if module.is_null() {
+            LLVMContextDispose(context);
+            panic!("Failed to create LLVM module");
+        }
+
+        // Step 2: Create function prototype with proper type handling
+        let int32_type = LLVMInt32TypeInContext(context);
+        let void_type = LLVMVoidTypeInContext(context);
+        let mut param_types = vec![int32_type];
+        let function_type = LLVMFunctionType(
+            void_type,
+            param_types.as_mut_ptr(),
+            1, // Explicit parameter count instead of using len()
+            0  // is_vararg = false
+        );
+        
+        let function_name = std::ffi::CString::new("test_function").expect("Failed to create function name");
+        let function = LLVMAddFunction(module, function_name.as_ptr(), function_type);
+        if function.is_null() {
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Failed to create function");
+        }
+
+        // Step 3: Create basic block with proper null checking
+        let block_name = std::ffi::CString::new("entry").expect("Failed to create block name");
+        let entry_block = LLVMAppendBasicBlockInContext(context, function, block_name.as_ptr());
+        if entry_block.is_null() {
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Failed to create entry block");
+        }
+
+        // Create and position builder with proper error handling
+        let builder = LLVMCreateBuilderInContext(context);
+        if builder.is_null() {
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Failed to create LLVM Builder");
+        }
+        LLVMPositionBuilderAtEnd(builder, entry_block);
+
+        // Step 4: Create Builder struct instance
+        // Note: Simplified mock versions of dependencies for testing
+        let literals = Rodeo::default(); // Using default instead of new()
+        let target = create_test_target();
+        let llvm_module = ModuleLlvm::new(
+            "test_module",
+            &target,
+            "generic",
+            "",
+            LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault
+        ).expect("Failed to create ModuleLlvm");
+
+        let codegen_cx = CodegenCx::new(&literals, &llvm_module, &target);
+        let mir_function = Function::new();
+
+        // Safely create NonNull wrapper
+        let function_non_null = match NonNull::new(function) {
+            Some(f) => f,
+            None => {
+                LLVMDisposeBuilder(builder);
+                LLVMDisposeModule(module);
+                LLVMContextDispose(context);
+                panic!("Failed to create NonNull function reference");
+            }
+        };
+
+        // Create builder instance with proper lifetime management
+        let builder_instance = Builder::new(&codegen_cx, &mir_function, function_non_null.as_ref());
+
+        // Step 5: Perform allocation with proper type handling
+        let int32_non_null = match NonNull::new(int32_type) {
+            Some(t) => t,
+            None => {
+                LLVMDisposeBuilder(builder);
+                LLVMDisposeModule(module);
+                LLVMContextDispose(context);
+                panic!("Failed to create NonNull type reference");
+            }
+        };
+
+        let allocated_value = builder_instance.alloca(int32_non_null.as_ref());
+        let allocated_ptr = allocated_value as *const _ as LLVMValueRef;
+        if allocated_ptr.is_null() {
+            LLVMDisposeBuilder(builder);
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Builder::alloca returned a null value");
+        }
+
+        // Step 6: Store value safely
+        let param = LLVMGetParam(function, 0);
+        if param.is_null() {
+            LLVMDisposeBuilder(builder);
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Failed to get function parameter");
+        }
+
+        LLVMBuildStore(builder_instance.llbuilder as *mut _, param, allocated_ptr);
+
+        // Step 7: Build return
+        LLVMBuildRetVoid(builder_instance.llbuilder as *mut _);
+
+        // Step 8: Verify module with proper error handling
+        let mut error_message = std::ptr::null_mut();
+        let verification_result = LLVMVerifyModule(
+            module,
+            llvm_sys::analysis::LLVMVerifierFailureAction::LLVMPrintMessageAction,
+            &mut error_message
+        );
+
+        if verification_result != 0 {
+            let message = if !error_message.is_null() {
+                let msg = CStr::from_ptr(error_message).to_string_lossy().into_owned();
+                LLVMDisposeMessage(error_message);
+                msg
+            } else {
+                String::from("Unknown verification error")
+            };
+            
+            LLVMDisposeBuilder(builder);
+            LLVMDisposeModule(module);
+            LLVMContextDispose(context);
+            panic!("Module verification failed: {}", message);
+        }
+
+        // Optional: Print IR with proper null checking
+        if let Some(ir) = {
+            let ir_ptr = LLVMPrintModuleToString(module);
+            if !ir_ptr.is_null() {
+                Some(CStr::from_ptr(ir_ptr).to_string_lossy().into_owned())
+            } else {
+                None
+            }
+        } {
+            println!("Generated LLVM IR:\n{}", ir);
+        }
+
+        // Step 9: Clean up in reverse order of creation
+        LLVMDisposeBuilder(builder);
+        LLVMDisposeModule(module);
+        LLVMContextDispose(context);
+    }
+}

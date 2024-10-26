@@ -14,7 +14,7 @@ use typed_indexmap::TiSet;
 
 use std::ffi::CString;
 
-use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
+use crate::compilation_unit::{new_codegen,OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
 use crate::metadata::OsdiLimFunction;
 use core::ptr::NonNull;
@@ -156,8 +156,11 @@ pub fn compile(
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
-
+ 
                 cguint.setup_instance();
+                let ir = llmod.to_str();
+                println!("llmod: {}",ir);
+
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {

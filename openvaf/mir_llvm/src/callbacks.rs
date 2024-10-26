@@ -21,6 +21,7 @@ impl<'ll> CodegenCx<'_, 'll> {
         val: &'ll llvm_sys::LLVMValue,
     ) -> CallbackFun<'ll> {
         let name = self.local_callback_name();
+        println!("Creating const callback function: {}", name); // Logging the creation of the callback
         let fun_ty = self.ty_func(args, self.val_ty(val));
         let fun = self.declare_int_fn(&name, fun_ty);
         unsafe {
@@ -41,6 +42,7 @@ impl<'ll> CodegenCx<'_, 'll> {
 
     pub fn trivial_callbacks(&self, args: &[&'ll llvm_sys::LLVMType]) -> CallbackFun<'ll> {
         let name = self.local_callback_name();
+        println!("Generating trivial callback with name: {}", name); // Log when trivial callback is generated.
         let fun_ty = self.ty_func(args, self.ty_void());
         let fun = self.declare_int_fn(&name, fun_ty);
         unsafe {
@@ -80,6 +82,7 @@ impl<'ll> CodegenCx<'_, 'll> {
     }
 
     pub fn local_callback_name(&self) -> String {
-        self.generate_local_symbol_name("cb")
+        let name = self.generate_local_symbol_name("cb");
+        name
     }
 }

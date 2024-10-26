@@ -343,7 +343,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             // Return 0
             LLVMBuildRet(llbuilder, NonNull::from(zero).as_ptr());
 
-            LLVMDisposeBuilder(llbuilder);
+            //Do we have to dispose this?
+            //LLVMDisposeBuilder(llbuilder);
+
         }
 
         llfunc
@@ -422,7 +424,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             // Return 0
             LLVMBuildRet(llbuilder, NonNull::from(zero).as_ptr());
 
-            LLVMDisposeBuilder(llbuilder);
+            //Do we have to dispose this?
+            //LLVMDisposeBuilder(llbuilder);
         }
 
         llfunc
