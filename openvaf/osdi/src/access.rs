@@ -392,7 +392,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
                 // Build code for checking the parameter given flag
                 let is_given = model_data.is_nth_inst_param_given(cx, param_idx as u32, &*ptr, &*llbuilder);
-                let is_given = LLVMBuildSelect(llbuilder, is_given, NonNull::from(one).as_ptr(), NonNull::from(zero).as_ptr(), UNNAMED);
+                let is_given = LLVMBuildSelect(llbuilder, NonNull::from(is_given).as_ptr(), NonNull::from(one).as_ptr(), NonNull::from(zero).as_ptr(), UNNAMED);
 
                 // Return value
                 LLVMBuildRet(llbuilder, is_given);
