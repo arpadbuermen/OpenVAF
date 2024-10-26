@@ -438,7 +438,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         &*llbuilder,
                         kind.dst_reactive(),
                         with_offset,
-                        NonNull::from(offset).as_ptr(),
+                        &*offset,
                         res,
                     );
                 }
