@@ -152,7 +152,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     }
 
     pub fn ty_array(&self, ty: &'ll Type, len: u32) -> &'ll Type {
-        unsafe { &*llvm_sys::core::LLVMArrayType2(NonNull::from(ty).as_ptr(), len) }
+        unsafe { &*llvm_sys::core::LLVMArrayType2(NonNull::from(ty).as_ptr(), len.into()) }
     }
 
     pub fn const_val(&self, val: &Const) -> &'ll Value {
