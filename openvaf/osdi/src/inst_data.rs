@@ -924,7 +924,7 @@ impl<'ll> OsdiInstanceData<'ll> {
                 NonNull::from(llbuilder).as_ptr(),
                 NonNull::from(cx.ty_double()).as_ptr(),
                 dst,
-                [offset].as_ptr(),
+                [offset as *mut _].as_mut_ptr(),
                 1,
                 UNNAMED,
             );
