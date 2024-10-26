@@ -1,14 +1,14 @@
 
 use super::*;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
-use target::spec::{Target, Architecture};
+use target::spec::Target;
 
 fn create_test_target() -> Target {
     Target {
         llvm_target: String::from("x86_64-unknown-linux-gnu"),
         pointer_width: 64,
         data_layout: String::from("e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"),
-        arch: target::spec::Architecture::X86_64,
+        arch: "x86_64".to_string(),
         options: target::spec::TargetOptions {
             cpu: String::from("x86-64"),
             features: String::new(),
