@@ -16,6 +16,10 @@ fn create_test_target() -> Target {
             ..Default::default()
         },
     }
+    println!("Finished test_module_creation_and_verification");
+    println!("Finished test_constant_operations");
+    println!("Finished test_function_creation");
+    println!("Finished test_optimization_constant_folding");
 }
 
 fn initialize_llvm() {
@@ -30,6 +34,10 @@ fn initialize_llvm() {
 
 #[test]
 fn test_module_creation_and_verification() {
+    println!("Starting test_module_creation_and_verification");
+    println!("Starting test_constant_operations");
+    println!("Starting test_function_creation");
+    println!("Starting test_optimization_constant_folding");
     initialize_llvm();
     let target = create_test_target();
     let result = unsafe {
