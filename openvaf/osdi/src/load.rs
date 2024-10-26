@@ -463,7 +463,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let llfunc = cx.declare_int_c_fn(name, fun_ty);
 
         unsafe {
-            let entry = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
+            let entry = LLVMAppendBasicBlockInContext(
+                NonNull::from(cx.llcx).as_ptr(),
+                NonNull::from(llfunc).as_ptr(),
+                UNNAMED,
+            );
             let llbuilder = LLVMCreateBuilderInContext(cx.llcx);
 
             LLVMPositionBuilderAtEnd(llbuilder, entry);
