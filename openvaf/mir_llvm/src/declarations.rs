@@ -7,7 +7,7 @@ use llvm_sys::prelude::LLVMBool;
 use llvm_sys::LLVMType as Type;
 use llvm_sys::LLVMValue as Value;
 
-const False: LLVMBool = 0;
+const FALSE: LLVMBool = 0;
 
 use crate::CodegenCx;
 use std::ptr::NonNull;
