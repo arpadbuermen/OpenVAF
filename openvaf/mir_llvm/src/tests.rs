@@ -155,8 +155,6 @@ fn test_function_creation() {
     }
 
     // Print the generated IR for debugging
-    println!("Generated IR:\n{}", module.to_str().to_string());
-
     // Verify the function
     assert!(module.verify().is_none(), "Function verification failed");
 
