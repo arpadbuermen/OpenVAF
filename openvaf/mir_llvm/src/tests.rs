@@ -1,5 +1,5 @@
 
-use llvm_sys::target::{LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs, LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers};
+use llvm_sys::target::{LLVM_InitializeAllTargetInfos, LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs, LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers};
 use super::*;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use target::spec::Target;
@@ -18,14 +18,23 @@ fn create_test_target() -> Target {
     }
 }
 
-#[test]
-fn test_module_creation_and_verification() {
+fn initialize_llvm() {
     unsafe {
+        LLVM_InitializeAllTargetInfos();
         LLVM_InitializeAllTargets();
         LLVM_InitializeAllTargetMCs();
         LLVM_InitializeAllAsmPrinters();
         LLVM_InitializeAllAsmParsers();
     }
+}
+
+#[test]
+fn test_module_creation_and_verification() {
+    initialize_llvm();
+    initialize_llvm();
+    initialize_llvm();
+    initialize_llvm();
+    initialize_llvm();
     let target = create_test_target();
     let result = unsafe {
         ModuleLlvm::new(
