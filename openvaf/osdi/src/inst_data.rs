@@ -736,10 +736,10 @@ impl<'ll> OsdiInstanceData<'ll> {
             1,
             UNNAMED,
         );
-        LLVMBuildLoad2(
+        &*LLVMBuildLoad2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
-            ptr,
+            NonNull::from(ptr).as_ptr(),
             UNNAMED,
         )
     }
