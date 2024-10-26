@@ -517,8 +517,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         self.cx,
                         pos, 
                         dest_ty, 
-                        dest_array,
-                        llbuilder,
+                        NonNull::new_unchecked(dest_array).as_ref(),
+                        NonNull::new_unchecked(llbuilder).as_ref(),
                         res,
                     );
                     pos = pos + 1;
