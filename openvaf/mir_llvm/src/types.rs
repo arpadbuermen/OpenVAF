@@ -250,10 +250,10 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
         unsafe {
             let mut val_ptrs: Vec<*mut llvm_sys::LLVMValue> =
                 vals.iter().map(|&v| NonNull::from(v).as_ptr()).collect();
-            &*llvm_sys::core::LLVMConstArray(
+            &*llvm_sys::core::LLVMConstArray2(
                 NonNull::from(elem_ty).as_ptr(),
                 val_ptrs.as_mut_ptr(),
-                vals.len() as u32,
+                vals.len() as u64,
             )
         }
     }
