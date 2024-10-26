@@ -16,10 +16,6 @@ fn create_test_target() -> Target {
             ..Default::default()
         },
     }
-    println!("Finished test_module_creation_and_verification");
-    println!("Finished test_constant_operations");
-    println!("Finished test_function_creation");
-    println!("Finished test_optimization_constant_folding");
 }
 
 fn initialize_llvm() {
