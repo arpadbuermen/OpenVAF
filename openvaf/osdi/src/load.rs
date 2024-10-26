@@ -491,10 +491,22 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 let res = {
                     if kind.read_resistive() {
                         // Load resistive Jacobian value from instance structure
-                        self.load_jacobian_entry(entry, inst, model, llbuilder, false)
+                        self.load_jacobian_entry(
+                            entry,
+                            &*inst,
+                            &*model,
+                            &*llbuilder,
+                            false,
+                        )
                     } else {
                         // Load reactive Jacobian value from instance structure
-                        self.load_jacobian_entry(entry, inst, model, llbuilder, true)
+                        self.load_jacobian_entry(
+                            entry,
+                            &*inst,
+                            &*model,
+                            &*llbuilder,
+                            true,
+                        )
                     }
                 };
                 
