@@ -1,6 +1,5 @@
 
 use llvm_sys::target::{LLVM_InitializeAllTargetInfos, LLVM_InitializeAllTargets, LLVM_InitializeAllTargetMCs, LLVM_InitializeAllAsmPrinters, LLVM_InitializeAllAsmParsers};
-use llvm_sys::core::LLVMGetEnumAttributeKindForName;
 use super::*;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use target::spec::Target;
@@ -200,7 +199,7 @@ fn test_optimization_constant_folding() {
         );
 
         // Add 'noinline' attribute to prevent inlining
-        let noinline_attr_kind = llvm_sys::LLVMGetEnumAttributeKindForName(b"noinline\0".as_ptr() as *const _, 8);
+        let noinline_attr_kind = llvm_sys::core::LLVMGetEnumAttributeKindForName(b"noinline\0".as_ptr() as *const _, 8);
         let noinline_attr = llvm_sys::core::LLVMCreateEnumAttribute(
             NonNull::from(ctx.llcx).as_ptr(),
             noinline_attr_kind,
