@@ -152,7 +152,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     pub fn get_defined_value(&self, name: &str) -> Option<&'ll Value> {
         self.get_declared_value(name).and_then(|val| {
             let declaration =
-                unsafe { llvm_sys::core::LLVMIsDeclaration(NonNull::from(val).as_ptr()) != False };
+                unsafe { llvm_sys::core::LLVMIsDeclaration(NonNull::from(val).as_ptr()) != FALSE };
             if !declaration {
                 Some(val)
             } else {
