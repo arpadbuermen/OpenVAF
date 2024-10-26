@@ -31,10 +31,6 @@ fn initialize_llvm() {
 #[test]
 fn test_module_creation_and_verification() {
     initialize_llvm();
-    initialize_llvm();
-    initialize_llvm();
-    initialize_llvm();
-    initialize_llvm();
     let target = create_test_target();
     let result = unsafe {
         ModuleLlvm::new(
@@ -59,6 +55,7 @@ fn test_module_creation_and_verification() {
 
 #[test]
 fn test_constant_operations() {
+    initialize_llvm();
     let target = create_test_target();
     let module = unsafe {
         ModuleLlvm::new(
@@ -101,6 +98,7 @@ fn test_constant_operations() {
 
 #[test]
 fn test_function_creation() {
+    initialize_llvm();
     let target = create_test_target();
     let module = unsafe {
         ModuleLlvm::new(
@@ -162,6 +160,7 @@ fn test_function_creation() {
 
 #[test]
 fn test_optimization_constant_folding() {
+    initialize_llvm();
     let target = create_test_target();
     let module = unsafe {
         ModuleLlvm::new(
