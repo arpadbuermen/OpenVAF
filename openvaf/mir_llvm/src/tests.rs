@@ -1,8 +1,7 @@
 
 use super::*;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
-use std::path::PathBuf;
-use target::spec::Target;
+use target::spec::{Target, Architecture};
 
 fn create_test_target() -> Target {
     Target {
@@ -56,8 +55,8 @@ fn test_constant_operations() {
         .unwrap()
     };
 
-    let mut literals = Rodeo::new();
-    let ctx = unsafe { CodegenCx::new(&literals, &module, &target) };
+    let literals = Rodeo::new();
+    let ctx = CodegenCx::new(&literals, &module, &target);
 
     // Test constant creation and verification
     let const_int = ctx.const_int(42);
@@ -98,8 +97,8 @@ fn test_function_creation() {
         .unwrap()
     };
 
-    let mut literals = Rodeo::new();
-    let ctx = unsafe { CodegenCx::new(&literals, &module, &target) };
+    let literals = Rodeo::new();
+    let ctx = CodegenCx::new(&literals, &module, &target);
 
     // Create function that adds two integers
     let int_ty = ctx.ty_int();
@@ -159,8 +158,8 @@ fn test_optimization_constant_folding() {
         .unwrap()
     };
 
-    let mut literals = Rodeo::new();
-    let ctx = unsafe { CodegenCx::new(&literals, &module, &target) };
+    let literals = Rodeo::new();
+    let ctx = CodegenCx::new(&literals, &module, &target);
     
     // Create function that returns a constant expression
     let fn_ty = ctx.ty_func(&[], ctx.ty_int());

@@ -106,7 +106,7 @@ pub struct LLVMBackend<'t> {
 
 impl<'t> LLVMBackend<'t> {
     pub fn new(
-        cg_opts: &[String],
+        _cg_opts: &[String],
         target: &'t Target,
         mut target_cpu: String,
         target_features: &[String],
