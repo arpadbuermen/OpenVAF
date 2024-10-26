@@ -728,7 +728,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         llbuilder: &llvm_sys::LLVMBuilder,
     ) -> &'ll llvm_sys::LLVMValue {
         let off = self.read_node_off(cx, node, ptr, llbuilder);
-        let ptr = &*LLVMBuildGEP2(
+        let ptr = LLVMBuildGEP2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
             NonNull::from(prev_result).as_ptr(),
@@ -736,10 +736,10 @@ impl<'ll> OsdiInstanceData<'ll> {
             1,
             UNNAMED,
         );
-        &*LLVMBuildLoad2(
+        LLVMBuildLoad2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
+            ptr,
             UNNAMED,
         )
     }
