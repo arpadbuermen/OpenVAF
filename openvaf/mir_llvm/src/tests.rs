@@ -18,15 +18,23 @@ fn create_test_target() -> Target {
     }
 }
 
+
+use std::sync::Once;
+
+static INIT: Once = Once::new();
+
 fn initialize_llvm() {
-    unsafe {
-        LLVM_InitializeAllTargetInfos();
-        LLVM_InitializeAllTargets();
-        LLVM_InitializeAllTargetMCs();
-        LLVM_InitializeAllAsmPrinters();
-        LLVM_InitializeAllAsmParsers();
-    }
+    INIT.call_once(|| {
+        unsafe {
+            LLVM_InitializeAllTargetInfos();
+            LLVM_InitializeAllTargets();
+            LLVM_InitializeAllTargetMCs();
+            LLVM_InitializeAllAsmPrinters();
+            LLVM_InitializeAllAsmParsers();
+        }
+    });
 }
+
 
 #[test]
 fn test_module_creation_and_verification() {
