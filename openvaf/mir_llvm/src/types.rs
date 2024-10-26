@@ -186,19 +186,19 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     }
     pub fn const_int(&self, val: i32) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, TRUE)
         }
     }
 
     pub fn const_unsigned_int(&self, val: u32) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, TRUE)
         }
     }
 
     pub fn const_isize(&self, val: isize) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_size()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_size()).as_ptr(), val as u64, TRUE)
         }
     }
 
@@ -207,7 +207,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_size()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -217,7 +217,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -227,7 +227,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_c_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -237,7 +237,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_c_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
