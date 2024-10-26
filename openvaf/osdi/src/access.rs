@@ -301,7 +301,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let zero = cx.const_int(0);
             let one = cx.const_int(1);
 
-            let entry = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
+            let entry = LLVMAppendBasicBlockInContext(NonNull::from(cx.llcx).as_ptr(), llfunc, UNNAMED);
             let not_found = LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED);
             let llbuilder = LLVMCreateBuilderInContext(cx.llcx);
 
