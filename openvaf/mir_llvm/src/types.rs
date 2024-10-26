@@ -6,8 +6,8 @@ use llvm_sys::prelude::LLVMBool;
 use llvm_sys::LLVMType as Type;
 use llvm_sys::LLVMValue as Value;
 
-const False: LLVMBool = 0;
-const True: LLVMBool = 1;
+const FALSE: LLVMBool = 0;
+const TRUE: LLVMBool = 1;
 use crate::CodegenCx;
 use core::ptr::NonNull;
 use mir::Const;
@@ -133,7 +133,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
                 ret as *const _ as *mut _,
                 arg_ptrs.as_mut_ptr(),
                 args.len() as c_uint,
-                False,
+                FALSE,
             )
         }
     }
@@ -146,7 +146,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
                 ret as *const _ as *mut _,
                 arg_ptrs.as_mut_ptr(),
                 args.len() as c_uint,
-                True,
+                TRUE,
             )
         }
     }
