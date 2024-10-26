@@ -955,10 +955,10 @@ impl<'ll> OsdiInstanceData<'ll> {
         &self,
         cx: &CodegenCx<'_, 'll>,
         entry: u32,
-        ty: &'ll llvm::Type, 
-        ptr: &'ll llvm::Value,
-        llbuilder: &llvm::Builder<'ll>,
-        val: &'ll llvm::Value,
+        ty: &'ll llvm_sys::LLVMType,
+        ptr: &'ll llvm_sys::LLVMValue,
+        llbuilder: &llvm_sys::LLVMBuilder,
+        val: &'ll llvm_sys::LLVMValue,
     ) {
         let zero = cx.const_int(0);
         
