@@ -287,7 +287,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn given_flag_instance(&self) -> &'ll llvm::Value {
+    pub fn given_flag_instance(&self) -> &'ll llvm_sys::LLVMValue {
         let cx = &self.cx;
         let void_ptr = cx.ty_ptr();
         let uint32_t = cx.ty_int();
@@ -349,7 +349,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
-    pub fn given_flag_model(&self) -> &'ll llvm::Value {
+    pub fn given_flag_model(&self) -> &'ll llvm_sys::LLVMValue {
         let OsdiCompilationUnit { inst_data, model_data, cx, .. } = &self;
         let args_ = [cx.ty_ptr(), cx.ty_int()];
         let fun_ty = cx.ty_func(&args_, cx.ty_int());
