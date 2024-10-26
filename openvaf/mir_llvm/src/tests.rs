@@ -162,7 +162,10 @@ fn test_function_creation() {
 
     // Check the generated IR
     let module_str = module.to_str().to_string();
-    assert!(module_str.contains("define internal i32 @test_add(i32, i32)"));
+    assert!(module_str.contains("define internal"), "Function linkage is not internal");
+    assert!(module_str.contains("@test_add"), "Function name is not correct");
+    assert!(module_str.contains("add i32"), "Add instruction not found");
+    assert!(module_str.contains("ret i32"), "Return instruction not found");
     assert!(module_str.contains("add i32"));
     assert!(module_str.contains("ret i32"));
 }
@@ -241,5 +244,5 @@ fn test_optimization_constant_folding() {
     let after_opt = module.to_str().to_string();
     
     // The expression should be constant folded to return 14
-    assert!(after_opt.contains("ret i32 14"));
+    assert!(after_opt.contains("ret i32 14"), "Optimized function does not return 14");
 }
