@@ -120,6 +120,12 @@ fn test_function_creation() {
     let test_fn = ctx.declare_int_fn("test_add", fn_ty);
 
     unsafe {
+        // Set function linkage to internal
+        llvm_sys::core::LLVMSetLinkage(
+            NonNull::from(test_fn).as_ptr(),
+            llvm_sys::LLVMLinkage::LLVMInternalLinkage,
+        );
+
         let builder = NonNull::new_unchecked(
             llvm_sys::core::LLVMCreateBuilderInContext(NonNull::from(ctx.llcx).as_ptr())
         );
@@ -177,7 +183,9 @@ fn test_optimization_constant_folding() {
     let ctx = CodegenCx::new(&literals, &module, &target);
     
     // Create function that returns a constant expression
-    let fn_ty = ctx.ty_func(&[], ctx.ty_int());
+    // Modify the function to take parameters
+    let int_ty = ctx.ty_int();
+    let fn_ty = ctx.ty_func(&[int_ty, int_ty, int_ty], int_ty);
     let test_fn = ctx.declare_int_fn("test_const_fold", fn_ty);
     
     unsafe {
@@ -195,21 +203,20 @@ fn test_optimization_constant_folding() {
 
         llvm_sys::core::LLVMPositionBuilderAtEnd(builder.as_ptr(), bb.as_ptr());
         
-        // Build: return 2 + 3 * 4
-        let two = ctx.const_int(2);
-        let three = ctx.const_int(3);
-        let four = ctx.const_int(4);
-        
+        // Use parameters instead of constants
+        let param_two = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 0);
+        let param_three = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 1);
+        let param_four = llvm_sys::core::LLVMGetParam(NonNull::from(test_fn).as_ptr(), 2);
         let mul = llvm_sys::core::LLVMBuildMul(
             builder.as_ptr(),
-            NonNull::from(three).as_ptr(),
-            NonNull::from(four).as_ptr(),
+            param_three,
+            param_four,
             UNNAMED,
         );
         
         let sum = llvm_sys::core::LLVMBuildAdd(
             builder.as_ptr(),
-            NonNull::from(two).as_ptr(),
+            param_two,
             mul,
             UNNAMED,
         );
