@@ -9,7 +9,6 @@ use libc::c_void;
 use llvm_sys::core;
 use llvm_sys::core::{LLVMCreateMessage, LLVMDisposeMessage};
 use llvm_sys::error::LLVMGetErrorMessage;
-use llvm_sys::prelude::*;
 use llvm_sys::transforms::pass_builder::*;
 use std::error::Error;
 use std::fmt::{self, Debug, Display, Formatter};
