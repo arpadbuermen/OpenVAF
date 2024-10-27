@@ -159,7 +159,7 @@ pub fn compile(
  
                 cguint.setup_instance();
                 let ir = llmod.to_str();
-                println!("llmod: {}",ir);
+                //println!("llmod: {}",ir);
 
                 debug_assert!(llmod.verify_and_print());
 
