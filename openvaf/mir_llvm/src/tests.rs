@@ -63,8 +63,6 @@ fn create_test_target() -> Target {
     }
 }
 
-
-
 use std::sync::Once;
 
 static INIT: Once = Once::new();

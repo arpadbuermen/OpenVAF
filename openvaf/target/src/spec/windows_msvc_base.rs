@@ -4,9 +4,9 @@ use crate::spec::{LinkArgs, LinkerFlavor, TargetOptions};
 pub fn opts() -> TargetOptions {
     let mut base = super::windows_base::opts_windows_base();
 
-         // Suppress the verbose logo and authorship debugging output, which would needlessly
-        // clog any log files.
-   // Add MSVC-specific linker arguments like `/NOLOGO` and `msvcrt.lib`
+    // Suppress the verbose logo and authorship debugging output, which would needlessly
+    // clog any log files.
+    // Add MSVC-specific linker arguments like `/NOLOGO` and `msvcrt.lib`
     base.pre_link_args
         .entry(LinkerFlavor::Msvc)
         .or_insert_with(Vec::new)
@@ -19,4 +19,3 @@ pub fn opts() -> TargetOptions {
 
     base
 }
-

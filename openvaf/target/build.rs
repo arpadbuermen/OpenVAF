@@ -72,18 +72,11 @@ fn gen_msys2_importlib(sh: &Shell, arch: &str, target: &str, check: bool) {
     let ucrt_src = stdx::project_root().join("openvaf").join("target").join("src").join("ucrt.c");
     println!("cargo:rerun-if-changed={}", ucrt_src.display());
     let ucrt_obj = out_dir.join(format!("ucrt_{arch}.obj"));
-    cmd!(
-        sh,
-        "cc -c -o {ucrt_obj} {ucrt_src}"
-    )
-    .run()
-    .expect("ucrt compilation succeeds");
+    cmd!(sh, "cc -c -o {ucrt_obj} {ucrt_src}").run().expect("ucrt compilation succeeds");
     libs.push(ucrt_obj);
 
     let libs_ref = &libs;
-    cmd!(sh, "ar rcs {out_file} {libs_ref...}")
-        .run()
-        .expect("successful linking");
+    cmd!(sh, "ar rcs {out_file} {libs_ref...}").run().expect("successful linking");
 
     for lib in &libs {
         let _ = sh.remove_path(lib);

@@ -149,7 +149,7 @@ fn get_linker<'a>(
                     "ld".into()
                 }
             });
-            Box::new(LdLinker { cmd: Command::new(path), target }) as Box<dyn Linker> 
+            Box::new(LdLinker { cmd: Command::new(path), target }) as Box<dyn Linker>
         }
     }
 }
