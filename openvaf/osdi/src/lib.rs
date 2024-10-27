@@ -109,24 +109,22 @@ pub fn compile(
 
         for (i, module) in modules.iter().enumerate() {
             let _db = db.snapshot();
-            unsafe {
-                scope.spawn(move |_| {
-                    let access = format!("access_{}", &module.sym);
-                    let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
-                    let cx = new_codegen(back, &llmod, literals_);
-                    let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
-                    let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
+            scope.spawn(move |_| {
+                let access = format!("access_{}", &module.sym);
+                let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
+                let cx = new_codegen(back, &llmod, literals_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
+                let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
-                    cguint.access_function();
-                    debug_assert!(llmod.verify_and_print());
+                cguint.access_function();
+                debug_assert!(llmod.verify_and_print());
 
-                    if emit {
-                        let path = &paths[i * 4];
-                        llmod.optimize();
-                        assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
-                    }
-                });
-            }
+                if emit {
+                    let path = &paths[i * 4];
+                    llmod.optimize();
+                    assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
+                }
+            });
 
             let _db = db.snapshot();
             scope.spawn(move |_| {
@@ -155,8 +153,8 @@ pub fn compile(
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
-                let ir = llmod.to_str();
-                //println!("llmod: {}",ir);
+                let _ir = llmod.to_str();
+                //println!("llmod: {}", _ir);
 
                 debug_assert!(llmod.verify_and_print());
 
