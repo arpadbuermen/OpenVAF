@@ -1241,7 +1241,8 @@ fn test_builder_call() {
         // Define the add_function that adds two i32 values
         let add_function = &*core::LLVMAddFunction(
             NonNull::from(ctx.llmod).as_ptr(),
-            CString::new("add_function").unwrap().as_ptr(),
+            let add_function_name = CString::new("add_function").unwrap();
+            add_function_name.as_ptr(),
             core::LLVMFunctionType(int32_type, param_types.as_mut_ptr(), 2, 0),
         );
 
