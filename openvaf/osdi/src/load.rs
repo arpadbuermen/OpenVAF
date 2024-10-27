@@ -101,9 +101,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             UNNAMED,
                         );
                         let fast_math_flags: c_uint = 0x01 | 0x02 | 0x10; // Reassoc | Reciprocal | Contract
-                        unsafe {
-                            llvm_sys::core::LLVMSetFastMathFlags(freq_exp, fast_math_flags);
-                        }
+                        llvm_sys::core::LLVMSetFastMathFlags(freq_exp, fast_math_flags);
 
                         pwr = &*LLVMBuildFDiv(
                             llbuilder,
@@ -112,12 +110,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             UNNAMED,
                         );
                         let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                        unsafe {
-                            llvm_sys::core::LLVMSetFastMathFlags(
-                                NonNull::from(pwr).as_ptr(),
-                                fast_math_flags,
-                            );
-                        }
+                        llvm_sys::core::LLVMSetFastMathFlags(
+                            NonNull::from(pwr).as_ptr(),
+                            fast_math_flags,
+                        );
 
                         pwr
                     }
@@ -130,12 +126,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     UNNAMED,
                 );
                 let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                unsafe {
-                    llvm_sys::core::LLVMSetFastMathFlags(
-                        NonNull::from(pwr).as_ptr(),
-                        fast_math_flags,
-                    );
-                }
+                llvm_sys::core::LLVMSetFastMathFlags(
+                    NonNull::from(pwr).as_ptr(),
+                    fast_math_flags,
+                );
 
                 let dst = LLVMBuildGEP2(
                     llbuilder,
@@ -267,18 +261,14 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         UNNAMED,
                     );
                     let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                    unsafe {
-                        llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
-                    }
+                    llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
 
                     res = match res {
                         Some(old) => {
                             let val =
                                 LLVMBuildFAdd(NonNull::from(llbuilder).as_ptr(), old, val, UNNAMED);
                             let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                            unsafe {
-                                llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
-                            }
+                            llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
 
                             Some(val)
                         }
@@ -296,9 +286,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             UNNAMED,
                         );
                         let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                        unsafe {
-                            llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
-                        }
+                        llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
                         res = Some(val);
                     }
                 }
@@ -319,9 +307,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             UNNAMED,
                         );
                         let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                        unsafe {
-                            llvm_sys::core::LLVMSetFastMathFlags(res, fast_math_flags);
-                        }
+                        llvm_sys::core::LLVMSetFastMathFlags(res, fast_math_flags);
                     }
                     inst_data.store_contrib(cx, node, inst, dst, &*res, llbuilder, false);
                 }
@@ -438,12 +424,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                                 UNNAMED,
                             );
                             let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                            unsafe {
-                                llvm_sys::core::LLVMSetFastMathFlags(
-                                    NonNull::from(val).as_ptr(),
-                                    fast_math_flags,
-                                );
-                            }
+                            llvm_sys::core::LLVMSetFastMathFlags(
+                                NonNull::from(val).as_ptr(),
+                                fast_math_flags,
+                            );
                         }
                         val = match res {
                             Some(resist) => {
@@ -454,9 +438,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                                     UNNAMED,
                                 );
                                 let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                                unsafe {
-                                    llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
-                                }
+                                llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
 
                                 &*val
                             }
