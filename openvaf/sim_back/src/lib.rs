@@ -80,12 +80,12 @@ impl<'a> CompiledModule<'a> {
         let mut init = Initialization::new(&mut cx, gvn);
         let node_collapse = NodeCollapse::new(&init, &dae_system, &cx);
         debug_assert!(cx.func.validate());
-        
+
         // For debugging
         // println!("{:?}", init.func);
-        
+
         debug_assert!(init.func.validate());
-        
+
         // TODO: refactor param intilization to use tables
         let inst_params: Vec<_> = module
             .params

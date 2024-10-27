@@ -1,6 +1,10 @@
 use std::borrow::Borrow;
 
+use crate::compiler_db::{
+    current_name, voltage_name, CompilationDB, FuncSpec, InternedModel, ModelInfo,
+};
 use camino::Utf8Path;
+use core::ptr::NonNull;
 use hir::Type;
 use hir_lower::{CallBackKind, CurrentKind, HirInterner, ParamInfoKind, ParamKind, PlaceKind};
 use lasso::Rodeo;
@@ -11,10 +15,6 @@ use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, LLVMBackend};
 use stdx::iter::multiunzip;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
-use core::ptr::NonNull;
-use crate::compiler_db::{
-    current_name, voltage_name, CompilationDB, FuncSpec, InternedModel, ModelInfo,
-};
 
 pub fn sim_param_stub<'ll>(cx: &CodegenCx<'_, 'll>) -> CallbackFun<'ll> {
     cx.const_callback(&[cx.ty_ptr()], cx.const_real(0.0))
@@ -362,7 +362,8 @@ impl CodegenCtx<'_, '_> {
                     | ParamKind::Current(_)
                     | ParamKind::HiddenState(_) => return BuilderVal::Undef,
                     ParamKind::Temperature => unsafe {
-                        let temperature = llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 8);
+                        let temperature =
+                            llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 8);
                         codegen.read_fat_ptr_at(0, &*offset, &*temperature, cx.ty_double())
                     },
                     ParamKind::ParamGiven { .. } | ParamKind::PortConnected { .. } => true_val,
@@ -397,10 +398,12 @@ impl CodegenCtx<'_, '_> {
         let str_params = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 5) };
         unsafe { codegen.read_str_params(&*str_params) };
 
-        let real_dep_break = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 6) };
+        let real_dep_break =
+            unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 6) };
         unsafe { codegen.read_depbreak(&*offset, &*real_dep_break, Type::Real) };
 
-        let int_dep_break = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 7) };
+        let int_dep_break =
+            unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 7) };
         unsafe { codegen.read_depbreak(&*offset, &*int_dep_break, Type::Integer) };
 
         // setup callbacks
@@ -556,12 +559,22 @@ impl CodegenCtx<'_, '_> {
         let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_c_bool()], cx.ty_void());
         let fun = cx.declare_int_fn(&name, fun_ty);
         unsafe {
-            let bb = llvm_sys::core::LLVMAppendBasicBlockInContext(NonNull::from(cx.llcx).as_ptr(), NonNull::from(fun).as_ptr(), UNNAMED);
-            let builder = llvm_sys::core::LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
+            let bb = llvm_sys::core::LLVMAppendBasicBlockInContext(
+                NonNull::from(cx.llcx).as_ptr(),
+                NonNull::from(fun).as_ptr(),
+                UNNAMED,
+            );
+            let builder =
+                llvm_sys::core::LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
             llvm_sys::core::LLVMPositionBuilderAtEnd(builder, bb);
             let ptr = llvm_sys::core::LLVMGetParam(NonNull::from(fun).as_ptr(), 0);
             let flag = llvm_sys::core::LLVMGetParam(NonNull::from(fun).as_ptr(), 1);
-            let val = llvm_sys::core::LLVMBuildLoad2(builder, NonNull::from(cx.ty_c_bool()).as_ptr(), ptr, UNNAMED);
+            let val = llvm_sys::core::LLVMBuildLoad2(
+                builder,
+                NonNull::from(cx.ty_c_bool()).as_ptr(),
+                ptr,
+                UNNAMED,
+            );
             let val = if set {
                 llvm_sys::core::LLVMBuildOr(builder, val, flag, UNNAMED)
             } else {
@@ -716,9 +729,11 @@ impl CodegenCtx<'_, '_> {
             })
             .collect();
 
-        let param_flags = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 7) };
+        let param_flags =
+            unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 7) };
 
-        let param_val_real = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 0) };
+        let param_val_real =
+            unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 0) };
         let real_cnt = self.read_params(
             &param_init_intern,
             Type::Real,
@@ -728,7 +743,8 @@ impl CodegenCtx<'_, '_> {
             0,
         );
 
-        let param_val_int = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 1) };
+        let param_val_int =
+            unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 1) };
         let int_cnt = self.read_params(
             &param_init_intern,
             Type::Integer,
@@ -738,7 +754,8 @@ impl CodegenCtx<'_, '_> {
             real_cnt,
         );
 
-        let param_val_str = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 2) };
+        let param_val_str =
+            unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfun).as_ptr(), 2) };
         self.read_params(
             &param_init_intern,
             Type::String,

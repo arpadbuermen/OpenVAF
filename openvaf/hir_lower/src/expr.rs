@@ -564,10 +564,10 @@ impl BodyLoweringCtx<'_, '_, '_> {
                             CurrentKind::Port(self.body.into_port_flow(args[0]))
                         ))
                 };
-                // AB: Do not divide flow probe. 
-                //     Flow unknowns correspond to the flow of a single parallel instance. 
-                //     HIR equation describes a single parallel instance. 
-                //     Handle $mfactor at a lower level. 
+                // AB: Do not divide flow probe.
+                //     Flow unknowns correspond to the flow of a single parallel instance.
+                //     HIR equation describes a single parallel instance.
+                //     Handle $mfactor at a lower level.
                 // let mfactor = self.ctx.use_param(ParamKind::ParamSysFun(ParamSysFun::mfactor));
                 // return self.ctx.ins().fdiv(res, mfactor);
                 return res;
@@ -660,7 +660,7 @@ impl BodyLoweringCtx<'_, '_, '_> {
             }
             BuiltIn::discontinuity => {
                 // AB: Negative literals are represented as UnaryOp::Neg(Literal)
-                //     We have a function for that now. 
+                //     We have a function for that now.
                 if self.ctx.inside_lim && Some(-1) == self.body.as_literalsignedint(&args[0]) {
                     self.ctx.call(CallBackKind::LimDiscontinuity, &[]);
                 } else {

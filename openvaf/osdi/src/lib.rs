@@ -3,7 +3,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm_sys::target::{LLVMDisposeTargetData,LLVMABISizeOfType};
+use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
@@ -14,7 +14,7 @@ use typed_indexmap::TiSet;
 
 use std::ffi::CString;
 
-use crate::compilation_unit::{new_codegen,OsdiCompilationUnit, OsdiModule};
+use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
 use crate::metadata::OsdiLimFunction;
 use core::ptr::NonNull;
@@ -33,25 +33,21 @@ mod setup;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
-
+use llvm_sys::target::{LLVM_InitializeNativeAsmPrinter, LLVM_InitializeNativeTarget};
 use std::sync::Once;
-use llvm_sys::target::{LLVM_InitializeNativeTarget, LLVM_InitializeNativeAsmPrinter};
 
 static LLVM_INIT: Once = Once::new();
 
 fn initialize_llvm() {
-    LLVM_INIT.call_once(|| {
-        unsafe {
-            if LLVM_InitializeNativeTarget() != 0 {
-                panic!("Failed to initialize native target");
-            }
-            if LLVM_InitializeNativeAsmPrinter() != 0 {
-                panic!("Failed to initialize native ASM printer");
-            }
+    LLVM_INIT.call_once(|| unsafe {
+        if LLVM_InitializeNativeTarget() != 0 {
+            panic!("Failed to initialize native target");
+        }
+        if LLVM_InitializeNativeAsmPrinter() != 0 {
+            panic!("Failed to initialize native ASM printer");
         }
     });
 }
-
 
 pub fn compile(
     db: &CompilationDB,
@@ -108,28 +104,29 @@ pub fn compile(
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
-        let target_data_ =  target_data;
+        let target_data_ = target_data;
         let paths = &paths;
 
         for (i, module) in modules.iter().enumerate() {
             let _db = db.snapshot();
-            unsafe{
-            scope.spawn(move |_| {
-                let access = format!("access_{}", &module.sym);
-                let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
-                let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
-                let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
+            unsafe {
+                scope.spawn(move |_| {
+                    let access = format!("access_{}", &module.sym);
+                    let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
+                    let cx = new_codegen(back, &llmod, literals_);
+                    let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
+                    let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
-                cguint.access_function();
-                debug_assert!(llmod.verify_and_print());
+                    cguint.access_function();
+                    debug_assert!(llmod.verify_and_print());
 
-                if emit {
-                    let path = &paths[i * 4];
-                    llmod.optimize();
-                    assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
-                }
-            });}
+                    if emit {
+                        let path = &paths[i * 4];
+                        llmod.optimize();
+                        assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
+                    }
+                });
+            }
 
             let _db = db.snapshot();
             scope.spawn(move |_| {
@@ -156,7 +153,7 @@ pub fn compile(
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
- 
+
                 cguint.setup_instance();
                 let ir = llmod.to_str();
                 //println!("llmod: {}",ir);
@@ -223,18 +220,16 @@ pub fn compile(
             cx.const_unsigned_int(OSDI_VERSION.1),
             true,
         );
-        
+
         let descr_size: u32;
         unsafe {
-            descr_size = LLVMABISizeOfType(NonNull::from(target_data).as_ptr(), NonNull::from(tys.osdi_descriptor).as_ptr()) as u32;
+            descr_size = LLVMABISizeOfType(
+                NonNull::from(target_data).as_ptr(),
+                NonNull::from(tys.osdi_descriptor).as_ptr(),
+            ) as u32;
         }
 
-        cx.export_val(
-            "OSDI_DESCRIPTOR_SIZE",
-            cx.ty_int(),
-            cx.const_unsigned_int(descr_size),
-            true,
-        );
+        cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
 
         if !lim_table.is_empty() {
             let lim: Vec<_> = lim_table.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
@@ -251,9 +246,18 @@ pub fn compile(
             cx.get_declared_value("osdi_log").expect("symbol osdi_log missing from std lib");
         let val = cx.const_null_ptr();
         unsafe {
-            llvm_sys::core::LLVMSetInitializer(NonNull::from(osdi_log).as_ptr(), NonNull::from(val).as_ptr());
-            llvm_sys::core::LLVMSetLinkage(NonNull::from(osdi_log).as_ptr(), llvm_sys::LLVMLinkage::LLVMExternalLinkage);
-            llvm_sys::core::LLVMSetUnnamedAddress(NonNull::from(osdi_log).as_ptr(), llvm_sys::LLVMUnnamedAddr::LLVMNoUnnamedAddr);
+            llvm_sys::core::LLVMSetInitializer(
+                NonNull::from(osdi_log).as_ptr(),
+                NonNull::from(val).as_ptr(),
+            );
+            llvm_sys::core::LLVMSetLinkage(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMLinkage::LLVMExternalLinkage,
+            );
+            llvm_sys::core::LLVMSetUnnamedAddress(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMUnnamedAddr::LLVMNoUnnamedAddr,
+            );
             llvm_sys::core::LLVMSetDLLStorageClass(
                 NonNull::from(osdi_log).as_ptr(),
                 llvm_sys::LLVMDLLStorageClass::LLVMDLLExportStorageClass,

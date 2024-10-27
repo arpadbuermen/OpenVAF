@@ -874,7 +874,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm_sys::LLVMValue,
         llbuilder: &llvm_sys::LLVMBuilder,
         reactive: bool,
-        has_offset: bool, 
+        has_offset: bool,
         offset: &'ll llvm_sys::LLVMValue,
         val: &'ll llvm_sys::LLVMValue,
     ) {
@@ -961,11 +961,18 @@ impl<'ll> OsdiInstanceData<'ll> {
         val: &'ll llvm_sys::LLVMValue,
     ) {
         let zero = cx.const_int(0);
-        
+
         // Convert to LLVM u32
         let entry = cx.const_unsigned_int(entry);
         // Create pointer to array entry with index entry
-        let ptr = LLVMBuildGEP2(NonNull::from(llbuilder).as_ptr(), NonNull::from(ty).as_ptr(), NonNull::from(ptr).as_ptr(), llvm_array_nonnull![zero, entry], 2, UNNAMED);
+        let ptr = LLVMBuildGEP2(
+            NonNull::from(llbuilder).as_ptr(),
+            NonNull::from(ty).as_ptr(),
+            NonNull::from(ptr).as_ptr(),
+            llvm_array_nonnull![zero, entry],
+            2,
+            UNNAMED,
+        );
         // Store value where dst pointer points to
         LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), NonNull::from(val).as_ptr(), ptr);
     }
@@ -1110,8 +1117,8 @@ impl<'ll> OsdiInstanceData<'ll> {
         val: &'ll llvm_sys::LLVMValue,
     ) {
         /*let builder_mut: &mut _ = unsafe {
-        &mut *(builder as *const _ as *mut mir_llvm::Builder<'_, '_, 'll>)
-    };*/
+            &mut *(builder as *const _ as *mut mir_llvm::Builder<'_, '_, 'll>)
+        };*/
         let ptr = builder.struct_gep(self.ty, ptr, CONNECTED);
         builder.store(ptr, val)
     }

@@ -126,12 +126,11 @@ pub fn expand(opts: &Opts) -> Result<CompilationTermination> {
                 } else {
                     print!("{}", &text[span.range])
                 }
-            }, 
+            }
             _ => {
                 // Add a space after each token
                 print!("{} ", &text[span.range])
             }
-
         };
     }
     println!();

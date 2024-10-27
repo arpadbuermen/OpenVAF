@@ -1,5 +1,8 @@
 use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
 
+use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
+use crate::inst_data::OsdiInstanceParam;
+use core::ptr::NonNull;
 use llvm_sys::core::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,
     LLVMCreateBuilderInContext, LLVMDisposeBuilder, LLVMGetParam, LLVMPositionBuilderAtEnd,
@@ -8,9 +11,6 @@ use llvm_sys::LLVMIntPredicate::LLVMIntSLT;
 use mir::ControlFlowGraph;
 use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, UNNAMED};
 use sim_back::SimUnknownKind;
-use core::ptr::NonNull;
-use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
-use crate::inst_data::OsdiInstanceParam;
 
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     fn mark_collapsed(&self) -> (&'ll llvm_sys::LLVMValue, &'ll llvm_sys::LLVMType) {
@@ -22,7 +22,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         // Debug: Building constants and function
         unsafe {
             // Debug: Building constants
-            let entry = LLVMAppendBasicBlockInContext(NonNull::from(cx.llcx).as_ptr(), NonNull::from(llfunc).as_ptr(), UNNAMED);
+            let entry = LLVMAppendBasicBlockInContext(
+                NonNull::from(cx.llcx).as_ptr(),
+                NonNull::from(llfunc).as_ptr(),
+                UNNAMED,
+            );
             let llbuilder = LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
             LLVMPositionBuilderAtEnd(llbuilder, entry);
 
@@ -144,7 +148,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let ret_flags = unsafe { builder.alloca(cx.ty_int()) };
         unsafe { builder.store(ret_flags, cx.const_int(0)) };
 
-        builder.callbacks = general_callbacks(intern, &mut builder, ret_flags, unsafe { &*handle }, unsafe { &*simparam });
+        builder.callbacks =
+            general_callbacks(intern, &mut builder, ret_flags, unsafe { &*handle }, unsafe {
+                &*simparam
+            });
         for (call_id, call) in intern.callbacks.iter_enumerated() {
             if let CallBackKind::ParamInfo(ParamInfoKind::Invalid, param) = call {
                 if !self.module.info.params[param].is_instance {
@@ -236,8 +243,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let handle = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 0) };
         let instance = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 1) };
         let model = unsafe { &*llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 2) };
-        let temperature = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 3) };
-        let connected_terminals = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 4) };
+        let temperature =
+            unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 3) };
+        let connected_terminals =
+            unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 4) };
         let simparam = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 5) };
         let res = unsafe { llvm_sys::core::LLVMGetParam(NonNull::from(llfunc).as_ptr(), 6) };
         // Debug: Parameters retrieved
@@ -357,7 +366,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         let invalid_param_err = Self::invalid_param_err(cx);
-        builder.callbacks = general_callbacks(intern, &mut builder, ret_flags, unsafe { &*handle }, unsafe { &*simparam });
+        builder.callbacks =
+            general_callbacks(intern, &mut builder, ret_flags, unsafe { &*handle }, unsafe {
+                &*simparam
+            });
         for (call_id, call) in intern.callbacks.iter_enumerated() {
             let cb = match call {
                 CallBackKind::ParamInfo(ParamInfoKind::Invalid, param) => {
@@ -437,10 +449,23 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 let llcx = cx.llcx;
                 let llbuilder = &*builder.llbuilder;
                 unsafe {
-                    let else_bb = LLVMAppendBasicBlockInContext(NonNull::from(llcx).as_ptr(), NonNull::from(builder.fun).as_ptr(), UNNAMED);
-                    let then_bb = LLVMAppendBasicBlockInContext(NonNull::from(llcx).as_ptr(), NonNull::from(builder.fun).as_ptr(), UNNAMED);
+                    let else_bb = LLVMAppendBasicBlockInContext(
+                        NonNull::from(llcx).as_ptr(),
+                        NonNull::from(builder.fun).as_ptr(),
+                        UNNAMED,
+                    );
+                    let then_bb = LLVMAppendBasicBlockInContext(
+                        NonNull::from(llcx).as_ptr(),
+                        NonNull::from(builder.fun).as_ptr(),
+                        UNNAMED,
+                    );
                     let should_collapse = builder.values[should_collapse].get(&builder);
-                    LLVMBuildCondBr(NonNull::from(llbuilder).as_ptr(), NonNull::from(should_collapse).as_ptr(), then_bb, else_bb);
+                    LLVMBuildCondBr(
+                        NonNull::from(llbuilder).as_ptr(),
+                        NonNull::from(should_collapse).as_ptr(),
+                        then_bb,
+                        else_bb,
+                    );
                     LLVMPositionBuilderAtEnd(NonNull::from(llbuilder).as_ptr(), then_bb);
                     module.node_collapse.hint(eq, None, |pair| {
                         let idx = cx.const_unsigned_int(pair.into());

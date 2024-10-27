@@ -499,7 +499,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
 
             // Technically not required but makes code look nicer..
             // exp(x) -> exp(x)
-//            Opcode::Exp => res,
+            //            Opcode::Exp => res,
             Opcode::Exp => self.ins().exp(arg0),
 
             // hypot(x,y) -> (x' + y')/2hypot(x,y)

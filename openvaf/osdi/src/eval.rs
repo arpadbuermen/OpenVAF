@@ -314,21 +314,39 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst_data.store_jacobian(entry, instance, builder, reactive)
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, jacobian_flag, &store_matrix);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    jacobian_flag,
+                    &store_matrix,
+                );
 
                 let store_residual = |builder: &mut Builder<'_, '_, 'll>| {
                     for unknown in module.dae_system.unknowns.indices() {
                         inst_data.store_residual(unknown, instance, builder, reactive);
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, residual_flag, &store_residual);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    residual_flag,
+                    &store_residual,
+                );
 
                 let store_lim_rhs = |builder: &mut Builder<'_, '_, 'll>| {
                     for unknown in module.dae_system.unknowns.indices() {
                         inst_data.store_lim_rhs(unknown, instance, builder, reactive);
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, lim_rhs_flag, &store_lim_rhs);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    lim_rhs_flag,
+                    &store_lim_rhs,
+                );
             }
 
             let store_opvars = |builder: &mut Builder<'_, '_, 'll>| {

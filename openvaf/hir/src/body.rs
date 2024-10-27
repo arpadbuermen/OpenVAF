@@ -7,7 +7,7 @@ use hir_ty::inference;
 use hir_ty::types::{Signature, Ty};
 
 pub use hir_def::expr::Event;
-pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type};
+pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type,};
 pub use syntax::ast::{BinaryOp, UnaryOp};
 
 use crate::{Branch, CompilationDB, Node};
@@ -90,8 +90,8 @@ impl<'a> BodyRef<'a> {
         match &self.body.exprs[expr1] {
             hir_def::Expr::Literal(lit) => match &lit {
                 Literal::Int(ii) => Some(*ii), // Int literal
-                _ => None, // other literals
-            }
+                _ => None,                     // other literals
+            },
             _ => None, // not a literal
         }
     }
@@ -99,16 +99,19 @@ impl<'a> BodyRef<'a> {
     // AB: get integer literal with optional negative sign
     pub fn as_literalsignedint(&self, &expr1: &ExprId) -> Option<i32> {
         match &self.body.exprs[expr1] {
-            hir_def::Expr::Literal(lit) => match &lit { // Literal
+            hir_def::Expr::Literal(lit) => match &lit {
+                // Literal
                 Literal::Int(ii) => Some(*ii), // Int literal
-                _ => None, // other literals
-            }
-            hir_def::Expr::UnaryOp { expr, op } => { // UnaryOp
+                _ => None,                     // other literals
+            },
+            hir_def::Expr::UnaryOp { expr, op } => {
+                // UnaryOp
                 match op {
-                    UnaryOp::Neg => match self.as_literalint(expr) { // Neg
+                    UnaryOp::Neg => match self.as_literalint(expr) {
+                        // Neg
                         Some(ii) => Some(-ii), // Neg Int literal
-                        _ => None, // Neg anything else
-                    }
+                        _ => None,             // Neg anything else
+                    },
                     _ => None, // Other UnaryOp
                 }
             }

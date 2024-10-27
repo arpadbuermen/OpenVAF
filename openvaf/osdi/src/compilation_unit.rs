@@ -521,18 +521,17 @@ fn print_callback<'ll>(
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
 
         unsafe {
-            let mut incoming_values = llvm_array_nonnull![lvl, lvl_and_err];
+            let incoming_values = llvm_array_nonnull![lvl, lvl_and_err];
             let mut incoming_blocks = [write_bb, err_bb];
             LLVMAddIncoming(flags, incoming_values, incoming_blocks.as_mut_ptr(), 2);
         }
 
         let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);
-      //  print_module_ir(cx, "After building the PHI block");
+        //  print_module_ir(cx, "After building the PHI block");
 
         // Fix for second LLVMAddIncoming call
         unsafe {
-            let mut incoming_values =
-                [ptr, fmt_lit];
+            let mut incoming_values = [ptr, fmt_lit];
             let mut incoming_blocks = [write_bb, err_bb];
             LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
         }
@@ -567,4 +566,3 @@ fn print_callback<'ll>(
 
     (fun, fun_ty)
 }
-
