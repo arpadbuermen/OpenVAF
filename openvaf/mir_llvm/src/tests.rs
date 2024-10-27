@@ -369,7 +369,7 @@ fn test_builder_alloca() {
         // println!("IR before verification:");
         let ir_before = LLVMPrintModuleToString(module);
         if !ir_before.is_null() {
-            let ir_str = CStr::from_ptr(ir_before).to_string_lossy();
+            let _ir_str = CStr::from_ptr(ir_before).to_string_lossy();
             //    println!("{}", ir_str);
             LLVMDisposeMessage(ir_before);
         }
