@@ -126,10 +126,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     UNNAMED,
                 );
                 let fast_math_flags: c_uint = 0x1F; // This represents all flags set
-                llvm_sys::core::LLVMSetFastMathFlags(
-                    NonNull::from(pwr).as_ptr(),
-                    fast_math_flags,
-                );
+                llvm_sys::core::LLVMSetFastMathFlags(NonNull::from(pwr).as_ptr(), fast_math_flags);
 
                 let dst = LLVMBuildGEP2(
                     llbuilder,

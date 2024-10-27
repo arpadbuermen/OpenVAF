@@ -1095,7 +1095,8 @@ fn is_array(ty: *mut PyTypeObject) -> bool {
 
 #[inline(always)]
 unsafe fn is_float(ty: *mut PyTypeObject) -> bool {
-    ty == std::ptr::addr_of_mut!(PyFloat_Type) || PyType_IsSubtype(ty, std::ptr::addr_of_mut!(PyFloat_Type)) != 0
+    ty == std::ptr::addr_of_mut!(PyFloat_Type)
+        || PyType_IsSubtype(ty, std::ptr::addr_of_mut!(PyFloat_Type)) != 0
 }
 
 #[inline(always)]
