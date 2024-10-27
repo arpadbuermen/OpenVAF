@@ -849,7 +849,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         let fast_math_flags: c_uint = 0x1F; // This represents all flags set
         llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
         //LLVMSetFastMath(val);
-        &*LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), val, dst);
+        let _ = &*LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), val, dst);
     }
 
     pub unsafe fn store_jacobian(
@@ -947,7 +947,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         let fast_math_flags: c_uint = 0x1F; // This represents all flags set
         llvm_sys::core::LLVMSetFastMathFlags(val, fast_math_flags);
         // Store value where dst pointer points to
-        &*LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), val, dst);
+        let _ = &*LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), val, dst);
     }
 
     // Writes Jacobian contribution to corresponding slot in array of doubles
