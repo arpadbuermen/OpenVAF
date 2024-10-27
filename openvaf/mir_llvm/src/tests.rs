@@ -567,7 +567,7 @@ mod codegen_tests {
 
             ctx.intrinsics
                 .borrow_mut()
-                .insert("llvm.ctpop.i32", (unsafe { &*fn_type }, unsafe { &*intrinsic_fn }));
+                .insert("llvm.ctpop.i32", (&*fn_type, &*intrinsic_fn));
         }
 
         assert_eq!(ctx.intrinsics.borrow().len(), 1, "Intrinsics cache should contain one entry");
@@ -726,7 +726,7 @@ mod builder_tests {
             &*core::LLVMAddFunction(NonNull::from(ctx.llmod).as_ptr(), fn_name.as_ptr(), fn_type)
         };
 
-        let builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let builder = Builder::new(&ctx, &function_instance, function);
 
         // Print the generated IR before adding the alloca instruction
         // let ir = module.to_str().to_string();
@@ -772,7 +772,7 @@ mod builder_tests {
             &*core::LLVMAddFunction(NonNull::from(ctx.llmod).as_ptr(), fn_name.as_ptr(), fn_type)
         };
 
-        let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let mut builder = Builder::new(&ctx, &function_instance, function);
 
         // Print the generated IR before adding the branching select
         // let ir_before = module.to_str().to_string();
@@ -841,7 +841,7 @@ mod builder_tests {
             &*core::LLVMAddFunction(NonNull::from(ctx.llmod).as_ptr(), fn_name.as_ptr(), fn_type)
         };
 
-        let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let mut builder = Builder::new(&ctx, &function_instance, function);
 
         // Position the builder at the beginning of the function without creating an entry block
         unsafe {
@@ -919,7 +919,7 @@ mod builder_tests {
         };
         // IR: define i32 @test_gep_function()
 
-        let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let mut builder = Builder::new(&ctx, &function_instance, function);
 
         unsafe {
             // Position the builder at the beginning of the function without creating an entry block
@@ -1017,7 +1017,7 @@ mod builder_tests {
         };
         // IR: define i32 @test_struct_gep_function()
 
-        let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let mut builder = Builder::new(&ctx, &function_instance, function);
 
         unsafe {
             // Position the builder at the beginning of the function without creating an entry block
@@ -1106,7 +1106,7 @@ mod builder_tests {
         };
         // IR: define i32 @test_nested_struct_gep_function()
 
-        let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+        let mut builder = Builder::new(&ctx, &function_instance, function);
 
         unsafe {
             // Position the builder at the beginning of the function without creating an entry block
@@ -1232,7 +1232,7 @@ fn test_builder_call() {
     };
     // IR: define i32 @test_call_function(i32 %0, i32 %1)
 
-    let mut builder = unsafe { Builder::new(&ctx, &function_instance, function) };
+    let mut builder = Builder::new(&ctx, &function_instance, function);
 
     unsafe {
         // Position the builder at the beginning of the function without creating an entry block
