@@ -40,7 +40,7 @@ pub static mut VAE_MODEL_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeModel\0".as_ptr() as *const c_char;
     res.tp_doc =
         "A Verilog-A module compiled and loaded with Verilog-AE\0".as_ptr() as *const c_char;
-    res.tp_members = unsafe { &mut VAE_MODEL_MEMBERS } as *mut _;
+    res.tp_members = unsafe { std::ptr::addr_of_mut!(VAE_MODEL_MEMBERS) } as *mut _;
     res.tp_dealloc = Some(VaeModel::dealloc);
     res
 };
