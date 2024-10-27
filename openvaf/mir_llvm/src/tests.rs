@@ -27,22 +27,43 @@ use std::ffi::CStr;
 use std::mem;
 use std::ptr::NonNull;
 use target::spec::Target;
+use target_lexicon::{Architecture, Triple};
 
 fn create_test_target() -> Target {
+    let host_triple = Triple::host();
+    let target_triple = host_triple.to_string();
+    let pointer_width = match host_triple.architecture {
+        Architecture::X86_64 => 64,
+        Architecture::Aarch64(_) => 64,
+        Architecture::X86_32(_) => 32,
+        // Add other architectures as needed
+        _ => panic!("Unsupported architecture"),
+    };
+
+    let cpu = match host_triple.architecture {
+        Architecture::X86_64 => "x86-64",
+        Architecture::Aarch64(_) => "generic",
+        Architecture::X86_32(_) => "i686",
+        // Add other architectures as needed
+        _ => panic!("Unsupported architecture"),
+    };
+
     Target {
-        llvm_target: String::from("x86_64-pc-linux-gnu"),
-        pointer_width: 64,
+        llvm_target: target_triple.clone(),
+        pointer_width,
         data_layout: String::from(
             "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128",
         ),
-        arch: "x86_64".to_string(),
+        arch: host_triple.architecture.to_string(),
         options: target::spec::TargetOptions {
-            cpu: String::from("x86-64"),
+            cpu: cpu.to_string(),
             features: String::new(),
             ..Default::default()
         },
     }
 }
+
+
 
 use std::sync::Once;
 

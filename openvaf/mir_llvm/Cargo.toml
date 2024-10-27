@@ -13,6 +13,7 @@ doctest = false
 
 llvm-sys = "181.1.1"
 #llvm = { version = "0.0.0", path = "../llvm" }
+target-lexicon = "0.12"
 mir = { version = "0.0.0", path = "../mir" }
 target = { version = "0.0.0", path = "../target" }
 base_n = {version = "1", path="../../lib/base_n"}
