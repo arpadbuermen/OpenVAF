@@ -520,21 +520,17 @@ fn print_callback<'ll>(
         let lvl = cx.const_unsigned_int(lvl);
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
 
-        unsafe {
-            let incoming_values = llvm_array_nonnull![lvl, lvl_and_err];
-            let mut incoming_blocks = [write_bb, err_bb];
-            LLVMAddIncoming(flags, incoming_values, incoming_blocks.as_mut_ptr(), 2);
-        }
+        let incoming_values = llvm_array_nonnull![lvl, lvl_and_err];
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(flags, incoming_values, incoming_blocks.as_mut_ptr(), 2);
 
         let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);
         //  print_module_ir(cx, "After building the PHI block");
 
         // Fix for second LLVMAddIncoming call
-        unsafe {
-            let mut incoming_values = [ptr, fmt_lit];
-            let mut incoming_blocks = [write_bb, err_bb];
-            LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
-        }
+        let mut incoming_values = [ptr, fmt_lit];
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
 
         let fun_ptr = cx.get_declared_value("osdi_log").expect("symbol osdi_log is missing");
         let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_int()], cx.ty_void());
@@ -546,17 +542,15 @@ fn print_callback<'ll>(
         );
 
         // Fix for LLVMBuildCall2
-        unsafe {
-            let mut args = [handle, msg, flags];
-            LLVMBuildCall2(
-                llbuilder,
-                NonNull::from(fun_ty).as_ptr(),
-                fun,
-                args.as_mut_ptr(),
-                3,
-                UNNAMED,
-            );
-        }
+        let mut args = [handle, msg, flags];
+        LLVMBuildCall2(
+            llbuilder,
+            NonNull::from(fun_ty).as_ptr(),
+            fun,
+            args.as_mut_ptr(),
+            3,
+            UNNAMED,
+        );
         llvm_sys::core::LLVMBuildRetVoid(llbuilder);
         llvm_sys::core::LLVMDisposeBuilder(llbuilder);
     }
