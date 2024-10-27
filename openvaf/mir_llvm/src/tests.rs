@@ -929,7 +929,7 @@ mod builder_tests {
             );
 
             // Create an array type [4 x i32]
-            let array_type = core::LLVMArrayType(
+            let array_type = core::LLVMArrayType2(
                 core::LLVMInt32TypeInContext(NonNull::from(ctx.llcx).as_ptr()),
                 4,
             );
