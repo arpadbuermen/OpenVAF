@@ -20,7 +20,7 @@ namespace vae {
 
 namespace vae {
 
-enum class OptLevel {
+enum class LLVMCodeGenOptLevel {
   None = 0,
   Less = 1,
   Default = 2,
@@ -66,7 +66,7 @@ struct Opts {
   Slice<Slice<uint8_t>> allow_lints;
   Slice<Slice<uint8_t>> warn_lints;
   Slice<Slice<uint8_t>> deny_lints;
-  OptLevel opt_lvl;
+  LLVMCodeGenOptLevel opt_lvl;
   Slice<uint8_t> target_cpu;
   Slice<uint8_t> target;
   Slice<Slice<uint8_t>> cg_flags;
