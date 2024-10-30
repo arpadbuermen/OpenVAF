@@ -6,15 +6,23 @@ use camino::{Utf8Path, Utf8PathBuf};
 use paths::AbsPathBuf;
 use target::spec::Target;
 
-use crate::api::{OptLevel, Opts, Slice};
+use crate::api::{LLVMCodeGenOptLevel, Opts, Slice};
 
-impl From<OptLevel> for llvm::OptLevel {
-    fn from(lvl: OptLevel) -> Self {
+impl From<LLVMCodeGenOptLevel> for llvm_sys::target_machine::LLVMCodeGenOptLevel {
+    fn from(lvl: LLVMCodeGenOptLevel) -> Self {
         match lvl {
-            OptLevel::None => llvm::OptLevel::None,
-            OptLevel::Less => llvm::OptLevel::Less,
-            OptLevel::Default => llvm::OptLevel::Default,
-            OptLevel::Aggressive => llvm::OptLevel::Aggressive,
+            LLVMCodeGenOptLevel::None => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelNone
+            }
+            LLVMCodeGenOptLevel::Less => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelLess
+            }
+            LLVMCodeGenOptLevel::Default => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault
+            }
+            LLVMCodeGenOptLevel::Aggressive => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive
+            }
         }
     }
 }

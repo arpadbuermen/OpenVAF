@@ -1,16 +1,20 @@
+use std::iter;
+use std::ptr::NonNull;
+
 use hir::CompilationDB;
 use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
 use hir_lower::{CallBackKind, HirInterner};
 use lasso::Rodeo;
-use llvm::{
-    IntPredicate, LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd,
-    LLVMBuildArrayMalloc, LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul,
-    LLVMBuildFree, LLVMBuildICmp, LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi,
+use llvm_sys::core::{
+    LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
+    LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
+    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetFirstFunction, LLVMGetNextFunction,
     LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
-    LLVMSetUnnamedAddress, Linkage, UnnamedAddr, UNNAMED,
+    LLVMSetUnnamedAddress,
 };
+use llvm_sys::{LLVMIntPredicate, LLVMLinkage, LLVMUnnamedAddr, LLVMValue};
 use mir::{FuncRef, Function};
-use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm};
+use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, UNNAMED};
 use sim_back::dae::DaeSystem;
 use sim_back::init::Initialization;
 use sim_back::node_collapse::NodeCollapse;
@@ -27,6 +31,20 @@ use crate::metadata::OsdiLimFunction;
 use crate::model_data::OsdiModelData;
 use crate::{lltype, OsdiLimId};
 
+fn function_iter(
+    module: &llvm_sys::LLVMModule,
+) -> impl Iterator<Item = *mut llvm_sys::LLVMValue> + '_ {
+    let fun = unsafe { LLVMGetFirstFunction(NonNull::from(module).as_ptr()) };
+    iter::successors(Some(fun), |&fun| {
+        let next_fun = unsafe { LLVMGetNextFunction(fun) };
+        if next_fun.is_null() {
+            None
+        } else {
+            Some(next_fun)
+        }
+    })
+}
+
 pub fn new_codegen<'a, 'll>(
     back: &'a LLVMBackend,
     llmod: &'ll ModuleLlvm,
@@ -35,15 +53,15 @@ pub fn new_codegen<'a, 'll>(
     let cx = unsafe { back.new_ctx(literals, llmod) };
     cx.include_bitcode(stdlib_bitcode(back.target()));
 
-    for fun in llvm::function_iter(llmod.llmod()) {
+    for fun in function_iter(llmod.llmod()) {
         unsafe {
             // LLVMPurgeAttrs(fun);
-            if LLVMIsDeclaration(fun) != llvm::False {
+            if LLVMIsDeclaration(fun) != 0 as i32 {
                 continue;
             }
 
-            LLVMSetLinkage(fun, Linkage::Internal);
-            LLVMSetUnnamedAddress(fun, UnnamedAddr::Global);
+            LLVMSetLinkage(fun, LLVMLinkage::LLVMInternalLinkage);
+            LLVMSetUnnamedAddress(fun, LLVMUnnamedAddr::LLVMGlobalUnnamedAddr);
         }
     }
 
@@ -52,8 +70,8 @@ pub fn new_codegen<'a, 'll>(
         cx.get_declared_value("FMT_CHARS").expect("constant FMT_CHARS missing from stdlib");
 
     unsafe {
-        LLVMSetLinkage(exp_table, Linkage::Internal);
-        LLVMSetLinkage(char_table, Linkage::Internal);
+        LLVMSetLinkage(NonNull::from(exp_table).as_ptr(), LLVMLinkage::LLVMInternalLinkage);
+        LLVMSetLinkage(NonNull::from(char_table).as_ptr(), LLVMLinkage::LLVMInternalLinkage);
     }
 
     cx
@@ -66,7 +84,7 @@ pub struct OsdiCompilationUnit<'a, 'b, 'll> {
     pub tys: &'a OsdiTys<'ll>,
     pub cx: &'a CodegenCx<'b, 'll>,
     pub module: &'a OsdiModule<'b>,
-    pub lim_dispatch_table: Option<&'ll llvm::Value>,
+    pub lim_dispatch_table: Option<&'ll llvm_sys::LLVMValue>,
 }
 
 impl<'a, 'b, 'll> OsdiCompilationUnit<'a, 'b, 'll> {
@@ -86,9 +104,18 @@ impl<'a, 'b, 'll> OsdiCompilationUnit<'a, 'b, 'll> {
                     .define_global("OSDI_LIM_TABLE", ty)
                     .unwrap_or_else(|| unreachable!("symbol OSDI_LIM_TABLE already defined"));
                 unsafe {
-                    llvm::LLVMSetLinkage(ptr, llvm::Linkage::ExternalLinkage);
-                    llvm::LLVMSetUnnamedAddress(ptr, llvm::UnnamedAddr::No);
-                    llvm::LLVMSetDLLStorageClass(ptr, llvm::DLLStorageClass::Export);
+                    llvm_sys::core::LLVMSetLinkage(
+                        NonNull::from(ptr).as_ptr(),
+                        llvm_sys::LLVMLinkage::LLVMExternalLinkage,
+                    );
+                    llvm_sys::core::LLVMSetUnnamedAddress(
+                        NonNull::from(ptr).as_ptr(),
+                        llvm_sys::LLVMUnnamedAddr::LLVMNoUnnamedAddr,
+                    );
+                    llvm_sys::core::LLVMSetDLLStorageClass(
+                        NonNull::from(ptr).as_ptr(),
+                        llvm_sys::LLVMDLLStorageClass::LLVMDLLExportStorageClass,
+                    );
                 }
                 Some(ptr)
             } else {
@@ -97,7 +124,7 @@ impl<'a, 'b, 'll> OsdiCompilationUnit<'a, 'b, 'll> {
         OsdiCompilationUnit { db, inst_data, model_data, tys, cx, module, lim_dispatch_table }
     }
 
-    pub fn lim_dispatch_table(&self) -> &'ll llvm::Value {
+    pub fn lim_dispatch_table(&self) -> &'ll llvm_sys::LLVMValue {
         self.lim_dispatch_table.unwrap()
     }
 }
@@ -150,9 +177,9 @@ impl<'a> OsdiModule<'a> {
 pub fn general_callbacks<'ll>(
     intern: &HirInterner,
     builder: &mut mir_llvm::Builder<'_, '_, 'll>,
-    ret_flags: &'ll llvm::Value,
-    handle: &'ll llvm::Value,
-    simparam: &'ll llvm::Value,
+    ret_flags: &'ll llvm_sys::LLVMValue,
+    handle: &'ll llvm_sys::LLVMValue,
+    simparam: &'ll llvm_sys::LLVMValue,
 ) -> TiVec<FuncRef, Option<CallbackFun<'ll>>> {
     let ptr_ty = builder.cx.ty_ptr();
     intern
@@ -234,29 +261,88 @@ pub fn general_callbacks<'ll>(
         })
         .collect()
 }
+/* This was very useful for debugging
+fn print_module_ir(cx: &CodegenCx, message: &str) {
+    unsafe {
+        let ir_ptr = llvm_sys::core::LLVMPrintModuleToString(NonNull::from(cx.llmod).as_ptr());
+        if !ir_ptr.is_null() {
+            let ir = std::ffi::CStr::from_ptr(ir_ptr).to_string_lossy().into_owned();
+            let lines: Vec<&str> = ir.lines().collect();
+            let mut found = false;
+            let mut count = 0;
+            let mut output_lines = Vec::new();
+
+            for line in lines {
+                if found {
+                    output_lines.push(line);
+                    count += 1;
+                    if count >= 35 {
+                        break;
+                    }
+                } else if line.contains("internal fastcc void @cb.2(ptr %0, ptr %1) unnamed_addr") {
+                    found = true;
+                    output_lines.push(line);
+                    count += 1;
+                }
+            }
+
+            let output_str = output_lines.join("\n");
+            println!("{}:\n{}", message, output_str);
+            llvm_sys::core::LLVMDisposeMessage(ir_ptr);
+        }
+    }
+}*/
 
 fn print_callback<'ll>(
     cx: &CodegenCx<'_, 'll>,
     kind: hir_lower::fmt::DisplayKind,
     arg_tys: &[FmtArg],
-) -> (&'ll llvm::Value, &'ll llvm::Type) {
+) -> (&'ll llvm_sys::LLVMValue, &'ll llvm_sys::LLVMType) {
     let mut args = vec![cx.ty_ptr(), cx.ty_ptr()];
     args.extend(arg_tys.iter().map(|arg| lltype(&arg.ty, cx)));
     let fun_ty = cx.ty_func(&args, cx.ty_void());
     let name = cx.local_callback_name();
     let fun = cx.declare_int_fn(&name, fun_ty);
+
+    // Print IR before starting the function
+    //print_module_ir(cx, "Before starting the function");
+
     unsafe {
-        let entry_bb = LLVMAppendBasicBlockInContext(cx.llcx, fun, UNNAMED);
-        let alloc_bb = LLVMAppendBasicBlockInContext(cx.llcx, fun, UNNAMED);
-        let write_bb = LLVMAppendBasicBlockInContext(cx.llcx, fun, UNNAMED);
-        let err_bb = LLVMAppendBasicBlockInContext(cx.llcx, fun, UNNAMED);
-        let exit_bb = LLVMAppendBasicBlockInContext(cx.llcx, fun, UNNAMED);
-        let llbuilder = llvm::LLVMCreateBuilderInContext(cx.llcx);
+        let entry_bb = LLVMAppendBasicBlockInContext(
+            NonNull::from(cx.llcx).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            UNNAMED,
+        );
+        let alloc_bb = LLVMAppendBasicBlockInContext(
+            NonNull::from(cx.llcx).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            UNNAMED,
+        );
+        let write_bb = LLVMAppendBasicBlockInContext(
+            NonNull::from(cx.llcx).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            UNNAMED,
+        );
+        let err_bb = LLVMAppendBasicBlockInContext(
+            NonNull::from(cx.llcx).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            UNNAMED,
+        );
+        let exit_bb = LLVMAppendBasicBlockInContext(
+            NonNull::from(cx.llcx).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            UNNAMED,
+        );
+        let llbuilder = llvm_sys::core::LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
 
         LLVMPositionBuilderAtEnd(llbuilder, entry_bb);
-        let handle = LLVMGetParam(fun, 0);
-        let fmt_lit = LLVMGetParam(fun, 1);
-        let mut args = vec![cx.const_null_ptr(), cx.const_usize(0), LLVMGetParam(fun, 1)];
+        let handle = LLVMGetParam(NonNull::from(fun).as_ptr(), 0);
+        let fmt_lit = LLVMGetParam(NonNull::from(fun).as_ptr(), 1);
+        let mut args = vec![
+            cx.const_null_ptr(),
+            cx.const_usize(0),
+            &*LLVMGetParam(NonNull::from(fun).as_ptr(), 1),
+        ];
 
         let exp_table = cx.get_declared_value("EXP").expect("constant EXP missing from stdlib");
         let exp_table_ty = cx.ty_array(cx.ty_double(), 11);
@@ -271,81 +357,149 @@ fn print_callback<'ll>(
         let mut free = Vec::new();
 
         for (i, arg) in arg_tys.iter().enumerate() {
-            let val = LLVMGetParam(fun, i as u32 + 2);
+            let val = LLVMGetParam(NonNull::from(fun).as_ptr(), i as u32 + 2);
             match arg.kind {
                 FmtArgKind::Binary => {
+                    let mut val_array = [val];
                     let formatted_str = LLVMBuildCall2(
                         llbuilder,
-                        fmt_binary_ty,
-                        fmt_binary,
-                        [val].as_ptr(),
+                        NonNull::from(fmt_binary_ty).as_ptr(),
+                        NonNull::from(fmt_binary).as_ptr(),
+                        val_array.as_mut_ptr(),
                         1,
                         UNNAMED,
                     );
                     free.push(formatted_str);
                 }
                 FmtArgKind::EngineerReal => {
+                    let mut val_array = [val];
                     let idx = LLVMBuildCall2(
                         llbuilder,
-                        fmt_char_idx_ty,
-                        fmt_char_idx,
-                        [val].as_ptr(),
+                        NonNull::from(fmt_char_idx_ty).as_ptr(),
+                        NonNull::from(fmt_char_idx).as_ptr(),
+                        val_array.as_mut_ptr(),
                         1,
                         UNNAMED,
                     );
+                    let mut idx_array = vec![cx.const_int(0), &*idx];
                     let exp = LLVMBuildInBoundsGEP2(
                         llbuilder,
-                        exp_table_ty,
-                        exp_table,
-                        [cx.const_int(0), idx].as_ptr(),
+                        NonNull::from(exp_table_ty).as_ptr(),
+                        NonNull::from(exp_table).as_ptr(),
+                        idx_array.as_mut_ptr() as *mut *mut _,
                         2,
                         UNNAMED,
                     );
-                    let exp = LLVMBuildLoad2(llbuilder, cx.ty_double(), exp, UNNAMED);
+                    let exp = LLVMBuildLoad2(
+                        llbuilder,
+                        NonNull::from(cx.ty_double()).as_ptr(),
+                        exp,
+                        UNNAMED,
+                    );
                     let num = LLVMBuildFMul(llbuilder, val, exp, UNNAMED);
-                    args.push(num);
+                    args.push(&*num);
+                    let mut idx_array = vec![cx.const_int(0), &*idx];
                     let scale_char = LLVMBuildInBoundsGEP2(
                         llbuilder,
-                        char_table_ty,
-                        char_table,
-                        [cx.const_int(0), idx].as_ptr(),
+                        NonNull::from(char_table_ty).as_ptr(),
+                        NonNull::from(char_table).as_ptr(),
+                        idx_array.as_mut_ptr() as *mut *mut _,
                         2,
                         UNNAMED,
                     );
-                    args.push(scale_char);
+                    args.push(&*scale_char);
                 }
-                FmtArgKind::Other => args.push(val),
+                FmtArgKind::Other => args.push(&*val),
             }
         }
-        args.extend((1..(2 + arg_tys.len())).map(|arg| LLVMGetParam(fun, arg as u32)));
+        args.extend(
+            (1..(2 + arg_tys.len()))
+                .map(|arg| &*LLVMGetParam(NonNull::from(fun).as_ptr(), arg as u32)),
+        );
         let (fun_ty, fun) = cx.intrinsic("snprintf").unwrap();
-        let len = LLVMBuildCall2(llbuilder, fun_ty, fun, args.as_ptr(), args.len() as u32, UNNAMED);
-        let is_err = LLVMBuildICmp(llbuilder, IntPredicate::IntSLT, len, cx.const_int(0), UNNAMED);
+        // Convert Vec<&LLVMValue> to Vec<*mut LLVMValue>
+        let mut raw_args: Vec<*mut LLVMValue> =
+            args.iter().map(|&arg| NonNull::from(arg).as_ptr()).collect();
+
+        let len = LLVMBuildCall2(
+            llbuilder,
+            NonNull::from(fun_ty).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            raw_args.as_mut_ptr(),
+            raw_args.len() as u32,
+            UNNAMED,
+        );
+
+        let is_err = LLVMBuildICmp(
+            llbuilder,
+            LLVMIntPredicate::LLVMIntSLT,
+            len,
+            NonNull::from(cx.const_int(0)).as_ptr(),
+            UNNAMED,
+        );
         LLVMBuildCondBr(llbuilder, is_err, err_bb, alloc_bb);
 
+        // Print IR after building the conditional branch
+        //print_module_ir(cx, "After building the conditional branch");
+
         LLVMPositionBuilderAtEnd(llbuilder, alloc_bb);
-        let data_len = LLVMBuildAdd(llbuilder, len, cx.const_int(1), UNNAMED);
-        let ptr = LLVMBuildArrayMalloc(llbuilder, cx.ty_char(), data_len, UNNAMED);
+        let data_len =
+            LLVMBuildAdd(llbuilder, len, NonNull::from(cx.const_int(1)).as_ptr(), UNNAMED);
+        let ptr = LLVMBuildArrayMalloc(
+            llbuilder,
+            NonNull::from(cx.ty_char()).as_ptr(),
+            data_len,
+            UNNAMED,
+        );
         let null_ptr = cx.const_null_ptr();
-        let is_err = LLVMBuildICmp(llbuilder, llvm::IntPredicate::IntEQ, null_ptr, ptr, UNNAMED);
+        let is_err = LLVMBuildICmp(
+            llbuilder,
+            llvm_sys::LLVMIntPredicate::LLVMIntEQ,
+            NonNull::from(null_ptr).as_ptr(),
+            ptr,
+            UNNAMED,
+        );
         LLVMBuildCondBr(llbuilder, is_err, err_bb, write_bb);
 
+        // Print IR after building the malloc and conditional branch
+        //print_module_ir(cx, "After building the malloc and conditional branch");
+
         LLVMPositionBuilderAtEnd(llbuilder, write_bb);
-        let data_len = LLVMBuildAdd(llbuilder, len, cx.const_int(1), UNNAMED);
-        args[0] = ptr;
-        args[1] = data_len;
-        let len = LLVMBuildCall2(llbuilder, fun_ty, fun, args.as_ptr(), args.len() as u32, UNNAMED);
-        let is_err = LLVMBuildICmp(llbuilder, IntPredicate::IntSLT, len, cx.const_int(0), UNNAMED);
+        let data_len =
+            LLVMBuildAdd(llbuilder, len, NonNull::from(cx.const_int(1)).as_ptr(), UNNAMED);
+        raw_args[0] = ptr;
+        raw_args[1] = data_len;
+        let len = LLVMBuildCall2(
+            llbuilder,
+            NonNull::from(fun_ty).as_ptr(),
+            NonNull::from(fun).as_ptr(),
+            raw_args.as_mut_ptr(),
+            raw_args.len() as u32,
+            UNNAMED,
+        );
+        let is_err = LLVMBuildICmp(
+            llbuilder,
+            LLVMIntPredicate::LLVMIntSLT,
+            len,
+            NonNull::from(cx.const_int(0)).as_ptr(),
+            UNNAMED,
+        );
         for alloc in free.iter() {
-            LLVMBuildFree(llbuilder, alloc);
+            LLVMBuildFree(llbuilder, *alloc);
         }
         LLVMBuildCondBr(llbuilder, is_err, err_bb, exit_bb);
+
+        // Print IR after building the write block
+        //print_module_ir(cx, "After building the write block");
 
         LLVMPositionBuilderAtEnd(llbuilder, err_bb);
         LLVMBuildBr(llbuilder, exit_bb);
 
+        // Print IR after building the error block
+        //print_module_ir(cx, "After building the error block");
+
         LLVMPositionBuilderAtEnd(llbuilder, exit_bb);
-        let flags = LLVMBuildPhi(llbuilder, cx.ty_int(), UNNAMED);
+        let flags = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_int()).as_ptr(), UNNAMED);
         let lvl = match kind {
             DisplayKind::Debug => LOG_LVL_DEBUG,
             DisplayKind::Display | DisplayKind::Monitor => LOG_LVL_DISPLAY,
@@ -357,16 +511,49 @@ fn print_callback<'ll>(
         let lvl_and_err = lvl | LOG_FMT_ERR;
         let lvl = cx.const_unsigned_int(lvl);
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
-        LLVMAddIncoming(flags, [lvl, lvl_and_err].as_ptr(), [write_bb, err_bb].as_ptr(), 2);
-        let msg = LLVMBuildPhi(llbuilder, cx.ty_ptr(), UNNAMED);
-        LLVMAddIncoming(msg, [ptr, fmt_lit].as_ptr(), [write_bb, err_bb].as_ptr(), 2);
+
+        let lvl_val = lvl as *const llvm_sys::LLVMValue as *mut _;
+        let lvl_and_err_val = lvl_and_err as *const llvm_sys::LLVMValue as *mut _;
+        let mut incoming_values: [*mut llvm_sys::LLVMValue; 2] = [lvl_val, lvl_and_err_val];
+        let incoming_values_ptr = &mut incoming_values as *mut [*mut llvm_sys::LLVMValue]
+            as *mut *mut llvm_sys::LLVMValue;
+
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(flags, incoming_values_ptr, incoming_blocks.as_mut_ptr(), 2);
+
+        let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);
+        //  print_module_ir(cx, "After building the PHI block");
+
+        // Fix for second LLVMAddIncoming call
+        let mut incoming_values = [ptr, fmt_lit];
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
+
         let fun_ptr = cx.get_declared_value("osdi_log").expect("symbol osdi_log is missing");
         let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_int()], cx.ty_void());
-        let fun = LLVMBuildLoad2(llbuilder, cx.ty_ptr(), fun_ptr, UNNAMED);
-        LLVMBuildCall2(llbuilder, fun_ty, fun, [handle, msg, flags].as_ptr(), 3, UNNAMED);
-        llvm::LLVMBuildRetVoid(llbuilder);
-        llvm::LLVMDisposeBuilder(llbuilder);
+        let fun = LLVMBuildLoad2(
+            llbuilder,
+            NonNull::from(cx.ty_ptr()).as_ptr(),
+            NonNull::from(fun_ptr).as_ptr(),
+            UNNAMED,
+        );
+
+        // Fix for LLVMBuildCall2
+        let mut args = [handle, msg, flags];
+        LLVMBuildCall2(
+            llbuilder,
+            NonNull::from(fun_ty).as_ptr(),
+            fun,
+            args.as_mut_ptr(),
+            3,
+            UNNAMED,
+        );
+        llvm_sys::core::LLVMBuildRetVoid(llbuilder);
+        llvm_sys::core::LLVMDisposeBuilder(llbuilder);
     }
+
+    // Print IR at the end of the function
+    //print_module_ir(cx, "Final IR after building the function");
 
     (fun, fun_ty)
 }

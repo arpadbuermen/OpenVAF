@@ -1,3 +1,4 @@
+use core::ptr::NonNull;
 use std::ffi::CString;
 
 use base_n::CASE_INSENSITIVE;
@@ -5,7 +6,8 @@ use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm::{LLVMABISizeOfType, LLVMDisposeTargetData, OptLevel};
+use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
@@ -31,6 +33,23 @@ mod setup;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
+use std::sync::Once;
+
+use llvm_sys::target::{LLVM_InitializeNativeAsmPrinter, LLVM_InitializeNativeTarget};
+
+static LLVM_INIT: Once = Once::new();
+
+fn initialize_llvm() {
+    LLVM_INIT.call_once(|| unsafe {
+        if LLVM_InitializeNativeTarget() != 0 {
+            panic!("Failed to initialize native target");
+        }
+        if LLVM_InitializeNativeAsmPrinter() != 0 {
+            panic!("Failed to initialize native ASM printer");
+        }
+    });
+}
+
 pub fn compile(
     db: &CompilationDB,
     modules: &[ModuleInfo],
@@ -38,8 +57,9 @@ pub fn compile(
     target: &Target,
     back: &LLVMBackend,
     emit: bool,
-    opt_lvl: OptLevel,
+    opt_lvl: LLVMCodeGenOptLevel,
 ) -> Vec<Utf8PathBuf> {
+    initialize_llvm();
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
     let modules: Vec<_> = modules
@@ -66,7 +86,7 @@ pub fn compile(
 
     let target_data = unsafe {
         let src = CString::new(target.data_layout.clone()).unwrap();
-        llvm::LLVMCreateTargetData(src.as_ptr())
+        &*llvm_sys::target::LLVMCreateTargetData(src.as_ptr())
     };
 
     let modules: Vec<_> = modules
@@ -85,7 +105,7 @@ pub fn compile(
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
-        let target_data_ = &target_data;
+        let target_data_ = target_data;
         let paths = &paths;
 
         for (i, module) in modules.iter().enumerate() {
@@ -94,7 +114,7 @@ pub fn compile(
                 let access = format!("access_{}", &module.sym);
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.access_function();
@@ -112,7 +132,7 @@ pub fn compile(
                 let name = format!("setup_model_{}", &module.sym);
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_model();
@@ -130,10 +150,13 @@ pub fn compile(
                 let name = format!("setup_instance_{}", &module.sym);
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
+                //let _ir = llmod.to_str();
+                //println!("llmod: {}", _ir);
+
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -148,7 +171,7 @@ pub fn compile(
                 let access = format!("eval_{}", &module.sym);
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
 
                 // println!("{:?}", module.eval);
@@ -166,13 +189,13 @@ pub fn compile(
 
         let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
         let cx = new_codegen(back, &llmod, &literals);
-        let tys = OsdiTys::new(&cx, target_data);
+        let tys = OsdiTys::new(&cx, NonNull::from(target_data).as_ptr());
 
         let descriptors: Vec<_> = modules
             .iter()
             .map(|module| {
                 let cguint = OsdiCompilationUnit::new(&db, module, &cx, &tys, false);
-                let descriptor = cguint.descriptor(target_data, &db);
+                let descriptor = cguint.descriptor(&NonNull::from(target_data).as_ptr(), &db);
                 descriptor.to_ll_val(&cx, &tys)
             })
             .collect();
@@ -199,7 +222,10 @@ pub fn compile(
 
         let descr_size: u32;
         unsafe {
-            descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
+            descr_size = LLVMABISizeOfType(
+                NonNull::from(target_data).as_ptr(),
+                NonNull::from(tys.osdi_descriptor).as_ptr(),
+            ) as u32;
         }
 
         cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
@@ -219,10 +245,22 @@ pub fn compile(
             cx.get_declared_value("osdi_log").expect("symbol osdi_log missing from std lib");
         let val = cx.const_null_ptr();
         unsafe {
-            llvm::LLVMSetInitializer(osdi_log, val);
-            llvm::LLVMSetLinkage(osdi_log, llvm::Linkage::ExternalLinkage);
-            llvm::LLVMSetUnnamedAddress(osdi_log, llvm::UnnamedAddr::No);
-            llvm::LLVMSetDLLStorageClass(osdi_log, llvm::DLLStorageClass::Export);
+            llvm_sys::core::LLVMSetInitializer(
+                NonNull::from(osdi_log).as_ptr(),
+                NonNull::from(val).as_ptr(),
+            );
+            llvm_sys::core::LLVMSetLinkage(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMLinkage::LLVMExternalLinkage,
+            );
+            llvm_sys::core::LLVMSetUnnamedAddress(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMUnnamedAddr::LLVMNoUnnamedAddr,
+            );
+            llvm_sys::core::LLVMSetDLLStorageClass(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMDLLStorageClass::LLVMDLLExportStorageClass,
+            );
         }
 
         debug_assert!(llmod.verify_and_print());
@@ -236,7 +274,7 @@ pub fn compile(
     });
 
     paths.push(main_file);
-    unsafe { LLVMDisposeTargetData(target_data) };
+    unsafe { LLVMDisposeTargetData(NonNull::from(target_data).as_ptr()) };
     paths
 }
 
@@ -299,7 +337,7 @@ fn ty_len(ty: &Type) -> Option<u32> {
     }
 }
 
-fn lltype<'ll>(ty: &Type, cx: &CodegenCx<'_, 'll>) -> &'ll llvm::Type {
+fn lltype<'ll>(ty: &Type, cx: &CodegenCx<'_, 'll>) -> &'ll llvm_sys::LLVMType {
     let llty = match ty.base_type() {
         Type::Real => cx.ty_double(),
         Type::Integer => cx.ty_int(),

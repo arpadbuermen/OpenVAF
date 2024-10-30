@@ -9,7 +9,7 @@ use basedb::BaseDB;
 use camino::Utf8PathBuf;
 use hir::CompilationDB;
 use linker::link;
-pub use llvm::OptLevel;
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::LLVMBackend;
 pub use paths::AbsPathBuf;
 use sim_back::collect_modules;
@@ -39,7 +39,7 @@ pub struct Opts {
     pub input: Utf8PathBuf,
     pub output: CompilationDestination,
     pub include: Vec<AbsPathBuf>,
-    pub opt_lvl: OptLevel,
+    pub opt_lvl: LLVMCodeGenOptLevel,
     pub target: Target,
     pub target_cpu: String,
 }

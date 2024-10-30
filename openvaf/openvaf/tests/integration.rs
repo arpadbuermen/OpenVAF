@@ -4,7 +4,7 @@ use std::path::Path;
 use camino::Utf8Path;
 use expect_test::expect_file;
 use float_cmp::assert_approx_eq;
-use llvm::OptLevel;
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mini_harness::{harness, Result};
 use openvaf::{CompilationDestination, CompilationTermination};
 use stdx::{ignore_dev_tests, openvaf_test_data, project_root};
@@ -24,7 +24,7 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         input: root_file.to_path_buf(),
         output: CompilationDestination::Path { lib_file: root_file.with_extension("osdi") },
         include: Vec::new(),
-        opt_lvl: OptLevel::Aggressive,
+        opt_lvl: LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive,
         target: Target::host_target().unwrap(),
         target_cpu: "native".to_owned(),
         dry_run: false,
