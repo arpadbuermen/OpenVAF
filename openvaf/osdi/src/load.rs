@@ -84,7 +84,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     NoiseSourceKind::NoiseTable { .. } => unimplemented!("noise tables"),
                 };
                 // Multiply with squared factor because factor is in terms of signal, but
-                // we are computing the power, which is scaled by factor**2. 
+                // we are computing the power, which is scaled by factor**2.
                 pwr = LLVMBuildFMul(llbuilder, pwr, fac, UNNAMED);
                 LLVMSetFastMath(pwr);
                 pwr = LLVMBuildFMul(llbuilder, pwr, fac, UNNAMED);
@@ -282,9 +282,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     pub fn load_jacobian(&self, kind: JacobianLoadType, with_offset: bool) -> &'ll llvm::Value {
         let OsdiCompilationUnit { cx, module, .. } = *self;
         let fun_ty = if !with_offset {
-            if kind.read_reactive() { 
+            if kind.read_reactive() {
                 cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_double()], cx.ty_void())
-             } else { 
+            } else {
                 cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr()], cx.ty_void())
             }
         } else {
@@ -307,16 +307,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let inst = LLVMGetParam(llfunc, 0);
             let model = LLVMGetParam(llfunc, 1);
             let alpha = if !with_offset && kind.read_reactive() {
-                // Reactive part 
-                LLVMGetParam(llfunc, 2) 
-            } else { 
+                // Reactive part
+                LLVMGetParam(llfunc, 2)
+            } else {
                 // Some dummy
-                inst 
+                inst
             };
             let offset = if with_offset {
                 LLVMGetParam(llfunc, 2)
             } else {
-                // Some dummy 
+                // Some dummy
                 inst
             };
 
@@ -354,8 +354,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst,
                         llbuilder,
                         kind.dst_reactive(),
-                        with_offset, 
-                        offset, 
+                        with_offset,
+                        offset,
                         res,
                     );
                 }
@@ -364,14 +364,14 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             LLVMBuildRetVoid(llbuilder);
             LLVMDisposeBuilder(llbuilder);
         }
-        
+
         llfunc
     }
-    
+
     // write_jacobian_array_{resist|react|tran}(void* instance, void* model, double* destination [, alpha])
     // Writes Jacobian entries into a double array of size num_jacobian_entries
-    // If a particular entry is not present, nothing is loaded. 
-    // Array of doubles need not be zeroed before calling this function. 
+    // If a particular entry is not present, nothing is loaded.
+    // Array of doubles need not be zeroed before calling this function.
     pub fn write_jacobian_array(&self, kind: JacobianLoadType) -> &'ll llvm::Value {
         let OsdiCompilationUnit { cx, module, .. } = *self;
         let args = [cx.ty_ptr(), cx.ty_ptr(), cx.ty_ptr()];
@@ -398,8 +398,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 }
             };
             let dest_ty = cx.ty_array(cx.ty_double(), len as u32);
-            
-            let mut pos : u32 = 0;
+
+            let mut pos: u32 = 0;
             for entry in module.dae_system.jacobian.keys() {
                 let res = {
                     if kind.read_resistive() {
@@ -410,27 +410,20 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         self.load_jacobian_entry(entry, inst, model, llbuilder, true)
                     }
                 };
-                
+
                 // Do we have any result in res
                 if let Some(res) = res {
                     // Store it in array pointed to by ptr
-                    self.inst_data.write_jacobian_contrib(
-                        self.cx,
-                        pos, 
-                        dest_ty, 
-                        dest_array,
-                        llbuilder,
-                        res,
-                    );
+                    self.inst_data
+                        .write_jacobian_contrib(self.cx, pos, dest_ty, dest_array, llbuilder, res);
                     pos = pos + 1;
                 }
             }
-    
+
             LLVMBuildRetVoid(llbuilder);
             LLVMDisposeBuilder(llbuilder);
         }
-        
+
         llfunc
     }
-
 }

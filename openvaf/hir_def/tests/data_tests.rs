@@ -9,8 +9,7 @@ use hir_def::nameres::{DefMap, LocalScopeId, ScopeDefItem, ScopeOrigin};
 use hir_def::DefWithBodyId;
 use mini_harness::{harness, Result};
 use parking_lot::RwLock;
-use stdx::Upcast;
-use stdx::{ignore_dev_tests, ignore_never, is_va_file, openvaf_test_data, project_root};
+use stdx::{ignore_dev_tests, ignore_never, is_va_file, openvaf_test_data, project_root, Upcast};
 
 #[salsa::database(BaseDatabase, InternDatabase, HirDefDatabase)]
 pub struct TestDataBase {

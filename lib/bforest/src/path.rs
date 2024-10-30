@@ -3,11 +3,12 @@
 #[cfg(test)]
 mod tests;
 
-use super::node::Removed;
-use super::{slice_insert, slice_shift, Comparator, Forest, Node, NodeData, NodePool, MAX_PATH};
 use core::borrow::Borrow;
 use core::marker::PhantomData;
 use std::cmp::Ordering;
+
+use super::node::Removed;
+use super::{slice_insert, slice_shift, Comparator, Forest, Node, NodeData, NodePool, MAX_PATH};
 
 pub(super) struct Path<F: Forest> {
     /// Number of path entries including the root and leaf nodes.

@@ -1,17 +1,17 @@
+use std::ffi::CString;
+
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm::{LLVMDisposeTargetData, OptLevel, LLVMABISizeOfType};
+use llvm::{LLVMABISizeOfType, LLVMDisposeTargetData, OptLevel};
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
 use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
 use typed_indexmap::TiSet;
-
-use std::ffi::CString;
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
@@ -106,7 +106,7 @@ pub fn compile(
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
             });
-            
+
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_model_{}", &module.sym);
@@ -196,18 +196,13 @@ pub fn compile(
             cx.const_unsigned_int(OSDI_VERSION.1),
             true,
         );
-        
+
         let descr_size: u32;
         unsafe {
             descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
         }
 
-        cx.export_val(
-            "OSDI_DESCRIPTOR_SIZE",
-            cx.ty_int(),
-            cx.const_unsigned_int(descr_size),
-            true,
-        );
+        cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
 
         if !lim_table.is_empty() {
             let lim: Vec<_> = lim_table.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();

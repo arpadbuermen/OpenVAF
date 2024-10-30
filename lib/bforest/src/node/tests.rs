@@ -1,5 +1,6 @@
-use super::*;
 use core::mem;
+
+use super::*;
 
 // Forest impl for a set implementation.
 struct TF();

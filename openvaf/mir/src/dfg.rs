@@ -5,16 +5,15 @@ use typed_index_collections::TiVec;
 
 use crate::builder::ReplaceBuilder;
 use crate::dfg::instructions::DfgInsructions;
+pub use crate::dfg::postorder::{Postorder, PostorderParts};
+pub use crate::dfg::uses::{DoubleEndedUseIter, InstUseIter, UseCursor, UseIter};
 use crate::dfg::values::consts::{FALSE, TRUE};
 use crate::dfg::values::ValueDataType;
+pub use crate::dfg::values::{consts, Const, DfgValues, ValueDef};
 use crate::entities::{Inst, Param, Tag, Value};
 use crate::instructions::PhiForest;
 use crate::write::write_operands;
 use crate::{Block, FuncRef, FunctionSignature, Ieee64, InstructionData, Use, ValueList};
-
-pub use crate::dfg::postorder::{Postorder, PostorderParts};
-pub use crate::dfg::uses::{DoubleEndedUseIter, InstUseIter, UseCursor, UseIter};
-pub use crate::dfg::values::{consts, Const, DfgValues, ValueDef};
 
 #[cfg(test)]
 mod tests;

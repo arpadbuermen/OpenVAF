@@ -1,5 +1,4 @@
 use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
-
 use llvm::IntPredicate::IntSLT;
 use llvm::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,

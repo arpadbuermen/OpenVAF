@@ -2,6 +2,7 @@ use std::iter::FilterMap;
 
 use ahash::{AHashMap, AHashSet};
 use bitset::HybridBitSet;
+pub use callbacks::{CallBackKind, NoiseTable, ParamInfoKind};
 use hir::{
     Branch, BranchWrite, CompilationDB, Module, Node, ParamSysFun, Parameter, Type, Variable,
 };
@@ -14,8 +15,6 @@ use stdx::packed_option::PackedOption;
 use stdx::{impl_debug_display, impl_idx_from};
 use typed_index_collections::TiVec;
 use typed_indexmap::{map, TiMap, TiSet};
-
-pub use callbacks::{CallBackKind, NoiseTable, ParamInfoKind};
 
 use crate::body::BodyLoweringCtx;
 use crate::ctx::LoweringCtx;

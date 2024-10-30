@@ -1,8 +1,9 @@
 //! B+-tree nodes.
 
-use super::{slice_insert, slice_shift, Forest, Node, SetValue, INNER_SIZE};
 use core::borrow::{Borrow, BorrowMut};
 use core::fmt;
+
+use super::{slice_insert, slice_shift, Forest, Node, SetValue, INNER_SIZE};
 
 #[cfg(test)]
 mod tests;

@@ -2,23 +2,20 @@ use std::fs::{create_dir_all, remove_file};
 use std::io::Write;
 use std::time::Instant;
 
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use basedb::diagnostics::{ConsoleSink, DiagnosticSink};
+pub use basedb::lints::{builtin as builtin_lints, LintLevel};
 use basedb::BaseDB;
 use camino::Utf8PathBuf;
 use hir::CompilationDB;
 use linker::link;
-use mir_llvm::LLVMBackend;
-use sim_back::collect_modules;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
-
-pub use basedb::lints::builtin as builtin_lints;
-pub use basedb::lints::LintLevel;
 pub use llvm::OptLevel;
+use mir_llvm::LLVMBackend;
 pub use paths::AbsPathBuf;
+use sim_back::collect_modules;
 pub use target::host_triple;
 pub use target::spec::{get_target_names, Target};
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 mod cache;
 
@@ -126,12 +123,11 @@ pub fn expand(opts: &Opts) -> Result<CompilationTermination> {
                 } else {
                     print!("{}", &text[span.range])
                 }
-            }, 
+            }
             _ => {
                 // Add a space after each token
                 print!("{} ", &text[span.range])
             }
-
         };
     }
     println!();

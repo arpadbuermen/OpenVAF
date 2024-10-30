@@ -2,13 +2,12 @@ use hir::CompilationDB;
 use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
 use hir_lower::{CallBackKind, HirInterner};
 use lasso::Rodeo;
-use llvm::Linkage;
 use llvm::{
     IntPredicate, LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd,
     LLVMBuildArrayMalloc, LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul,
     LLVMBuildFree, LLVMBuildICmp, LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi,
     LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
-    LLVMSetUnnamedAddress, UnnamedAddr, UNNAMED,
+    LLVMSetUnnamedAddress, Linkage, UnnamedAddr, UNNAMED,
 };
 use mir::{FuncRef, Function};
 use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm};
