@@ -1,8 +1,12 @@
 #define NULL ((void *)0)
 #define _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR        0x0002ULL
 
+#ifdef __MINGW32__
+#include <stddef.h>
+#else
 typedef void* _locale_t;
-typedef char *  va_list;
+typedef char* va_list;
+#endif
 
 int __cdecl __stdio_common_vsprintf(unsigned __int64 options, char *str, size_t len, const char *format, _locale_t locale, va_list valist);
 int __cdecl snprintf (char * __restrict__ __stream, size_t __n, const char * __restrict__ __format, ...)

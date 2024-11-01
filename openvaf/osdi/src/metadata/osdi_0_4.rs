@@ -14,6 +14,8 @@ const STDLIB_BITCODE_AARCH64_PC_WINDOWS_MSVC: &[u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/stdlib_0_4_aarch64-pc-windows-msvc.bc"));
 const STDLIB_BITCODE_ARM64_APPLE_MACOSX11_0_0: &[u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/stdlib_0_4_arm64-apple-macosx11.0.0.bc"));
+const STDLIB_BITCODE_X86_64_PC_WINDOWS_GNU: &[u8] =
+    include_bytes!(concat!(env!("OUT_DIR"), "/stdlib_0_4_x86_64-pc-windows-gnu.bc"));
 pub fn stdlib_bitcode(target: &target::spec::Target) -> &'static [u8] {
     match &*target.llvm_target {
         "x86_64-unknown-linux-gnu" => STDLIB_BITCODE_X86_64_UNKNOWN_LINUX_GNU,
@@ -22,6 +24,7 @@ pub fn stdlib_bitcode(target: &target::spec::Target) -> &'static [u8] {
         "aarch64-unknown-linux-gnu" => STDLIB_BITCODE_AARCH64_UNKNOWN_LINUX_GNU,
         "aarch64-pc-windows-msvc" => STDLIB_BITCODE_AARCH64_PC_WINDOWS_MSVC,
         "arm64-apple-macosx11.0.0" => STDLIB_BITCODE_ARM64_APPLE_MACOSX11_0_0,
+        "x86_64-pc-windows-gnu" => STDLIB_BITCODE_X86_64_PC_WINDOWS_GNU,
         triple => unreachable!("unknown target triple {triple}"),
     }
 }

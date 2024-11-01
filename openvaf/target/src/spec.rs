@@ -1,5 +1,6 @@
 mod apple_base;
 mod linux_base;
+mod windows_base;
 mod windows_msvc_base;
 
 use std::collections::BTreeMap;
@@ -156,6 +157,7 @@ supported_targets!(
     ("aarch64-unknown-linux", aarch64_unknown_linux),
     ("aarch64-pc-windows", aarch64_pc_windows),
     ("aarch64-apple-darwin", aarch64_apple_darwin),
+    ("x86_64-pc-windows-gnu", x86_64_pc_windows_gnu),
 );
 
 impl Target {

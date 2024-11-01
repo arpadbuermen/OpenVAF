@@ -18,5 +18,13 @@ pub fn host_triple() -> &'static str {
     // Instead of grabbing the host triple (for the current host), we grab (at
     // compile time) the target triple that this rustc is built with and
     // calling that (at runtime) the host triple.
-    (env!("CFG_COMPILER_HOST_TRIPLE")).rsplit_once('-').unwrap().0
+    let triple = env!("CFG_COMPILER_HOST_TRIPLE");
+
+    // Special case for windows-gnu: preserve the full triple due to different linker flags
+    // under MSYS2.
+    if triple.contains("windows-gnu") {
+        triple
+    } else {
+        triple.rsplit_once('-').unwrap().0
+    }
 }
