@@ -1,4 +1,5 @@
 use core::ptr::NonNull;
+
 use llvm_sys::core::{
     LLVMAddCase, LLVMAppendBasicBlockInContext, LLVMBuildAnd, LLVMBuildBr, LLVMBuildCondBr,
     LLVMBuildICmp, LLVMBuildRet, LLVMBuildSelect, LLVMBuildSwitch, LLVMCreateBuilderInContext,

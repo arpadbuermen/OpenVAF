@@ -1005,7 +1005,6 @@ dependencies = [
  "clap",
  "directories-next",
  "env_logger",
- "llvm-sys",
  "log",
  "mimalloc",
  "mini_harness",

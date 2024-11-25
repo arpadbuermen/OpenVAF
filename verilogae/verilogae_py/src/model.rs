@@ -1,8 +1,7 @@
 use std::ffi::CStr;
 use std::mem::take;
 use std::os::raw::c_long;
-use std::ptr;
-use std::slice;
+use std::{ptr, slice};
 
 use libc::{c_char, c_void};
 use pyo3_ffi::structmember::{PyMemberDef, READONLY, T_OBJECT, T_OBJECT_EX};
@@ -27,20 +26,17 @@ use verilogae_ffi::{
 
 use crate::ffi::new_type;
 use crate::numpy::{ItemType, NumpyArray, PyArrayError};
-use crate::typeref::NUMPY_API;
-use crate::typeref::NUMPY_ARR_TYPE;
-use crate::typeref::TEMPERATURE_STR;
-use crate::typeref::VOLTAGES_STR;
-use crate::typeref::{CURRENTS_STR, NUMPY_CDOUBLE_DESCR};
-use crate::util::likely;
-use crate::util::unlikely;
+use crate::typeref::{
+    CURRENTS_STR, NUMPY_API, NUMPY_ARR_TYPE, NUMPY_CDOUBLE_DESCR, TEMPERATURE_STR, VOLTAGES_STR,
+};
+use crate::util::{likely, unlikely};
 
 pub static mut VAE_MODEL_TY: PyTypeObject = {
     let mut res = new_type::<VaeModel>();
     res.tp_name = "verilogae.VaeModel\0".as_ptr() as *const c_char;
     res.tp_doc =
         "A Verilog-A module compiled and loaded with Verilog-AE\0".as_ptr() as *const c_char;
-    res.tp_members = unsafe { std::ptr::addr_of_mut!(VAE_MODEL_MEMBERS) } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_MODEL_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeModel::dealloc);
     res
 };
@@ -161,7 +157,7 @@ pub static mut VAE_PARAM_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeParam\0".as_ptr() as *const c_char;
     res.tp_doc = "A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE\0"
         .as_ptr() as *const c_char;
-    res.tp_members = unsafe { std::ptr::addr_of_mut!(VAE_PARAM_MEMBERS) } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_PARAM_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeParam::dealloc);
     res
 };
@@ -475,8 +471,8 @@ pub static mut VAE_FUNCTION_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeFun\0".as_ptr() as *const c_char;
     res.tp_doc =
         "A function (compiled with VerilogAE) to calculate a Verilog-A variable marked with `retrieve`\0".as_ptr() as *const c_char;
-    res.tp_members = unsafe { std::ptr::addr_of_mut!(VAE_FUNCTION_MEMBERS) } as *mut _;
-    res.tp_methods = unsafe { std::ptr::addr_of_mut!(VAE_FUNCTION_METHODS) } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_FUNCTION_MEMBERS) as *mut _;
+    res.tp_methods = std::ptr::addr_of_mut!(VAE_FUNCTION_METHODS) as *mut _;
     res.tp_dealloc = Some(VaeFun::dealloc);
     res
 };

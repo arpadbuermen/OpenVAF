@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use crate::flags::GenMsvcrt;
-
 use anyhow::Result;
 use xshell::{cmd, Shell};
+
+use crate::flags::GenMsvcrt;
 const MINGW_URL: &str = "https://github.com/mirror/mingw-w64.git";
 
 const UCRT_FILES: &[&str] = &[

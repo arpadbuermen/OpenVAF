@@ -1,9 +1,8 @@
 #[cfg(not(feature = "static"))]
 mod ffi;
+pub use ffi::*;
 #[cfg(feature = "static")]
 use verilogae::api as ffi;
-
-pub use ffi::*;
 
 #[cfg(feature = "static")]
 pub const PARAM_FLAGS_MIN_INCLUSIVE: ParamFlags = 1;

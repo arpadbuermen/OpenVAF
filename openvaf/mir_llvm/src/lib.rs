@@ -1,8 +1,12 @@
+use std::error::Error;
 use std::ffi::{CStr, CString};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::mem::MaybeUninit;
+use std::ops::Deref;
 use std::os::raw::{c_char, c_uint, c_ulonglong};
 use std::path::Path;
 use std::ptr;
+use std::ptr::NonNull;
 
 use lasso::Rodeo;
 use libc::c_void;
@@ -10,10 +14,6 @@ use llvm_sys::core;
 use llvm_sys::core::{LLVMCreateMessage, LLVMDisposeMessage};
 use llvm_sys::error::LLVMGetErrorMessage;
 use llvm_sys::transforms::pass_builder::*;
-use std::error::Error;
-use std::fmt::{self, Debug, Display, Formatter};
-use std::ops::Deref;
-use std::ptr::NonNull;
 
 pub const UNNAMED: *const c_char = b"\0".as_ptr() as *const c_char;
 #[derive(Eq)]
@@ -279,53 +279,6 @@ pub unsafe fn create_target(
     Ok(target_machine)
 }
 
-/*
-
-pub unsafe fn create_target(
-    triple: &str,
-    cpu: &str,
-    features: &str,
-    level: llvm_sys::target_machine::LLVMCodeGenOptLevel,
-    reloc_mode: llvm_sys::target_machine::LLVMRelocMode,
-    code_model: llvm_sys::target_machine::LLVMCodeModel,
-) -> Result<llvm_sys::target_machine::LLVMTargetMachineRef, String> {
-    let triple_c = to_c_string(triple);
-    let mut target: llvm_sys::target_machine::LLVMTargetRef = ptr::null_mut();
-    let mut error_msg: *mut c_char = ptr::null_mut();
-
-    if llvm_sys::target_machine::LLVMGetTargetFromTriple(
-        triple_c.as_ptr(),
-        &mut target,
-        &mut error_msg,
-    ) != 0
-    {
-        let error = from_c_string(error_msg);
-        llvm_sys::core::LLVMDisposeMessage(error_msg);
-        return Err(error);
-    }
-
-    let cpu_c = to_c_string(cpu);
-    let features_c = to_c_string(features);
-
-    let target_machine = llvm_sys::target_machine::LLVMCreateTargetMachine(
-        target,
-        triple_c.as_ptr(),
-        cpu_c.as_ptr(),
-        features_c.as_ptr(),
-        level,
-        reloc_mode,
-        code_model,
-    );
-
-    if target_machine.is_null() {
-        Err(format!("Failed to create target machine for triple: {}", triple))
-    } else {
-        Ok(target_machine)
-    }
-}
-
- * */
-
 pub unsafe fn set_normalized_target(module: llvm_sys::prelude::LLVMModuleRef, triple: &str) {
     let triple_c = to_c_string(triple);
     let normalized_triple = llvm_sys::target_machine::LLVMNormalizeTargetTriple(triple_c.as_ptr());
@@ -427,7 +380,6 @@ impl ModuleLlvm {
         let data_layout = CString::new(&*target_data_layout).unwrap();
         llvm_sys::core::LLVMSetDataLayout(llmod, data_layout.as_ptr());
 
-        // Assuming set_normalized_target is a function you've defined
         set_normalized_target(llmod, &target.llvm_target);
 
         let tm = create_target(
@@ -454,9 +406,11 @@ impl ModuleLlvm {
         unsafe { &*self.llmod_raw }
     }
     pub fn optimize(&self) {
+        let llmod = self.llmod();
+
         unsafe {
             // Create PassBuilderOptions
-            let options = LLVMCreatePassBuilderOptions();
+            let options = LLVMCreatePassBuilderOptions(); //this is opaque LLVMPassBuilderOptionsRef
 
             // Set optimization level
             let opt_level = match self.opt_lvl {
@@ -474,17 +428,16 @@ impl ModuleLlvm {
                 }
             };
 
-            // Convert optimization level to C string
-            let opt_level_cstring = CString::new(opt_level).unwrap();
+            let error = {
+                // Create variables in inner scope
+                let opt_level_cstring = CString::new(opt_level).unwrap();
+                let opt_level_ptr = opt_level_cstring.as_ptr();
 
-            // Run passes
-            let error = LLVMRunPasses(
-                NonNull::from(self.llmod()).as_ptr(),
-                opt_level_cstring.as_ptr(),
-                self.tm,
-                options,
-            );
+                let llmod_ptr = NonNull::from(llmod).as_ptr();
 
+                // Run passes while values are guaranteed to be alive
+                LLVMRunPasses(llmod_ptr, opt_level_ptr, self.tm, options)
+            };
             // Check for errors
             if !error.is_null() {
                 // Handle error
@@ -493,7 +446,6 @@ impl ModuleLlvm {
                     std::ffi::CStr::from_ptr(error_string).to_string_lossy().into_owned();
                 eprintln!("Error occurred during optimization: {}", rust_str);
                 core::LLVMDisposeMessage(error_string);
-                // You might want to propagate this error or handle it according to your error handling strategy
             }
 
             // Clean up

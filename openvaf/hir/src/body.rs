@@ -1,17 +1,18 @@
 use std::sync::Arc;
 
 use hir_def::db::HirDefDB;
+pub use hir_def::expr::Event;
 use hir_def::DefWithBodyId;
+pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type,};
 use hir_ty::db::HirTyDB;
 use hir_ty::inference;
 use hir_ty::types::{Signature, Ty};
-
-pub use hir_def::expr::Event;
-pub use hir_def::{/*expr::CaseCond,*/ BuiltIn, Case, ExprId, Literal, ParamSysFun, StmtId, Type,};
 pub use syntax::ast::{BinaryOp, UnaryOp};
 
-use crate::{Branch, CompilationDB, Node};
-use crate::{BranchWrite, Function, FunctionArg, NatureAttribute, Parameter, Variable};
+use crate::{
+    Branch, BranchWrite, CompilationDB, Function, FunctionArg, NatureAttribute, Node, Parameter,
+    Variable,
+};
 
 #[derive(Debug, Clone)]
 pub struct Body {

@@ -1,5 +1,4 @@
 use std::cell::Cell;
-
 use std::ptr::NonNull;
 use std::rc::Rc;
 
@@ -8,11 +7,10 @@ use num_complex::Complex64;
 use stdx::iter::zip;
 use typed_index_collections::TiSlice;
 
+use super::{ModelImpl, ParamId, SimInfo};
 use crate::circuit::Node;
 use crate::devices::{update_matrix_entry, DeviceImpl, DeviceParams, InstanceImpl, Type};
 use crate::simulation::{MatrixEntryIter, SimBuilder};
-
-use super::{ModelImpl, ParamId, SimInfo};
 
 pub struct VoltageSrc;
 
