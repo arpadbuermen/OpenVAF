@@ -1,20 +1,19 @@
 use std::cell::{Cell, RefCell};
 use std::ffi::CString;
+use std::ptr::NonNull;
 
-use crate::LLVMString;
 use ahash::AHashMap;
 use lasso::{Rodeo, Spur};
 use libc::{c_char, c_uint};
 use llvm_sys::bit_reader::LLVMParseBitcodeInContext2;
-use llvm_sys::linker::LLVMLinkModules2;
-use llvm_sys::LLVMType as Type;
-use llvm_sys::LLVMValue as Value;
 //use llvm_sys::LLVMBool; // For False, if applicable
 use llvm_sys::core::{LLVMCreateMemoryBufferWithMemoryRange, LLVMGetNamedFunction};
+use llvm_sys::linker::LLVMLinkModules2;
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 use target::spec::Target;
 
 use crate::types::Types;
-use std::ptr::NonNull;
+use crate::LLVMString;
 
 pub struct CodegenCx<'a, 'll> {
     pub llmod: &'ll llvm_sys::LLVMModule,

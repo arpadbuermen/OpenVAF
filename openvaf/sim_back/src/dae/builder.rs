@@ -414,11 +414,13 @@ impl<'a> Builder<'a> {
                 if requires_unknown {
                     self.add_source_equation(
                         &contrib,
+                        // &contributions.current_src,
                         contributions.current_src.unknown.unwrap(),
                         branch,
                     );
                 } else {
                     self.add_kirchoff_law(&contrib, branch);
+                    // self.add_kirchoff_law(&contributions.current_src, branch);
                 }
             }
             // If it is constant TRUE; this is a voltage branch
@@ -511,10 +513,21 @@ impl<'a> Builder<'a> {
     fn mfactor_multiply(&mut self, mfactor: Value, srcfactor: Value) -> Value {
         match (mfactor, srcfactor) {
             // Leave srcfactor unchanged if mfactor is 1
-            // Replace src.factor with mfactor if src.factor is 1
-            (F_ONE, fac) | (fac, F_ONE) => fac,
-            // Neither mfactor nor factor is 1
-            (mfactor, srcfactor) => self.cursor.ins().fmul(srcfactor, mfactor),
+            (F_ONE, fac) => fac,
+            // mfactor is not 1
+            // Note that srcfactor is the signal scaling factor.
+            // Because power scales with mfactor the signal scales with
+            // sqrt(mfactor).
+            (mfactor, srcfactor) => {
+                let sqrt_mfactor = self.cursor.ins().sqrt(mfactor);
+                if srcfactor == F_ONE {
+                    // Old factor is 1, replace it with sqrt(mfactor)
+                    sqrt_mfactor
+                } else {
+                    // Multiply old factor with sqrt(mfactor)
+                    self.cursor.ins().fmul(srcfactor, sqrt_mfactor)
+                }
+            }
         }
     }
 
@@ -522,8 +535,14 @@ impl<'a> Builder<'a> {
         match (mfactor, srcfactor) {
             // Leave srcfactor unchanged if mfactor is 1
             (F_ONE, fac) => fac,
-            // Neither mfactor nor factor is 1
-            (mfactor, srcfactor) => self.cursor.ins().fdiv(srcfactor, mfactor),
+            // mfactor is not 1
+            // Note that srcfactor is the signal scaling factor.
+            // Because power scales with mfactor the signal scales with
+            // sqrt(mfactor).
+            (mfactor, srcfactor) => {
+                let sqrt_mfactor = self.cursor.ins().sqrt(mfactor);
+                self.cursor.ins().fdiv(srcfactor, sqrt_mfactor)
+            }
         }
     }
 
@@ -544,7 +563,7 @@ impl<'a> Builder<'a> {
             resist: current_src.resist,
             react: current_src.react,
             resist_small_signal: current_src.resist_small_signal,
-            react_small_signal: current_src.resist_small_signal,
+            react_small_signal: current_src.react_small_signal,
             noise,
         }
     }
@@ -566,7 +585,7 @@ impl<'a> Builder<'a> {
             resist: voltage_src.resist,
             react: voltage_src.react,
             resist_small_signal: voltage_src.resist_small_signal,
-            react_small_signal: voltage_src.resist_small_signal,
+            react_small_signal: voltage_src.react_small_signal,
             noise,
         }
     }

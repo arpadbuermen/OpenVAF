@@ -553,8 +553,8 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                     fn #llvm_ty_ident(&mut self){
                         let ctx = self.ctx;
                         unsafe{
-                            let align = [#(llvm_sys::target::LLVMABIAlignmentOfType(self.target_data, #field_ll_tys)),*].into_iter().max().unwrap();
-                            let mut size = [#(llvm_sys::target::LLVMABISizeOfType(self.target_data, #field_ll_tys2)),*].into_iter().max().unwrap() as u32;
+                            let align = [#(llvm_sys::target::LLVMABIAlignmentOfType(self.target_data.clone(), core::ptr::NonNull::from(#field_ll_tys).as_ptr())),*].into_iter().max().unwrap();
+                            let mut size = [#(llvm_sys::target::LLVMABISizeOfType(self.target_data.clone(), core::ptr::NonNull::from(#field_ll_tys2).as_ptr())),*].into_iter().max().unwrap() as u32;
                             size = (size + align - 1) / align;
                             let elem = ctx.ty_aint(align*8);
                             let ty = ctx.ty_array(elem, size);
@@ -718,7 +718,7 @@ fn gen_llvm_tys<'a>(tys: &IndexMap<&'a str, OsdiStruct<'a>, RandomState>) -> Str
         }
 
         impl<'ll> OsdiTys<'ll>{
-            pub fn new(ctx: &CodegenCx<'_, 'll>, target_data: &llvm::TargetData) -> Self{
+            pub fn new(ctx: &CodegenCx<'_, 'll>, target_data: llvm_sys::target::LLVMTargetDataRef) -> Self{
                 let mut builder = OsdiTyBuilder{
                     ctx,
                     target_data,
@@ -733,7 +733,7 @@ fn gen_llvm_tys<'a>(tys: &IndexMap<&'a str, OsdiStruct<'a>, RandomState>) -> Str
 
         struct OsdiTyBuilder<'a, 'b, 'll>{
             ctx: &'a CodegenCx<'b, 'll>,
-            target_data: &'a llvm::TargetData,
+            target_data:  llvm_sys::target::LLVMTargetDataRef,
             #(#fields2 : Option<&'ll llvm_sys::LLVMType>),*
         }
 

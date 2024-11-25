@@ -1,3 +1,6 @@
+use core::ptr::NonNull;
+use std::ffi::CString;
+
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
@@ -12,12 +15,9 @@ use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
 use typed_indexmap::TiSet;
 
-use std::ffi::CString;
-
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
 use crate::metadata::OsdiLimFunction;
-use core::ptr::NonNull;
 
 mod access;
 mod bitfield;
@@ -33,8 +33,9 @@ mod setup;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
-use llvm_sys::target::{LLVM_InitializeNativeAsmPrinter, LLVM_InitializeNativeTarget};
 use std::sync::Once;
+
+use llvm_sys::target::{LLVM_InitializeNativeAsmPrinter, LLVM_InitializeNativeTarget};
 
 static LLVM_INIT: Once = Once::new();
 
@@ -153,7 +154,7 @@ pub fn compile(
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
-                let _ir = llmod.to_str();
+                //let _ir = llmod.to_str();
                 //println!("llmod: {}", _ir);
 
                 debug_assert!(llmod.verify_and_print());

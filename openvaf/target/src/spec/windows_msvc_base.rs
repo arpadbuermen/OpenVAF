@@ -1,4 +1,4 @@
-use crate::spec::{LinkArgs, LinkerFlavor, TargetOptions};
+use crate::spec::{LinkerFlavor, TargetOptions};
 
 /// MSVC-specific Windows target options, extending the base Windows options.
 pub fn opts() -> TargetOptions {

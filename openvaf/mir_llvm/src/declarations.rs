@@ -1,16 +1,15 @@
 use std::ffi::CString;
 
-use libc::c_char;
-use libc::c_uint;
+use libc::{c_char, c_uint};
 use llvm_sys::core::LLVMTypeOf;
 use llvm_sys::prelude::LLVMBool;
-use llvm_sys::LLVMType as Type;
-use llvm_sys::LLVMValue as Value;
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 
 const FALSE: LLVMBool = 0;
 
-use crate::CodegenCx;
 use std::ptr::NonNull;
+
+use crate::CodegenCx;
 /// Declare a function.
 ///
 /// If there’s a value with the same name already declared, the function will

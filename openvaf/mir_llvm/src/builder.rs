@@ -1,6 +1,5 @@
 use std::slice;
 
-use crate::UNNAMED;
 use arrayvec::ArrayVec;
 use libc::c_uint;
 use llvm_sys::core::LLVMBuildExtractValue;
@@ -11,7 +10,7 @@ use mir::{
 use typed_index_collections::TiVec;
 
 use crate::callbacks::CallbackFun;
-use crate::CodegenCx;
+use crate::{CodegenCx, UNNAMED};
 
 #[derive(Clone)]
 pub struct MemLoc<'ll> {
@@ -41,11 +40,9 @@ impl<'ll> MemLoc<'ll> {
     /// ptr_ty, ty and indices must be valid for ptr
     pub unsafe fn read(&self, llbuilder: &llvm_sys::LLVMBuilder) -> &'ll llvm_sys::LLVMValue {
         // Convert references to raw pointers
-        let llbuilder_ptr = llbuilder as *const _ as *mut _;
-        let ptr = self.ptr as *const _ as *mut _;
 
         // Call read_with_ptr and convert the result back to a reference
-        &*(self.read_with_ptr(llbuilder_ptr, ptr))
+        &*(self.read_with_ptr(NonNull::from(llbuilder).as_ptr(), NonNull::from(self.ptr).as_ptr()))
     }
 
     /// # Safety
@@ -184,8 +181,8 @@ impl<'a, 'cx, 'll> Builder<'a, 'cx, 'll> {
     ) -> Self {
         let entry = unsafe {
             llvm_sys::core::LLVMAppendBasicBlockInContext(
-                cx.llcx as *const _ as *mut _,
-                llfunc as *const _ as *mut _,
+                NonNull::from(cx.llcx).as_ptr(),
+                NonNull::from(llfunc).as_ptr(),
                 UNNAMED,
             )
         };
@@ -195,8 +192,8 @@ impl<'a, 'cx, 'll> Builder<'a, 'cx, 'll> {
         for bb in mir_func.layout.blocks() {
             blocks[bb] = unsafe {
                 Some(llvm_sys::core::LLVMAppendBasicBlockInContext(
-                    cx.llcx as *const _ as *mut _,
-                    llfunc as *const _ as *mut _,
+                    NonNull::from(cx.llcx).as_ptr(),
+                    NonNull::from(llfunc).as_ptr(),
                     UNNAMED,
                 ) as *mut _)
             };
@@ -311,7 +308,7 @@ impl<'ll> Builder<'_, '_, 'll> {
         &*(result as *const _)
     }
 
-    /// # SAFETY
+    /// # Safety
     /// Must not be called when a block that already contains a terminator is selected
     pub unsafe fn typed_gep(
         &mut self,
@@ -321,8 +318,8 @@ impl<'ll> Builder<'_, '_, 'll> {
     ) -> &'ll llvm_sys::LLVMValue {
         let result = llvm_sys::core::LLVMBuildGEP2(
             self.llbuilder,
-            arr_ty as *const _ as *mut _,
-            ptr as *const _ as *mut _,
+            NonNull::from(arr_ty).as_ptr(),
+            NonNull::from(ptr).as_ptr(),
             indices.as_ptr() as *const _ as *mut _,
             indices.len() as u32,
             UNNAMED,
@@ -355,8 +352,8 @@ impl<'ll> Builder<'_, '_, 'll> {
     ) -> &'ll llvm_sys::LLVMValue {
         let result = llvm_sys::core::LLVMBuildStructGEP2(
             self.llbuilder,
-            struct_ty as *const _ as *mut _,
-            ptr as *const _ as *mut _,
+            NonNull::from(struct_ty).as_ptr(),
+            NonNull::from(ptr).as_ptr(),
             idx,
             UNNAMED,
         );

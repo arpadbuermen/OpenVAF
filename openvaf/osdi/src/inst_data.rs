@@ -1,6 +1,7 @@
-use ahash::RandomState;
 use core::ffi::c_uint;
 use core::ptr::NonNull;
+
+use ahash::RandomState;
 use hir::{CompilationDB, ParamSysFun, Parameter, Variable};
 use hir_lower::{HirInterner, LimitState, ParamKind, PlaceKind};
 use indexmap::IndexMap;
@@ -36,12 +37,6 @@ pub enum OsdiInstanceParam {
     User(Parameter),
 }
 
-macro_rules! llvm_array_nonnull {
-    ($($element:expr),+ $(,)?) => {{
-        let mut temp = [$(core::ptr::NonNull::from($element).as_ptr()),+];
-        temp.as_mut_ptr()
-    }};
-}
 pub const NUM_CONST_FIELDS: u32 = 8;
 pub const PARAM_GIVEN: u32 = 0;
 pub const JACOBIAN_PTR_RESIST: u32 = 1;
@@ -654,7 +649,6 @@ impl<'ll> OsdiInstanceData<'ll> {
     //         false
     //     }
     // }
-
     pub unsafe fn read_node_off(
         &self,
         cx: &CodegenCx<'_, 'll>,
@@ -662,29 +656,31 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm_sys::LLVMValue,
         llbuilder: &llvm_sys::LLVMBuilder,
     ) -> &'ll llvm_sys::LLVMValue {
-        let ptr = &*LLVMBuildStructGEP2(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(self.ty).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            NODE_MAPPING,
-            UNNAMED,
-        );
-        let zero = cx.const_int(0);
-        let node = cx.const_unsigned_int(node.into());
-        let ptr = &*LLVMBuildGEP2(
-            NonNull::from(llbuilder).as_ptr(),
+        let builder_ptr = NonNull::from(llbuilder).as_ptr();
+        let ty_ptr = NonNull::from(self.ty).as_ptr();
+        let ptr_value = NonNull::from(ptr).as_ptr();
+
+        // First GEP for accessing the NODE_MAPPING field
+        let ptr = LLVMBuildStructGEP2(builder_ptr, ty_ptr, ptr_value, NODE_MAPPING, UNNAMED);
+
+        // Preparing indices for the next GEP
+        let zero = cx.const_int(0) as *const llvm_sys::LLVMValue as *mut _;
+        let node_val = cx.const_unsigned_int(node.into()) as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [zero, node_val];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
+        // Apply GEP2 for node mapping
+        let ptr = LLVMBuildGEP2(
+            builder_ptr,
             NonNull::from(self.node_mapping).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            llvm_array_nonnull!(zero, node),
+            ptr,
+            gep_ptr,
             2,
             UNNAMED,
         );
-        &*LLVMBuildLoad2(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(cx.ty_int()).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            UNNAMED,
-        )
+
+        // Load the integer value from the final pointer
+        &*LLVMBuildLoad2(builder_ptr, NonNull::from(cx.ty_int()).as_ptr(), ptr, UNNAMED)
     }
 
     pub unsafe fn read_state_idx(
@@ -694,29 +690,31 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm_sys::LLVMValue,
         llbuilder: &llvm_sys::LLVMBuilder,
     ) -> &'ll llvm_sys::LLVMValue {
-        let ptr = &*LLVMBuildStructGEP2(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(self.ty).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            STATE_IDX,
-            UNNAMED,
-        );
-        let zero = cx.const_int(0);
-        let state = cx.const_unsigned_int(idx.into());
-        let ptr = &*LLVMBuildGEP2(
-            NonNull::from(llbuilder).as_ptr(),
+        let builder_ptr = NonNull::from(llbuilder).as_ptr();
+        let ty_ptr = NonNull::from(self.ty).as_ptr();
+        let ptr_value = NonNull::from(ptr).as_ptr();
+
+        // First GEP for accessing the STATE_IDX field
+        let ptr = LLVMBuildStructGEP2(builder_ptr, ty_ptr, ptr_value, STATE_IDX, UNNAMED);
+
+        // Preparing indices for the next GEP
+        let zero = cx.const_int(0) as *const llvm_sys::LLVMValue as *mut _;
+        let state = cx.const_unsigned_int(idx.into()) as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [zero, state];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
+        // Apply GEP2 for state index
+        let ptr = LLVMBuildGEP2(
+            builder_ptr,
             NonNull::from(self.state_idx).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            llvm_array_nonnull![zero, state],
+            ptr,
+            gep_ptr,
             2,
             UNNAMED,
         );
-        &*LLVMBuildLoad2(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(cx.ty_int()).as_ptr(),
-            NonNull::from(ptr).as_ptr(),
-            UNNAMED,
-        )
+
+        // Load the integer value from the final pointer
+        &*LLVMBuildLoad2(builder_ptr, NonNull::from(cx.ty_int()).as_ptr(), ptr, UNNAMED)
     }
 
     pub unsafe fn read_node_voltage(
@@ -728,11 +726,15 @@ impl<'ll> OsdiInstanceData<'ll> {
         llbuilder: &llvm_sys::LLVMBuilder,
     ) -> &'ll llvm_sys::LLVMValue {
         let off = self.read_node_off(cx, node, ptr, llbuilder);
+        let off_val = off as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 1] = [off_val];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
         let ptr = LLVMBuildGEP2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
             NonNull::from(prev_result).as_ptr(),
-            llvm_array_nonnull![off],
+            gep_ptr,
             1,
             UNNAMED,
         );
@@ -816,11 +818,15 @@ impl<'ll> OsdiInstanceData<'ll> {
         negate: bool,
     ) {
         let off = self.read_node_off(cx, node, ptr, llbuilder);
+        let off_val = off as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 1] = [off_val];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
         let dst = LLVMBuildGEP2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(cx.ty_double()).as_ptr(),
             NonNull::from(dst).as_ptr(),
-            llvm_array_nonnull![off],
+            gep_ptr,
             1,
             UNNAMED,
         );
@@ -903,11 +909,16 @@ impl<'ll> OsdiInstanceData<'ll> {
         // Prepare type of Jacobian entry pointers array
         let ty = if reactive { self.jacobian_ptr_react } else { self.jacobian_ptr };
         // Create pointer to array entry with index entry
+        let zero_val = zero as *const llvm_sys::LLVMValue as *mut _;
+        let entry_val = entry as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [zero_val, entry_val];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
         let ptr = LLVMBuildGEP2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(ty).as_ptr(),
             ptr,
-            llvm_array_nonnull![zero, entry],
+            gep_ptr,
             2,
             UNNAMED,
         );
@@ -920,11 +931,15 @@ impl<'ll> OsdiInstanceData<'ll> {
         );
         // Add offset to destination
         if has_offset {
+            let offset_val = offset as *const llvm_sys::LLVMValue as *mut _;
+            let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 1] = [offset_val];
+            let gep_ptr = gep_indices.as_mut_ptr();
+
             dst = LLVMBuildGEP2(
                 NonNull::from(llbuilder).as_ptr(),
                 NonNull::from(cx.ty_double()).as_ptr(),
                 dst,
-                llvm_array_nonnull![offset],
+                gep_ptr,
                 1,
                 UNNAMED,
             );
@@ -965,14 +980,20 @@ impl<'ll> OsdiInstanceData<'ll> {
         // Convert to LLVM u32
         let entry = cx.const_unsigned_int(entry);
         // Create pointer to array entry with index entry
+        let zero_val = zero as *const llvm_sys::LLVMValue as *mut _;
+        let entry_val = entry as *const llvm_sys::LLVMValue as *mut _;
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [zero_val, entry_val];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
         let ptr = LLVMBuildGEP2(
             NonNull::from(llbuilder).as_ptr(),
             NonNull::from(ty).as_ptr(),
             NonNull::from(ptr).as_ptr(),
-            llvm_array_nonnull![zero, entry],
+            gep_ptr,
             2,
             UNNAMED,
         );
+
         // Store value where dst pointer points to
         LLVMBuildStore(NonNull::from(llbuilder).as_ptr(), NonNull::from(val).as_ptr(), ptr);
     }
@@ -1053,7 +1074,6 @@ impl<'ll> OsdiInstanceData<'ll> {
             NonNull::from(ptr).as_ptr(),
         );
     }
-
     pub unsafe fn store_is_collapsible(
         &self,
         cx: &CodegenCx<'_, 'll>,
@@ -1061,26 +1081,39 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm_sys::LLVMValue,
         idx: &'ll llvm_sys::LLVMValue,
     ) {
+        let builder_ptr = NonNull::from(llbuilder).as_ptr();
+        let ty_ptr = NonNull::from(self.ty).as_ptr();
+
+        // Create GEP for the struct field
         let mut ptr = LLVMBuildStructGEP2(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(self.ty).as_ptr(),
+            builder_ptr,
+            ty_ptr,
             NonNull::from(ptr).as_ptr(),
             COLLAPSED,
             UNNAMED,
         );
+
+        // Stable storage for GEP indices
+        let idx_0: llvm_sys::prelude::LLVMValueRef =
+            cx.const_unsigned_int(0) as *const llvm_sys::LLVMValue as *mut _;
+        let idx_1: llvm_sys::prelude::LLVMValueRef = idx as *const llvm_sys::LLVMValue as *mut _;
+
+        // Pointers array for GEP indices
+        let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [idx_0, idx_1];
+        let gep_ptr = gep_indices.as_mut_ptr();
+
+        // Apply GEP2 for collapsed field
         ptr = LLVMBuildGEP2(
-            NonNull::from(llbuilder).as_ptr(),
+            builder_ptr,
             NonNull::from(self.collapsed).as_ptr(),
             ptr,
-            llvm_array_nonnull![cx.const_unsigned_int(0), idx],
+            gep_ptr,
             2,
             UNNAMED,
         );
-        LLVMBuildStore(
-            NonNull::from(llbuilder).as_ptr(),
-            NonNull::from(cx.const_c_bool(true)).as_ptr(),
-            ptr,
-        );
+
+        // Final store operation
+        LLVMBuildStore(builder_ptr, NonNull::from(cx.const_c_bool(true)).as_ptr(), ptr);
     }
 
     pub unsafe fn temperature_loc(

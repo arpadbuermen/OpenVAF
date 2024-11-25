@@ -3,14 +3,15 @@ use std::ffi::CString;
 use libc::c_uint;
 use llvm_sys::core::LLVMInt8TypeInContext;
 use llvm_sys::prelude::LLVMBool;
-use llvm_sys::LLVMType as Type;
-use llvm_sys::LLVMValue as Value;
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 
 const FALSE: LLVMBool = 0;
 const TRUE: LLVMBool = 1;
-use crate::CodegenCx;
 use core::ptr::NonNull;
+
 use mir::Const;
+
+use crate::CodegenCx;
 
 pub struct Types<'ll> {
     pub double: &'ll Type,

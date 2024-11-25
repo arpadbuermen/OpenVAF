@@ -1,5 +1,4 @@
-use hir::Node;
-use hir::{BodyRef, ExprId};
+use hir::{BodyRef, ExprId, Node};
 use mir::builder::InstBuilder;
 use mir::{Block, Value};
 use stdx::iter::zip;

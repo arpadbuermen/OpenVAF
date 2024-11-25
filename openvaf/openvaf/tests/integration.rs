@@ -203,11 +203,14 @@ fn test_noise() -> Result<()> {
     for freq in 1..10 {
         let freq = freq as f64;
         instance.load_noise(&model, &mut sim, freq);
-        let white_noise = MFACTOR * PWR * V_AC;
-        assert_approx_eq!(sim.read_noise(0), white_noise);
-        assert_approx_eq!(sim.read_noise(1), white_noise);
-        assert_approx_eq!(sim.read_noise(2), MFACTOR * V_AC * PWR / (freq.powf(EXP)));
-        assert_approx_eq!(sim.read_noise(3), MFACTOR * PWR / (freq.powf(EXP * V_AC)));
+        let white_noise1 = MFACTOR * PWR * V_AC;
+        let white_noise2 = MFACTOR * PWR * PWR * V_AC;
+        let flickr_noise1 = MFACTOR * V_AC * PWR * PWR / (freq.powf(EXP));
+        let flickr_noise2 = MFACTOR * PWR * PWR / (freq.powf(EXP * V_AC));
+        assert_approx_eq!(sim.read_noise(0), white_noise1);
+        assert_approx_eq!(sim.read_noise(1), white_noise2);
+        assert_approx_eq!(sim.read_noise(2), flickr_noise1);
+        assert_approx_eq!(sim.read_noise(3), flickr_noise2);
     }
     Ok(())
 }

@@ -1,6 +1,4 @@
-use crate::UNNAMED;
-
-use crate::CodegenCx;
+use crate::{CodegenCx, UNNAMED};
 
 #[derive(Clone)]
 pub struct CallbackFun<'ll> {

@@ -1,20 +1,20 @@
+use core::ptr::NonNull;
 use std::borrow::Borrow;
 
-use crate::compiler_db::{
-    current_name, voltage_name, CompilationDB, FuncSpec, InternedModel, ModelInfo,
-};
 use camino::Utf8Path;
-use core::ptr::NonNull;
 use hir::Type;
 use hir_lower::{CallBackKind, CurrentKind, HirInterner, ParamInfoKind, ParamKind, PlaceKind};
 use lasso::Rodeo;
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir::{ControlFlowGraph, FuncRef, Function};
-use mir_llvm::UNNAMED;
-use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, LLVMBackend};
+use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, LLVMBackend, UNNAMED};
 use stdx::iter::multiunzip;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
+
+use crate::compiler_db::{
+    current_name, voltage_name, CompilationDB, FuncSpec, InternedModel, ModelInfo,
+};
 
 pub fn sim_param_stub<'ll>(cx: &CodegenCx<'_, 'll>) -> CallbackFun<'ll> {
     cx.const_callback(&[cx.ty_ptr()], cx.const_real(0.0))

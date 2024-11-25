@@ -7,6 +7,7 @@ use basedb::diagnostics::{ConsoleSink, Diagnostic, DiagnosticSink, Label, LabelS
 use basedb::lints::LintLevel;
 use basedb::{BaseDB, FileId, VfsPath};
 use camino::Utf8Path;
+pub use hir::CompilationDB;
 use hir::{
     Branch, BranchKind, Module, Node, Parameter, PathResolveError, ScopeDef, Type, Variable,
 };
@@ -21,8 +22,6 @@ use syntax::{AstNode, TextRange};
 
 use crate::opts::abs_path;
 use crate::Opts;
-
-pub use hir::CompilationDB;
 
 pub(crate) fn new(root_file: &Utf8Path, opts: &Opts) -> Result<CompilationDB> {
     let vfs = opts.vfs()?;

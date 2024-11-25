@@ -1,14 +1,15 @@
 use std::cmp::Ordering;
 use std::hash::{BuildHasher, Hash, Hasher};
-
 use std::mem::{swap, ManuallyDrop};
 use std::ops::{Index, IndexMut};
 
 use ahash::RandomState;
 use bitset::{BitSet, HybridBitSet};
 use hashbrown::raw::RawTable;
-use mir::DominatorTree;
-use mir::{Block, FuncRef, Function, Inst, InstructionData, Opcode, Value, ValueDef, ValueList};
+use mir::{
+    Block, DominatorTree, FuncRef, Function, Inst, InstructionData, Opcode, Value, ValueDef,
+    ValueList,
+};
 use stdx::packed_option::PackedOption;
 use stdx::{impl_idx_from, impl_idx_math};
 use typed_index_collections::TiVec;

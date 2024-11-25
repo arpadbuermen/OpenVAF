@@ -1,3 +1,27 @@
+use std::iter;
+use std::ptr::NonNull;
+
+use hir::CompilationDB;
+use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
+use hir_lower::{CallBackKind, HirInterner};
+use lasso::Rodeo;
+use llvm_sys::core::{
+    LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
+    LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
+    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetFirstFunction, LLVMGetNextFunction,
+    LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
+    LLVMSetUnnamedAddress,
+};
+use llvm_sys::{LLVMIntPredicate, LLVMLinkage, LLVMUnnamedAddr, LLVMValue};
+use mir::{FuncRef, Function};
+use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, UNNAMED};
+use sim_back::dae::DaeSystem;
+use sim_back::init::Initialization;
+use sim_back::node_collapse::NodeCollapse;
+use sim_back::{CompiledModule, ModuleInfo};
+use typed_index_collections::TiVec;
+use typed_indexmap::TiSet;
+
 use crate::inst_data::OsdiInstanceData;
 use crate::metadata::osdi_0_4::{
     stdlib_bitcode, OsdiTys, LOG_FMT_ERR, LOG_LVL_DEBUG, LOG_LVL_DISPLAY, LOG_LVL_ERR,
@@ -6,39 +30,7 @@ use crate::metadata::osdi_0_4::{
 use crate::metadata::OsdiLimFunction;
 use crate::model_data::OsdiModelData;
 use crate::{lltype, OsdiLimId};
-use hir::CompilationDB;
-use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
-use hir_lower::{CallBackKind, HirInterner};
-use lasso::Rodeo;
-use llvm_sys::core::{
-    LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
-    LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
-    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetParam, LLVMIsDeclaration,
-    LLVMPositionBuilderAtEnd, LLVMSetLinkage, LLVMSetUnnamedAddress,
-};
-use llvm_sys::LLVMLinkage;
-use llvm_sys::LLVMValue;
-use llvm_sys::{
-    core::{LLVMGetFirstFunction, LLVMGetNextFunction},
-    LLVMIntPredicate, LLVMUnnamedAddr,
-};
-use mir::{FuncRef, Function};
-use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, UNNAMED};
-use sim_back::dae::DaeSystem;
-use sim_back::init::Initialization;
-use sim_back::node_collapse::NodeCollapse;
-use sim_back::{CompiledModule, ModuleInfo};
-use std::iter;
-use std::ptr::NonNull;
-use typed_index_collections::TiVec;
-use typed_indexmap::TiSet;
 
-macro_rules! llvm_array_nonnull {
-    ($($element:expr),+ $(,)?) => {{
-        let mut temp = [$(core::ptr::NonNull::from($element).as_ptr()),+];
-        temp.as_mut_ptr()
-    }};
-}
 fn function_iter(
     module: &llvm_sys::LLVMModule,
 ) -> impl Iterator<Item = *mut llvm_sys::LLVMValue> + '_ {
@@ -269,7 +261,7 @@ pub fn general_callbacks<'ll>(
         })
         .collect()
 }
-/*
+/* This was very useful for debugging
 fn print_module_ir(cx: &CodegenCx, message: &str) {
     unsafe {
         let ir_ptr = llvm_sys::core::LLVMPrintModuleToString(NonNull::from(cx.llmod).as_ptr());
@@ -520,9 +512,14 @@ fn print_callback<'ll>(
         let lvl = cx.const_unsigned_int(lvl);
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
 
-        let incoming_values = llvm_array_nonnull![lvl, lvl_and_err];
+        let lvl_val = lvl as *const llvm_sys::LLVMValue as *mut _;
+        let lvl_and_err_val = lvl_and_err as *const llvm_sys::LLVMValue as *mut _;
+        let mut incoming_values: [*mut llvm_sys::LLVMValue; 2] = [lvl_val, lvl_and_err_val];
+        let incoming_values_ptr = &mut incoming_values as *mut [*mut llvm_sys::LLVMValue]
+            as *mut *mut llvm_sys::LLVMValue;
+
         let mut incoming_blocks = [write_bb, err_bb];
-        LLVMAddIncoming(flags, incoming_values, incoming_blocks.as_mut_ptr(), 2);
+        LLVMAddIncoming(flags, incoming_values_ptr, incoming_blocks.as_mut_ptr(), 2);
 
         let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);
         //  print_module_ir(cx, "After building the PHI block");

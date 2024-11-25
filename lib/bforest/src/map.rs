@@ -1,8 +1,9 @@
 //! Forest of maps.
 
+use core::marker::PhantomData;
+
 use super::{Comparator, Forest, Node, NodeData, NodePool, Path, INNER_SIZE};
 use crate::packed_option::PackedOption;
-use core::marker::PhantomData;
 
 #[cfg(test)]
 mod tests;

@@ -1,8 +1,6 @@
-use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
-
-use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
-use crate::inst_data::OsdiInstanceParam;
 use core::ptr::NonNull;
+
+use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
 use llvm_sys::core::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,
     LLVMCreateBuilderInContext, LLVMDisposeBuilder, LLVMGetParam, LLVMPositionBuilderAtEnd,
@@ -11,6 +9,9 @@ use llvm_sys::LLVMIntPredicate::LLVMIntSLT;
 use mir::ControlFlowGraph;
 use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, UNNAMED};
 use sim_back::SimUnknownKind;
+
+use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
+use crate::inst_data::OsdiInstanceParam;
 
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     fn mark_collapsed(&self) -> (&'ll llvm_sys::LLVMValue, &'ll llvm_sys::LLVMType) {

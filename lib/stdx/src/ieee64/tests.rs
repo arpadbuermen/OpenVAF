@@ -1,7 +1,8 @@
-use super::*;
 use core::f64;
 use core::fmt::Display;
 use core::str::FromStr;
+
+use super::*;
 
 // Verify that `text` can be parsed as a `T` into a value that displays as `want`.
 fn parse_ok<T: FromStr + Display>(text: &str, want: &str)

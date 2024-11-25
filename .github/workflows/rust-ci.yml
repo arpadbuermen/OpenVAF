@@ -1,0 +1,112 @@
+name: Rust CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  ubuntu-build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Install LLVM 18
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
+        sudo apt-get install -y llvm-18 llvm-18-dev libclang-18-dev
+
+    - name: Set LLVM environment variables
+      run: |
+        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> $GITHUB_ENV
+        echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang" >> $GITHUB_ENV
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Install cargo-machete
+      run: cargo install cargo-machete
+
+    - name: Run cargo machete
+      run: cargo machete
+
+    - name: Check code formatting
+      run: cargo fmt -- --check
+
+    - name: Run Clippy
+      run: cargo clippy -- -D warnings
+
+    - name: Run tests
+      run: cargo test --release
+
+  msys2-build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [MINGW64, UCRT64]
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.sys }}
+        update: true
+        install: base-devel git
+        pacboy: >-
+          clang:p
+          llvm:p
+          rust:p
+          cc:p
+          python:p
+    
+    - name: Run cargo 
+      shell: msys2 {0}
+      run: cargo build --release
+
+    - name: Install cargo-machete
+      run: cargo install cargo-machete
+
+    - name: Add cargo bin to PATH
+      run: echo "${{ github.workspace }}/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Run cargo machete
+      run: cargo machete
+
+    - name: Check code formatting
+      shell: msys2 {0}
+      run: |
+        cargo fmt -- --check
+        if [ $? -ne 0 ]; then
+          echo "Code is not formatted. Please run 'cargo fmt'."
+          exit 1
+        fi
+
+    - name: Run tests
+      shell: msys2 {0}
+      run: cargo test --release
