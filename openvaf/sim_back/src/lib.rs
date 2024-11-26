@@ -1,5 +1,5 @@
 use hir::{BranchWrite, CompilationDB, Node};
-use hir_lower::{CurrentKind, HirInterner, ImplicitEquation};
+use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
 use lasso::Rodeo;
 use mir::Function;
 use mir_opt::{simplify_cfg, sparse_conditional_constant_propagation};
@@ -72,8 +72,81 @@ impl<'a> CompiledModule<'a> {
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
 
-        // For debugging - print DAE system
-        if false && cfg!(debug_assertions) {
+        // For debugging purposes - print parameters
+        let debugging = false; //  && cfg!(debug_assertions);
+        if debugging {
+            println!("Parameters:");
+            cx.intern.params.iter().for_each(|(p, val)| { 
+                print!("  {:?}", p);
+                match p {
+                    ParamKind::Param(param) => {
+                        println!(" .. {:?} -> {:?}", param.name(db), val);
+                    }, 
+                    ParamKind::ParamGiven { param } => {
+                        println!(" .. {:?} -> {:?}", param.name(db), val);
+                    }, 
+                    ParamKind::Voltage{ hi, lo} => {
+                        if lo.is_some() {
+                            print!(" .. V({:?},{:?})", hi.name(db), lo.unwrap().name(db));
+                        } else {
+                            print!(" .. V({:?})", hi.name(db));
+                        }
+                        println!(" -> {:?}", val);
+                    }, 
+                    ParamKind::Current(ck) => {
+                        match ck {
+                            CurrentKind::Branch(br) => {
+                                println!(" .. {:?} -> {:?}", br.name(db), val);        
+                            }, 
+                            CurrentKind::Unnamed{hi, lo} => {
+                                if lo.is_some() {
+                                    print!(" .. I({:?},{:?})", hi.name(db), lo.unwrap().name(db));        
+                                } else {
+                                    print!(" .. I({:?})", hi.name(db));        
+                                }
+                                println!(" -> {:?}", val);        
+                            }, 
+                            CurrentKind::Port(n) => {
+                                println!(" .. {:?} -> {:?}", n.name(db), val);
+                            }
+                        }
+                    },
+                    ParamKind::HiddenState (var) => {
+                        println!(" .. {:?} -> {:?}", var.name(db), val);
+                    }, 
+                    // ParamKind::ImplicitUnknown
+                    ParamKind::PortConnected { port } => {
+                        println!(" .. {:?} -> {:?}", port.name(db), val);
+                    }
+                    _ => {
+                        println!(" -> {:?}", val);
+                    }, 
+                }
+            });
+            println!("");
+
+            println!("Outputs:");
+            cx.intern.outputs.iter().for_each(|(p, val)| { 
+                if val.is_some() {
+                    println!("  {:?} -> {:?}", p, val.unwrap());
+                } else {
+                    println!("  {:?} -> None", p);
+                }
+            });
+            println!("");
+
+            println!("Tagged reads:");
+            cx.intern.tagged_reads.iter().for_each(|(val, var)| { 
+                println!("  {:?} -> {:?}", val, var);
+            });
+            println!("");
+
+            println!("Implicit equations:");
+            for (i, &iek) in cx.intern.implicit_equations.iter().enumerate() {
+                println!("  {:?} : {:?}", i, iek);
+            }
+            println!("");
+        
             let cu = db.compilation_unit();
             println!("Compilation unit: {}", cu.name(db));
                         
@@ -99,8 +172,8 @@ impl<'a> CompiledModule<'a> {
         let node_collapse = NodeCollapse::new(&init, &dae_system, &cx);
         debug_assert!(cx.func.validate());
 
-        // For debugging - print MIR
-        if false && cfg!(debug_assertions) {
+        // For debugging purposes - print MIR
+        if debugging {
             println!("Init function");
             println!("{:?}", init.func);
             println!("");
