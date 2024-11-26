@@ -1,8 +1,10 @@
 //! Lexical analysis for .clif files.
 
-use crate::error::Location;
-use mir::{Block, Value};
 use std::str::CharIndices;
+
+use mir::{Block, Value};
+
+use crate::error::Location;
 
 #[cfg(test)]
 mod tests;

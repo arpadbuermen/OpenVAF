@@ -3,9 +3,8 @@ use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
 use lasso::Rodeo;
 use mir::Function;
 use mir_opt::{simplify_cfg, sparse_conditional_constant_propagation};
-use stdx::impl_debug_display;
-
 pub use module_info::{collect_modules, ModuleInfo};
+use stdx::impl_debug_display;
 
 use crate::context::{Context, OptimiziationStage};
 use crate::dae::DaeSystem;
@@ -149,22 +148,22 @@ impl<'a> CompiledModule<'a> {
         
             let cu = db.compilation_unit();
             println!("Compilation unit: {}", cu.name(db));
-                        
+
             let m = module.module;
             println!("Module: {:?}", m.name(db));
             println!("Ports: {:?}", m.ports(db));
             println!("Internal nodes: {:?}", m.internal_nodes(db));
-                        
+
             println!("DAE system");
             let str = format!("{dae_system:#?}");
             println!("{}", str);
             println!("");
-        
+
             println!("CX function");
             println!("{:?}", cx.func);
             println!("");
         }
-        
+
         debug_assert!(cx.func.validate());
 
         cx.refresh_op_dependent_insts();
@@ -178,9 +177,9 @@ impl<'a> CompiledModule<'a> {
             println!("{:?}", init.func);
             println!("");
         }
-        
+
         debug_assert!(init.func.validate());
-        
+
         // TODO: refactor param intilization to use tables
         let inst_params: Vec<_> = module
             .params

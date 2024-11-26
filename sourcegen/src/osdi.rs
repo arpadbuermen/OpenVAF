@@ -312,7 +312,7 @@ struct TyInterpolater<'b, 'a> {
 impl ToTokens for TyInterpolater<'_, '_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if self.ty.func_args.is_some() || self.ty.base == BaseTy::Void {
-            quote!(&'ll llvm::Value).to_tokens(tokens);
+            quote!(&'ll llvm_sys::LLVMValue).to_tokens(tokens);
             return;
         }
 
@@ -532,7 +532,7 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                 }
 
                 impl #lt #ident #lt{
-                    pub fn to_ll_val #func_lt (&self, ctx: &CodegenCx<'_,'ll>, tys: &'ll OsdiTys) -> &'ll llvm::Value{
+                    pub fn to_ll_val #func_lt (&self, ctx: &CodegenCx<'_,'ll>, tys: &'ll OsdiTys) -> &'ll llvm_sys::LLVMValue{
                         #(#field_ll_arrays)*
                         let fields = [#(#field_ll_vals),*];
                         let ty = tys.#llvm_ty_ident;
@@ -553,8 +553,8 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                     fn #llvm_ty_ident(&mut self){
                         let ctx = self.ctx;
                         unsafe{
-                            let align = [#(llvm::LLVMABIAlignmentOfType(self.target_data, #field_ll_tys)),*].into_iter().max().unwrap();
-                            let mut size = [#(llvm::LLVMABISizeOfType(self.target_data, #field_ll_tys2)),*].into_iter().max().unwrap() as u32;
+                            let align = [#(llvm_sys::target::LLVMABIAlignmentOfType(self.target_data.clone(), core::ptr::NonNull::from(#field_ll_tys).as_ptr())),*].into_iter().max().unwrap();
+                            let mut size = [#(llvm_sys::target::LLVMABISizeOfType(self.target_data.clone(), core::ptr::NonNull::from(#field_ll_tys2).as_ptr())),*].into_iter().max().unwrap() as u32;
                             size = (size + align - 1) / align;
                             let elem = ctx.ty_aint(align*8);
                             let ty = ctx.ty_array(elem, size);
@@ -714,11 +714,11 @@ fn gen_llvm_tys<'a>(tys: &IndexMap<&'a str, OsdiStruct<'a>, RandomState>) -> Str
 
         #[derive(Clone)]
         pub struct OsdiTys<'ll>{
-            #(pub #fields : &'ll llvm::Type),*
+            #(pub #fields : &'ll llvm_sys::LLVMType),*
         }
 
         impl<'ll> OsdiTys<'ll>{
-            pub fn new(ctx: &CodegenCx<'_, 'll>, target_data: &llvm::TargetData) -> Self{
+            pub fn new(ctx: &CodegenCx<'_, 'll>, target_data: llvm_sys::target::LLVMTargetDataRef) -> Self{
                 let mut builder = OsdiTyBuilder{
                     ctx,
                     target_data,
@@ -733,8 +733,8 @@ fn gen_llvm_tys<'a>(tys: &IndexMap<&'a str, OsdiStruct<'a>, RandomState>) -> Str
 
         struct OsdiTyBuilder<'a, 'b, 'll>{
             ctx: &'a CodegenCx<'b, 'll>,
-            target_data: &'a llvm::TargetData,
-            #(#fields2 : Option<&'ll llvm::Type>),*
+            target_data:  llvm_sys::target::LLVMTargetDataRef,
+            #(#fields2 : Option<&'ll llvm_sys::LLVMType>),*
         }
 
         impl<'ll> OsdiTyBuilder<'_, '_, 'll>{

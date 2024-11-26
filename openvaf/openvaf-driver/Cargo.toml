@@ -27,6 +27,7 @@ backtrace-ext = "0.2.1"
 backtrace = "0.3.68"
 
 mimalloc = { version = "*", default-features = false}
+#llvm-sys = { version = "181.2.0", features = ["prefer-dynamic"] }
 
 [dev-dependencies]
 xshell = "0.2.3"

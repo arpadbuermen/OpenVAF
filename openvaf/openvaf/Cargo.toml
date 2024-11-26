@@ -15,7 +15,8 @@ basedb = { version = "0.0.0", path = "../basedb" }
 sim_back = { version = "0.0.0", path = "../sim_back" }
 osdi = { version = "0.0.0", path = "../osdi" }
 
-llvm = { version = "0.0.0", path = "../llvm" }
+#llvm = { version = "0.0.0", path = "../llvm" }
+llvm-sys = "181.1.1"
 mir_llvm = { version = "0.0.0", path = "../mir_llvm" }
 hir = { version = "0.0.0", path = "../hir" }
 target = { version = "0.0.0", path = "../target" }
