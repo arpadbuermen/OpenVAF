@@ -31,7 +31,7 @@ fn smoke_test(args: &str) -> Result {
     let args = args.split(' ');
     let sh = xshell::Shell::new().unwrap();
     sh.change_dir(project_root());
-    let openvaf = cargo_bin("openvaf");
+    let openvaf = cargo_bin("openvaf-r");
     xshell::cmd!(sh, "{openvaf} --dry-run {args...} integration_tests/DIODE/diode.va").run()?;
     Ok(())
 }
@@ -39,7 +39,7 @@ fn smoke_test(args: &str) -> Result {
 fn link_diode() -> Result {
     let sh = xshell::Shell::new().unwrap();
     sh.change_dir(project_root());
-    let openvaf = cargo_bin("openvaf");
+    let openvaf = cargo_bin("openvaf-r");
     xshell::cmd!(sh, "{openvaf} -O 0 integration_tests/DIODE/diode.va").run()?;
     sh.remove_path("integration_tests/DIODE/diode.osdi").unwrap();
     Ok(())

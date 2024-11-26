@@ -192,7 +192,6 @@ typedef struct OsdiDescriptor {
   void (*load_jacobian_resist)(void *inst, void* model);
   void (*load_jacobian_react)(void *inst, void* model, double alpha);
   void (*load_jacobian_tran)(void *inst, void* model, double alpha);
-  // 0.3 ends here
   uint32_t (*given_flag_model)(void *model, uint32_t id);
   uint32_t (*given_flag_instance)(void *inst, uint32_t id);
   uint32_t num_resistive_jacobian_entries;

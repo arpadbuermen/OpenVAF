@@ -1,5 +1,6 @@
-use ahash::RandomState;
 use core::ptr::NonNull;
+
+use ahash::RandomState;
 use hir::{CompilationDB, Parameter};
 use indexmap::IndexMap;
 use llvm_sys::core::{LLVMBuildLoad2, LLVMBuildStore, LLVMBuildStructGEP2};

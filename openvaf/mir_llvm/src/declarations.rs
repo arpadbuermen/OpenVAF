@@ -1,16 +1,15 @@
 use std::ffi::CString;
 
-use libc::c_char;
-use libc::c_uint;
+use libc::{c_char, c_uint};
 use llvm_sys::core::LLVMTypeOf;
 use llvm_sys::prelude::LLVMBool;
-use llvm_sys::LLVMType as Type;
-use llvm_sys::LLVMValue as Value;
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 
-const False: LLVMBool = 0;
+const FALSE: LLVMBool = 0;
+
+use std::ptr::NonNull;
 
 use crate::CodegenCx;
-use std::ptr::NonNull;
 /// Declare a function.
 ///
 /// If there’s a value with the same name already declared, the function will
@@ -152,7 +151,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     pub fn get_defined_value(&self, name: &str) -> Option<&'ll Value> {
         self.get_declared_value(name).and_then(|val| {
             let declaration =
-                unsafe { llvm_sys::core::LLVMIsDeclaration(NonNull::from(val).as_ptr()) != False };
+                unsafe { llvm_sys::core::LLVMIsDeclaration(NonNull::from(val).as_ptr()) != FALSE };
             if !declaration {
                 Some(val)
             } else {

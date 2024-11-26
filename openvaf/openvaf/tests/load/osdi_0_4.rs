@@ -3,7 +3,7 @@
 use std::os::raw::{c_char, c_void};
 
 pub const OSDI_VERSION_MAJOR_CURR: u32 = 0;
-pub const OSDI_VERSION_MINOR_CURR: u32 = 3;
+pub const OSDI_VERSION_MINOR_CURR: u32 = 4;
 pub const PARA_TY_MASK: u32 = 3;
 pub const PARA_TY_REAL: u32 = 0;
 pub const PARA_TY_INT: u32 = 1;
@@ -163,6 +163,16 @@ pub struct OsdiDescriptor {
     pub load_jacobian_resist: fn(*mut c_void, *mut c_void),
     pub load_jacobian_react: fn(*mut c_void, *mut c_void, f64),
     pub load_jacobian_tran: fn(*mut c_void, *mut c_void, f64),
+    pub given_flag_model: fn(*mut c_void, u32) -> u32,
+    pub given_flag_instance: fn(*mut c_void, u32) -> u32,
+    pub num_resistive_jacobian_entries: u32,
+    pub num_reactive_jacobian_entries: u32,
+    pub write_jacobian_array_resist: fn(*mut c_void, *mut c_void, *mut f64),
+    pub write_jacobian_array_react: fn(*mut c_void, *mut c_void, *mut f64),
+    pub num_inputs: u32,
+    pub inputs: *mut OsdiNodePair,
+    pub load_jacobian_with_offset_resist: fn(*mut c_void, *mut c_void, usize),
+    pub load_jacobian_with_offset_react: fn(*mut c_void, *mut c_void, usize),
 }
 impl OsdiDescriptor {
     pub fn access(
@@ -252,5 +262,43 @@ impl OsdiDescriptor {
     }
     pub fn load_jacobian_tran(&self, inst: *mut c_void, model: *mut c_void, alpha: f64) {
         (self.load_jacobian_tran)(inst, model, alpha)
+    }
+    pub fn given_flag_model(&self, model: *mut c_void, id: u32) -> u32 {
+        (self.given_flag_model)(model, id)
+    }
+    pub fn given_flag_instance(&self, inst: *mut c_void, id: u32) -> u32 {
+        (self.given_flag_instance)(inst, id)
+    }
+    pub fn write_jacobian_array_resist(
+        &self,
+        inst: *mut c_void,
+        model: *mut c_void,
+        destination: *mut f64,
+    ) {
+        (self.write_jacobian_array_resist)(inst, model, destination)
+    }
+    pub fn write_jacobian_array_react(
+        &self,
+        inst: *mut c_void,
+        model: *mut c_void,
+        destination: *mut f64,
+    ) {
+        (self.write_jacobian_array_react)(inst, model, destination)
+    }
+    pub fn load_jacobian_with_offset_resist(
+        &self,
+        inst: *mut c_void,
+        model: *mut c_void,
+        offset: usize,
+    ) {
+        (self.load_jacobian_with_offset_resist)(inst, model, offset)
+    }
+    pub fn load_jacobian_with_offset_react(
+        &self,
+        inst: *mut c_void,
+        model: *mut c_void,
+        offset: usize,
+    ) {
+        (self.load_jacobian_with_offset_react)(inst, model, offset)
     }
 }

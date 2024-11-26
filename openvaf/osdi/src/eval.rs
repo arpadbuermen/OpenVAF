@@ -1,3 +1,5 @@
+use core::ptr::NonNull;
+
 use hir_lower::{CallBackKind, CurrentKind, LimitState, ParamKind};
 use llvm_sys::core::{
     LLVMAppendBasicBlockInContext, LLVMBuildAlloca, LLVMBuildAnd, LLVMBuildBr, LLVMBuildCall2,
@@ -21,13 +23,6 @@ use crate::metadata::osdi_0_4::{
 };
 use crate::metadata::OsdiLimFunction;
 use crate::OsdiLimId;
-use core::ptr::NonNull;
-macro_rules! llvm_array_nonnull {
-    ($($element:expr),+ $(,)?) => {{
-        let mut temp = [$(core::ptr::NonNull::from($element).as_ptr()),+];
-        temp.as_mut_ptr()
-    }};
-}
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     pub fn eval_prototype(&self) -> &'ll llvm_sys::LLVMValue {
         let name = &format!("eval_{}", &self.module.sym);
@@ -314,21 +309,39 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst_data.store_jacobian(entry, instance, builder, reactive)
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, jacobian_flag, &store_matrix);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    jacobian_flag,
+                    &store_matrix,
+                );
 
                 let store_residual = |builder: &mut Builder<'_, '_, 'll>| {
                     for unknown in module.dae_system.unknowns.indices() {
                         inst_data.store_residual(unknown, instance, builder, reactive);
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, residual_flag, &store_residual);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    residual_flag,
+                    &store_residual,
+                );
 
                 let store_lim_rhs = |builder: &mut Builder<'_, '_, 'll>| {
                     for unknown in module.dae_system.unknowns.indices() {
                         inst_data.store_lim_rhs(unknown, instance, builder, reactive);
                     }
                 };
-                Self::build_store_results(&mut builder, llfunc, &flags, lim_rhs_flag, &store_lim_rhs);
+                Self::build_store_results(
+                    &mut builder,
+                    llfunc,
+                    &flags,
+                    lim_rhs_flag,
+                    &store_lim_rhs,
+                );
             }
 
             let store_opvars = |builder: &mut Builder<'_, '_, 'll>| {
@@ -445,12 +458,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 NonNull::from(cx.const_c_bool(false)).as_ptr(),
                 val_changed,
             );
+            let id_val = cx.const_unsigned_int(id.into()) as *const llvm_sys::LLVMValue as *mut _;
+            let two_val = cx.const_int(2) as *const llvm_sys::LLVMValue as *mut _;
+            let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 2] = [id_val, two_val];
+            let gep_ptr = gep_indices.as_mut_ptr();
 
             let func_ptr_ptr = LLVMBuildInBoundsGEP2(
                 NonNull::from(llbuilder).as_ptr(),
                 NonNull::from(tys.osdi_lim_function).as_ptr(),
                 NonNull::from(table).as_ptr(),
-                llvm_array_nonnull![cx.const_unsigned_int(id.into()), cx.const_int(2)],
+                gep_ptr,
                 2,
                 UNNAMED,
             );

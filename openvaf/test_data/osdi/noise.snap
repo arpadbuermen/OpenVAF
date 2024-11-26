@@ -16,5 +16,5 @@ noise "flickr1" (a, c)
 noise "flickr2" (a, c)
 0 states
 has bound_step false
-instance size 88
+instance size 96
 model size 32

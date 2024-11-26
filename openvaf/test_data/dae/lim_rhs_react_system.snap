@@ -49,4 +49,12 @@ DaeSystem {
     },
     small_signal_parameters: {},
     noise_sources: [],
+    model_inputs: [
+        (
+            0,
+            1,
+        ),
+    ],
+    num_resistive: 0,
+    num_reactive: 4,
 }

@@ -1,3 +1,27 @@
+use std::iter;
+use std::ptr::NonNull;
+
+use hir::CompilationDB;
+use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
+use hir_lower::{CallBackKind, HirInterner};
+use lasso::Rodeo;
+use llvm_sys::core::{
+    LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
+    LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
+    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetFirstFunction, LLVMGetNextFunction,
+    LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
+    LLVMSetUnnamedAddress,
+};
+use llvm_sys::{LLVMIntPredicate, LLVMLinkage, LLVMUnnamedAddr, LLVMValue};
+use mir::{FuncRef, Function};
+use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, UNNAMED};
+use sim_back::dae::DaeSystem;
+use sim_back::init::Initialization;
+use sim_back::node_collapse::NodeCollapse;
+use sim_back::{CompiledModule, ModuleInfo};
+use typed_index_collections::TiVec;
+use typed_indexmap::TiSet;
+
 use crate::inst_data::OsdiInstanceData;
 use crate::metadata::osdi_0_4::{
     stdlib_bitcode, OsdiTys, LOG_FMT_ERR, LOG_LVL_DEBUG, LOG_LVL_DISPLAY, LOG_LVL_ERR,
@@ -6,32 +30,6 @@ use crate::metadata::osdi_0_4::{
 use crate::metadata::OsdiLimFunction;
 use crate::model_data::OsdiModelData;
 use crate::{lltype, OsdiLimId};
-use hir::CompilationDB;
-use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
-use hir_lower::{CallBackKind, HirInterner};
-use lasso::Rodeo;
-use llvm_sys::core::{
-    LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
-    LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
-    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetParam, LLVMIsDeclaration,
-    LLVMPositionBuilderAtEnd, LLVMSetLinkage, LLVMSetUnnamedAddress,
-};
-use llvm_sys::LLVMLinkage;
-use llvm_sys::LLVMValue;
-use llvm_sys::{
-    core::{LLVMGetFirstFunction, LLVMGetNextFunction},
-    LLVMIntPredicate, LLVMUnnamedAddr,
-};
-use mir::{FuncRef, Function};
-use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, UNNAMED};
-use sim_back::dae::DaeSystem;
-use sim_back::init::Initialization;
-use sim_back::node_collapse::NodeCollapse;
-use sim_back::{CompiledModule, ModuleInfo};
-use std::iter;
-use std::ptr::NonNull;
-use typed_index_collections::TiVec;
-use typed_indexmap::TiSet;
 
 fn function_iter(
     module: &llvm_sys::LLVMModule,
@@ -263,6 +261,37 @@ pub fn general_callbacks<'ll>(
         })
         .collect()
 }
+/* This was very useful for debugging
+fn print_module_ir(cx: &CodegenCx, message: &str) {
+    unsafe {
+        let ir_ptr = llvm_sys::core::LLVMPrintModuleToString(NonNull::from(cx.llmod).as_ptr());
+        if !ir_ptr.is_null() {
+            let ir = std::ffi::CStr::from_ptr(ir_ptr).to_string_lossy().into_owned();
+            let lines: Vec<&str> = ir.lines().collect();
+            let mut found = false;
+            let mut count = 0;
+            let mut output_lines = Vec::new();
+
+            for line in lines {
+                if found {
+                    output_lines.push(line);
+                    count += 1;
+                    if count >= 35 {
+                        break;
+                    }
+                } else if line.contains("internal fastcc void @cb.2(ptr %0, ptr %1) unnamed_addr") {
+                    found = true;
+                    output_lines.push(line);
+                    count += 1;
+                }
+            }
+
+            let output_str = output_lines.join("\n");
+            println!("{}:\n{}", message, output_str);
+            llvm_sys::core::LLVMDisposeMessage(ir_ptr);
+        }
+    }
+}*/
 
 fn print_callback<'ll>(
     cx: &CodegenCx<'_, 'll>,
@@ -274,6 +303,10 @@ fn print_callback<'ll>(
     let fun_ty = cx.ty_func(&args, cx.ty_void());
     let name = cx.local_callback_name();
     let fun = cx.declare_int_fn(&name, fun_ty);
+
+    // Print IR before starting the function
+    //print_module_ir(cx, "Before starting the function");
+
     unsafe {
         let entry_bb = LLVMAppendBasicBlockInContext(
             NonNull::from(cx.llcx).as_ptr(),
@@ -406,6 +439,9 @@ fn print_callback<'ll>(
         );
         LLVMBuildCondBr(llbuilder, is_err, err_bb, alloc_bb);
 
+        // Print IR after building the conditional branch
+        //print_module_ir(cx, "After building the conditional branch");
+
         LLVMPositionBuilderAtEnd(llbuilder, alloc_bb);
         let data_len =
             LLVMBuildAdd(llbuilder, len, NonNull::from(cx.const_int(1)).as_ptr(), UNNAMED);
@@ -424,6 +460,9 @@ fn print_callback<'ll>(
             UNNAMED,
         );
         LLVMBuildCondBr(llbuilder, is_err, err_bb, write_bb);
+
+        // Print IR after building the malloc and conditional branch
+        //print_module_ir(cx, "After building the malloc and conditional branch");
 
         LLVMPositionBuilderAtEnd(llbuilder, write_bb);
         let data_len =
@@ -450,8 +489,14 @@ fn print_callback<'ll>(
         }
         LLVMBuildCondBr(llbuilder, is_err, err_bb, exit_bb);
 
+        // Print IR after building the write block
+        //print_module_ir(cx, "After building the write block");
+
         LLVMPositionBuilderAtEnd(llbuilder, err_bb);
         LLVMBuildBr(llbuilder, exit_bb);
+
+        // Print IR after building the error block
+        //print_module_ir(cx, "After building the error block");
 
         LLVMPositionBuilderAtEnd(llbuilder, exit_bb);
         let flags = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_int()).as_ptr(), UNNAMED);
@@ -467,23 +512,22 @@ fn print_callback<'ll>(
         let lvl = cx.const_unsigned_int(lvl);
         let lvl_and_err = cx.const_unsigned_int(lvl_and_err);
 
-        unsafe {
-            let mut incoming_values =
-                [NonNull::from(lvl).as_ptr(), NonNull::from(lvl_and_err).as_ptr()];
+        let lvl_val = lvl as *const llvm_sys::LLVMValue as *mut _;
+        let lvl_and_err_val = lvl_and_err as *const llvm_sys::LLVMValue as *mut _;
+        let mut incoming_values: [*mut llvm_sys::LLVMValue; 2] = [lvl_val, lvl_and_err_val];
+        let incoming_values_ptr = &mut incoming_values as *mut [*mut llvm_sys::LLVMValue]
+            as *mut *mut llvm_sys::LLVMValue;
 
-            let mut incoming_blocks = [write_bb, err_bb];
-            LLVMAddIncoming(flags, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
-        }
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(flags, incoming_values_ptr, incoming_blocks.as_mut_ptr(), 2);
 
         let msg = LLVMBuildPhi(llbuilder, NonNull::from(cx.ty_ptr()).as_ptr(), UNNAMED);
+        //  print_module_ir(cx, "After building the PHI block");
 
         // Fix for second LLVMAddIncoming call
-        unsafe {
-            let mut incoming_values =
-                [NonNull::from(lvl).as_ptr(), NonNull::from(lvl_and_err).as_ptr()];
-            let mut incoming_blocks = [write_bb, err_bb];
-            LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
-        }
+        let mut incoming_values = [ptr, fmt_lit];
+        let mut incoming_blocks = [write_bb, err_bb];
+        LLVMAddIncoming(msg, incoming_values.as_mut_ptr(), incoming_blocks.as_mut_ptr(), 2);
 
         let fun_ptr = cx.get_declared_value("osdi_log").expect("symbol osdi_log is missing");
         let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr(), cx.ty_int()], cx.ty_void());
@@ -495,20 +539,21 @@ fn print_callback<'ll>(
         );
 
         // Fix for LLVMBuildCall2
-        unsafe {
-            let mut args = [handle, msg, flags];
-            LLVMBuildCall2(
-                llbuilder,
-                NonNull::from(fun_ty).as_ptr(),
-                fun,
-                args.as_mut_ptr(),
-                3,
-                UNNAMED,
-            );
-        }
+        let mut args = [handle, msg, flags];
+        LLVMBuildCall2(
+            llbuilder,
+            NonNull::from(fun_ty).as_ptr(),
+            fun,
+            args.as_mut_ptr(),
+            3,
+            UNNAMED,
+        );
         llvm_sys::core::LLVMBuildRetVoid(llbuilder);
         llvm_sys::core::LLVMDisposeBuilder(llbuilder);
     }
+
+    // Print IR at the end of the function
+    //print_module_ir(cx, "Final IR after building the function");
 
     (fun, fun_ty)
 }

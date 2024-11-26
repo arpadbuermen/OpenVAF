@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'openvaf'",
+            "name": "Debug executable 'openvaf' under Linux",
             "cargo": {
                 "args": [
                     "build",
@@ -24,6 +24,19 @@
             "env": {
                 "RAYON_NUM_THREADS": "1" 
             }
+        }, 
+        {
+            "name": "Debug executable 'openvaf' under Windows",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/target/debug/openvaf-r.exe",
+            "args": ["resistor.va"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}/../openvaf-work",
+            "environment": [
+                 {"name": "RAYON_NUM_THREADS", "value": "1"} 
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }

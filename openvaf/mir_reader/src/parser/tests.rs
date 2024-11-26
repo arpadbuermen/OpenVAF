@@ -1,5 +1,6 @@
-use super::*;
 use expect_test::expect;
+
+use super::*;
 
 #[test]
 fn number_of_blocks() {

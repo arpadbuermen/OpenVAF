@@ -1,6 +1,6 @@
+use core::ptr::NonNull;
 use std::mem::size_of;
 
-use core::ptr::NonNull;
 use llvm_sys::core::{
     LLVMBuildAnd, LLVMBuildGEP2, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildOr, LLVMBuildStore,
 };

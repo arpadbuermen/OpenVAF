@@ -3,14 +3,15 @@ use std::ffi::CString;
 use libc::c_uint;
 use llvm_sys::core::LLVMInt8TypeInContext;
 use llvm_sys::prelude::LLVMBool;
-use llvm_sys::LLVMType as Type;
-use llvm_sys::LLVMValue as Value;
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 
-const False: LLVMBool = 0;
-const True: LLVMBool = 1;
-use crate::CodegenCx;
+const FALSE: LLVMBool = 0;
+const TRUE: LLVMBool = 1;
 use core::ptr::NonNull;
+
 use mir::Const;
+
+use crate::CodegenCx;
 
 pub struct Types<'ll> {
     pub double: &'ll Type,
@@ -133,7 +134,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
                 ret as *const _ as *mut _,
                 arg_ptrs.as_mut_ptr(),
                 args.len() as c_uint,
-                False,
+                FALSE,
             )
         }
     }
@@ -146,13 +147,13 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
                 ret as *const _ as *mut _,
                 arg_ptrs.as_mut_ptr(),
                 args.len() as c_uint,
-                True,
+                TRUE,
             )
         }
     }
 
     pub fn ty_array(&self, ty: &'ll Type, len: u32) -> &'ll Type {
-        unsafe { &*llvm_sys::core::LLVMArrayType(NonNull::from(ty).as_ptr(), len) }
+        unsafe { &*llvm_sys::core::LLVMArrayType2(NonNull::from(ty).as_ptr(), len.into()) }
     }
 
     pub fn const_val(&self, val: &Const) -> &'ll Value {
@@ -186,19 +187,19 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     }
     pub fn const_int(&self, val: i32) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, TRUE)
         }
     }
 
     pub fn const_unsigned_int(&self, val: u32) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_int()).as_ptr(), val as u64, TRUE)
         }
     }
 
     pub fn const_isize(&self, val: isize) -> &'ll Value {
         unsafe {
-            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_size()).as_ptr(), val as u64, True)
+            &*llvm_sys::core::LLVMConstInt(NonNull::from(self.ty_size()).as_ptr(), val as u64, TRUE)
         }
     }
 
@@ -207,7 +208,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_size()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -217,7 +218,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -227,7 +228,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_c_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -237,7 +238,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
             &*llvm_sys::core::LLVMConstInt(
                 NonNull::from(self.ty_c_bool()).as_ptr(),
                 val as u64,
-                False,
+                FALSE,
             )
         }
     }
@@ -250,10 +251,10 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
         unsafe {
             let mut val_ptrs: Vec<*mut llvm_sys::LLVMValue> =
                 vals.iter().map(|&v| NonNull::from(v).as_ptr()).collect();
-            &*llvm_sys::core::LLVMConstArray(
+            &*llvm_sys::core::LLVMConstArray2(
                 NonNull::from(elem_ty).as_ptr(),
                 val_ptrs.as_mut_ptr(),
-                vals.len() as u32,
+                vals.len() as u64,
             )
         }
     }
