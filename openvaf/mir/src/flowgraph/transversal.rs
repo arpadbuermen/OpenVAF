@@ -1,8 +1,7 @@
-use crate::Block;
 use bitset::BitSet;
 
 use crate::flowgraph::Successors;
-use crate::ControlFlowGraph;
+use crate::{Block, ControlFlowGraph};
 
 /// Postorder traversal of a graph.
 ///

@@ -2,10 +2,11 @@
 
 // #[cfg(test)]
 // use super::Comparator;
-use super::{Forest, Node, NodeData};
 // #[cfg(test)]
 // use core::fmt;
 use core::ops::{Index, IndexMut};
+
+use super::{Forest, Node, NodeData};
 
 /// A pool of nodes, including a free list.
 pub(super) struct NodePool<F: Forest> {

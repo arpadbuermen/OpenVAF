@@ -30,9 +30,9 @@ dependencies = [
 
 [[package]]
 name = "ahash"
-version = "0.8.6"
+version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91429305e9f0a25f6205c5b8e0d2db09e0708a7a6df0f42212bb56c32c8ac97a"
+checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
 dependencies = [
  "cfg-if",
  "getrandom",
@@ -159,7 +159,7 @@ version = "1.0.0"
 name = "basedb"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "arena",
  "codespan-reporting",
  "expect-test",
@@ -473,7 +473,7 @@ version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
 ]
 
 [[package]]
@@ -482,7 +482,7 @@ version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f93e7192158dbcda357bdec5fb5788eebf8bbac027f3f33e719d29135ae84156"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "allocator-api2",
 ]
 
@@ -533,7 +533,7 @@ dependencies = [
 name = "hir_def"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "arena",
  "basedb",
  "expect-test",
@@ -551,7 +551,7 @@ dependencies = [
 name = "hir_lower"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "basedb",
  "bitset",
  "expect-test",
@@ -573,7 +573,7 @@ dependencies = [
 name = "hir_ty"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "arena",
  "basedb",
  "hir_def",
@@ -646,9 +646,15 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4644821e1c3d7a560fe13d842d13f587c07348a1a05d3a797152d41c90c56df2"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "hashbrown 0.13.2",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lexer"
@@ -709,12 +715,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "llvm"
-version = "0.0.0"
+name = "llvm-sys"
+version = "181.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d320f9d2723c97d4b78f9190a61ed25cc7cfbe456668c08e6e7dd8e50ceb8500"
 dependencies = [
- "ahash 0.8.6",
+ "anyhow",
  "cc",
+ "lazy_static",
  "libc",
+ "regex-lite",
+ "semver",
 ]
 
 [[package]]
@@ -743,7 +754,7 @@ checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
 name = "melange-core"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "anyhow",
  "bitflags 2.4.1",
  "camino",
@@ -807,7 +818,7 @@ dependencies = [
 name = "mir"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "bforest",
  "bitset",
  "dot",
@@ -824,7 +835,7 @@ dependencies = [
 name = "mir_autodiff"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "arena",
  "bitset",
  "expect-test",
@@ -867,15 +878,16 @@ dependencies = [
 name = "mir_llvm"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "arrayvec",
  "base_n",
  "lasso",
  "libc",
- "llvm",
+ "llvm-sys",
  "log",
  "mir",
  "target",
+ "target-lexicon",
  "typed-index-collections",
 ]
 
@@ -883,7 +895,7 @@ dependencies = [
 name = "mir_opt"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "bitset",
  "expect-test",
  "hashbrown 0.14.2",
@@ -969,7 +981,7 @@ dependencies = [
  "libc",
  "libloading",
  "linker",
- "llvm",
+ "llvm-sys",
  "md5",
  "mini_harness",
  "mir_llvm",
@@ -1007,7 +1019,7 @@ dependencies = [
 name = "osdi"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "base_n",
  "camino",
  "expect-test",
@@ -1016,7 +1028,7 @@ dependencies = [
  "hir_lower",
  "indexmap 2.0.2",
  "lasso",
- "llvm",
+ "llvm-sys",
  "log",
  "mini_harness",
  "mir",
@@ -1092,7 +1104,7 @@ version = "0.0.0"
 name = "preprocessor"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "expect-test",
  "lexer",
  "stdx",
@@ -1199,6 +1211,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-lite"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53a49587ad06b26609c52e423de037e7f57f20d53535d66e08c695f347df952a"
+
+[[package]]
 name = "rowan"
 version = "0.15.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1279,10 +1297,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "semver"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
+
+[[package]]
 name = "sim_back"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "bitset",
  "cov-mark",
  "expect-test",
@@ -1320,7 +1344,7 @@ checksum = "74212e6bbe9a4352329b2f68ba3130c15a3f26fe88ff22dbdc6cdd58fa85e99c"
 name = "sourcegen"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "indexmap 2.0.2",
  "proc-macro2",
  "quote",
@@ -1442,7 +1466,7 @@ checksum = "183496e014253d15abbe6235677b1392dba2d40524c88938991226baa38ac7c4"
 name = "typed_indexmap"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "indexmap 2.0.2",
 ]
 
@@ -1480,7 +1504,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 name = "verilogae"
 version = "1.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "anyhow",
  "base_n",
  "basedb",
@@ -1493,7 +1517,7 @@ dependencies = [
  "lasso",
  "libloading",
  "linker",
- "llvm",
+ "llvm-sys",
  "md5",
  "mir",
  "mir_autodiff",
@@ -1538,7 +1562,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 name = "vfs"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.6",
+ "ahash 0.8.11",
  "chardetng",
  "encoding_rs",
  "indexmap 2.0.2",
@@ -1698,18 +1722,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.7.15"
+version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81ba595b9f2772fbee2312de30eeb80ec773b4cb2f1e8098db024afadda6c06f"
+checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.15"
+version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "772666c41fb6dceaf520b564b962d738a8e1a83b41bd48945f50837aed78bb1d"
+checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
 dependencies = [
  "proc-macro2",
  "quote",
