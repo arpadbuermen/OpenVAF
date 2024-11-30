@@ -8,7 +8,6 @@ pub fn target() -> Target {
     base.pre_link_args.insert(
         LinkerFlavor::Ld64,
         vec![
-            "-m64".to_string(),
             "-arch".to_string(),
             "x86_64".to_string(),
             "-undefined".to_string(),
