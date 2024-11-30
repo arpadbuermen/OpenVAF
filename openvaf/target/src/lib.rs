@@ -22,7 +22,7 @@ pub fn host_triple() -> &'static str {
 
     // Special case for windows-gnu: preserve the full triple due to different linker flags
     // under MSYS2.
-    if triple.contains("windows-gnu") {
+    if triple.contains("windows-gnu") || triple.contains("apple") {
         triple
     } else {
         triple.rsplit_once('-').unwrap().0
