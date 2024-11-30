@@ -7,9 +7,8 @@ use syntax::name::Name;
 use syntax::sourcemap::{FileSpan, SourceMap};
 use syntax::{Parse, SourceFile};
 
-use crate::db::HirDefDB;
-
 use super::{ResolvedPath, ScopeDefItem};
+use crate::db::HirDefDB;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PathResolveError {

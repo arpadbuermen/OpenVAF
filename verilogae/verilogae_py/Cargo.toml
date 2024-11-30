@@ -15,7 +15,7 @@ pyo3-ffi = { version = "0.19", features = [
   "extension-module",
   "generate-import-lib",
 ] }
-verilogae_ffi = { version = "1.0.0", path = "../verilogae_ffi", default_features = false }
+verilogae_ffi = { version = "1.0.0", path = "../verilogae_ffi", default-features = false }
 libc = "0.2"
 
 [build-dependencies]

@@ -20,7 +20,7 @@ pub struct Opts {
     pub allow_lints: Slice<Slice<u8>>,
     pub warn_lints: Slice<Slice<u8>>,
     pub deny_lints: Slice<Slice<u8>>,
-    pub opt_lvl: OptLevel,
+    pub opt_lvl: LLVMCodeGenOptLevel,
     pub target_cpu: Slice<u8>,
     pub target: Slice<u8>,
     pub cg_flags: Slice<Slice<u8>>,
@@ -29,7 +29,7 @@ pub struct Opts {
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum OptLevel {
+pub enum LLVMCodeGenOptLevel {
     None = 0,
     Less = 1,
     Default = 2,

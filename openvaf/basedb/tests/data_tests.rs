@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use basedb::diagnostics::{ConsoleSink, DiagnosticSink};
 use basedb::{BaseDB, BaseDatabase, VfsPath, VfsStorage};
 use codespan_reporting::term::termcolor::Buffer;
@@ -7,8 +9,6 @@ use parking_lot::RwLock;
 use stdx::{ignore_dev_tests, ignore_never, is_va_file, openvaf_test_data, project_root};
 use syntax::{Parse, SourceFile};
 use vfs::{AbsPathBuf, FileId, Vfs, VfsEntry};
-
-use std::path::Path;
 
 #[salsa::database(BaseDatabase)]
 pub struct TestDataBase {

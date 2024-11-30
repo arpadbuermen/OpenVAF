@@ -3,9 +3,8 @@ use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
 use lasso::Rodeo;
 use mir::Function;
 use mir_opt::{simplify_cfg, sparse_conditional_constant_propagation};
-use stdx::impl_debug_display;
-
 pub use module_info::{collect_modules, ModuleInfo};
+use stdx::impl_debug_display;
 
 use crate::context::{Context, OptimiziationStage};
 use crate::dae::DaeSystem;
@@ -76,57 +75,55 @@ impl<'a> CompiledModule<'a> {
         let debugging = false; //  && cfg!(debug_assertions);
         if debugging {
             println!("Parameters:");
-            cx.intern.params.iter().for_each(|(p, val)| { 
+            cx.intern.params.iter().for_each(|(p, val)| {
                 print!("  {:?}", p);
                 match p {
                     ParamKind::Param(param) => {
                         println!(" .. {:?} -> {:?}", param.name(db), val);
-                    }, 
+                    }
                     ParamKind::ParamGiven { param } => {
                         println!(" .. {:?} -> {:?}", param.name(db), val);
-                    }, 
-                    ParamKind::Voltage{ hi, lo} => {
+                    }
+                    ParamKind::Voltage { hi, lo } => {
                         if lo.is_some() {
                             print!(" .. V({:?},{:?})", hi.name(db), lo.unwrap().name(db));
                         } else {
                             print!(" .. V({:?})", hi.name(db));
                         }
                         println!(" -> {:?}", val);
-                    }, 
-                    ParamKind::Current(ck) => {
-                        match ck {
-                            CurrentKind::Branch(br) => {
-                                println!(" .. {:?} -> {:?}", br.name(db), val);        
-                            }, 
-                            CurrentKind::Unnamed{hi, lo} => {
-                                if lo.is_some() {
-                                    print!(" .. I({:?},{:?})", hi.name(db), lo.unwrap().name(db));        
-                                } else {
-                                    print!(" .. I({:?})", hi.name(db));        
-                                }
-                                println!(" -> {:?}", val);        
-                            }, 
-                            CurrentKind::Port(n) => {
-                                println!(" .. {:?} -> {:?}", n.name(db), val);
+                    }
+                    ParamKind::Current(ck) => match ck {
+                        CurrentKind::Branch(br) => {
+                            println!(" .. {:?} -> {:?}", br.name(db), val);
+                        }
+                        CurrentKind::Unnamed { hi, lo } => {
+                            if lo.is_some() {
+                                print!(" .. I({:?},{:?})", hi.name(db), lo.unwrap().name(db));
+                            } else {
+                                print!(" .. I({:?})", hi.name(db));
                             }
+                            println!(" -> {:?}", val);
+                        }
+                        CurrentKind::Port(n) => {
+                            println!(" .. {:?} -> {:?}", n.name(db), val);
                         }
                     },
-                    ParamKind::HiddenState (var) => {
+                    ParamKind::HiddenState(var) => {
                         println!(" .. {:?} -> {:?}", var.name(db), val);
-                    }, 
+                    }
                     // ParamKind::ImplicitUnknown
                     ParamKind::PortConnected { port } => {
                         println!(" .. {:?} -> {:?}", port.name(db), val);
                     }
                     _ => {
                         println!(" -> {:?}", val);
-                    }, 
+                    }
                 }
             });
             println!("");
 
             println!("Outputs:");
-            cx.intern.outputs.iter().for_each(|(p, val)| { 
+            cx.intern.outputs.iter().for_each(|(p, val)| {
                 if val.is_some() {
                     println!("  {:?} -> {:?}", p, val.unwrap());
                 } else {
@@ -136,7 +133,7 @@ impl<'a> CompiledModule<'a> {
             println!("");
 
             println!("Tagged reads:");
-            cx.intern.tagged_reads.iter().for_each(|(val, var)| { 
+            cx.intern.tagged_reads.iter().for_each(|(val, var)| {
                 println!("  {:?} -> {:?}", val, var);
             });
             println!("");
@@ -146,25 +143,25 @@ impl<'a> CompiledModule<'a> {
                 println!("  {:?} : {:?}", i, iek);
             }
             println!("");
-        
+
             let cu = db.compilation_unit();
             println!("Compilation unit: {}", cu.name(db));
-                        
+
             let m = module.module;
             println!("Module: {:?}", m.name(db));
             println!("Ports: {:?}", m.ports(db));
             println!("Internal nodes: {:?}", m.internal_nodes(db));
-                        
+
             println!("DAE system");
             let str = format!("{dae_system:#?}");
             println!("{}", str);
             println!("");
-        
+
             println!("CX function");
             println!("{:?}", cx.func);
             println!("");
         }
-        
+
         debug_assert!(cx.func.validate());
 
         cx.refresh_op_dependent_insts();
@@ -178,9 +175,9 @@ impl<'a> CompiledModule<'a> {
             println!("{:?}", init.func);
             println!("");
         }
-        
+
         debug_assert!(init.func.validate());
-        
+
         // TODO: refactor param intilization to use tables
         let inst_params: Vec<_> = module
             .params

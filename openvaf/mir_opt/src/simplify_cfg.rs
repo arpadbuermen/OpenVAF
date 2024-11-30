@@ -2,7 +2,7 @@
 use std::iter::repeat;
 
 use bitset::BitSet;
-use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE};
+use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE,};
 
 #[cfg(test)]
 mod tests;
@@ -654,4 +654,3 @@ impl<I: Iterator<Item = Value> + Clone> PartialEq for ResolvedPhi<I> {
 }
 impl<I: Iterator<Item = Value> + Clone> Eq for ResolvedPhi<I> {}
 */
-

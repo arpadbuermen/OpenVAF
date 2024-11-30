@@ -2,8 +2,8 @@ use std::env;
 use std::ffi::{OsStr, OsString};
 use std::fmt::Display;
 use std::path::Path;
-use target::spec::get_targets;
 
+use target::spec::get_targets;
 use xshell::{cmd, Shell};
 
 /// Reads an environment variable and adds it to dependencies.
