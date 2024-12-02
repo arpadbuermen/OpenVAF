@@ -473,7 +473,7 @@ impl ModuleLlvm {
     /// An error messages in case the module invalid
     pub fn verify(&self) -> Option<LLVMString> {
         unsafe {
-            let mut out_message: *mut i8 = std::ptr::null_mut();
+            let mut out_message: *mut c_char = std::ptr::null_mut();
             if llvm_sys::analysis::LLVMVerifyModule(
                 self.llmod_raw,
                 llvm_sys::analysis::LLVMVerifierFailureAction::LLVMReturnStatusAction,
