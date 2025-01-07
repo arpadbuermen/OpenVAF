@@ -45,6 +45,7 @@ pub struct Opts {
     pub opt_lvl: OptLevel,
     pub target: Target,
     pub target_cpu: String,
+    pub dump_mir: bool, 
 }
 // pub fn dump_json(opts: &Opts) -> Result<CompilationTermination> {
 //     let input =
@@ -184,7 +185,7 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     if opts.dry_run {
         return Ok(CompilationTermination::Compiled { lib_file });
     }
-    let paths = osdi::compile(&db, &modules, &lib_file, &opts.target, &back, true, opts.opt_lvl);
+    let paths = osdi::compile(&db, &modules, &lib_file, &opts.target, &back, true, opts.opt_lvl, opts.dump_mir);
     // TODO configure linker
     link(None, &opts.target, lib_file.as_ref(), |linker| {
         for path in &paths {

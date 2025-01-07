@@ -39,13 +39,14 @@ pub fn compile(
     back: &LLVMBackend,
     emit: bool,
     opt_lvl: OptLevel,
+    dump_mir: bool, 
 ) -> Vec<Utf8PathBuf> {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
-            let mir = CompiledModule::new(db, module, &mut literals);
+            let mir = CompiledModule::new(db, module, &mut literals, dump_mir);
             for cb in mir.intern.callbacks.iter() {
                 if let CallBackKind::BuiltinLimit { name, num_args } = *cb {
                     lim_table.ensure(OsdiLimFunction { name, num_args: num_args - 2 });

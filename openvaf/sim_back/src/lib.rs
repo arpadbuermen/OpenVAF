@@ -131,6 +131,7 @@ impl<'a> CompiledModule<'a> {
         db: &CompilationDB,
         module: &'a ModuleInfo,
         literals: &mut Rodeo,
+        dump_mir: bool, 
     ) -> CompiledModule<'a> {
         let mut cx = Context::new(db, literals, module);
         cx.compute_outputs(true);
@@ -147,7 +148,7 @@ impl<'a> CompiledModule<'a> {
         dae_system.sparsify(&mut cx);
 
         // For debugging purposes - print parameters
-        let debugging = false; //  && cfg!(debug_assertions);
+        let debugging = dump_mir; //  && cfg!(debug_assertions);
         if debugging {
             
             let cu = db.compilation_unit();

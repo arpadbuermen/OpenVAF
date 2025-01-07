@@ -26,6 +26,7 @@ pub fn main_command() -> Command {
             output(),
             batchmode(),
             dry_run(),
+            dump_mir(), 
             cache_dir(),
             opt_lvl(),
             target(),
@@ -44,6 +45,7 @@ pub fn main_command() -> Command {
 pub const INTERFACE: &str = "interface";
 pub const BATCHMODE: &str = "batchmode";
 pub const DRYRUN: &str = "dry-run";
+pub const DUMPMIR: &str = "dump-mir";
 pub const TARGET: &str = "target";
 pub const SUPPORTED_TARGETS: &str = "supported-targets";
 pub const LINTS: &str = "lints";
@@ -83,6 +85,12 @@ fn dry_run() -> Arg {
     flag(DRYRUN, "dry-run")
         .help("Run compilation without producing any output.")
         .long_help("Run compilation without producing any output.\nUsed for testing.")
+}
+
+fn dump_mir() -> Arg {
+    flag(DUMPMIR, "dump-mir")
+        .help("Dump MIR during compilation.")
+        .long_help("Dump MIR during compilation.\nUsed for debugging.")
 }
 
 fn target() -> Arg {

@@ -8,7 +8,7 @@ use openvaf::{builtin_lints, get_target_names, host_triple, AbsPathBuf, LintLeve
 use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 
 use crate::cli_def::{
-    ALLOW, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, INCLUDE, INPUT, LINTS, OPT_LVL,
+    ALLOW, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPMIR, INCLUDE, INPUT, LINTS, OPT_LVL,
     OUTPUT, SUPPORTED_TARGETS, TARGET, TARGET_CPU, WARN,
 };
 use crate::{CompilationDestination, Opts};
@@ -114,6 +114,7 @@ pub fn matches_to_opts(matches: ArgMatches) -> Result<Opts> {
         opt_lvl,
         target,
         target_cpu,
+        dump_mir: matches.get_flag(DUMPMIR), 
         dry_run: matches.get_flag(DRYRUN),
     })
 }
