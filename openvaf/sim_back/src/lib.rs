@@ -211,7 +211,7 @@ impl<'a> CompiledModule<'a> {
             println!("Model param intern");
             print_intern("  ", db, &cm.model_param_intern);
             println!("Model param setup");
-            println!("{:?}", cm.model_param_setup);
+            println!("{}", cm.model_param_setup.print(literals));
             println!("");
 
             println!("Init intern");
@@ -224,13 +224,13 @@ impl<'a> CompiledModule<'a> {
                 println!("  {:?} -> {:?} {:?}", slot, cls, ty);
             });
             println!("Init");
-            println!("{:?}", cm.init.func);
+            println!("{}", cm.init.func.print(literals));
             println!("");
 
             println!("Evaluation intern");
             print_intern("  ", db, &cm.intern);
             println!("Evaluation - trailing arguments are cache slots?");
-            println!("{:?}", cm.eval);
+            println!("{}", cm.eval.print(literals));
             println!("");
         }
         cm
