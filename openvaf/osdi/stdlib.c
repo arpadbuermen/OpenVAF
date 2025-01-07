@@ -42,10 +42,16 @@ char *concat(const char *s1, const char *s2) {
 typedef void (*osdi_log_ptr)(void *handle, char *msg, uint32_t lvl);
 extern osdi_log_ptr osdi_log;
 
+#define SCMP(p1, p2, s1, s2, eq) for(p1=s1, p2=s2;*p1 && *p2 && *p1==*p2;p1++, p2++); eq = (*p1==*p2);
+
 double simparam(void *params_, void *handle, uint32_t *flags, char *name) {
   OsdiSimParas *params = params_;
   for (int i = 0; params->names[i]; i++) {
-    if (strcmp(params->names[i], name) == 0) {
+    char *p1, *p2;
+    int eq;
+    SCMP(p1, p2, params->names[i], name, eq);
+    // if (strcmp(params->names[i], name) == 0) {
+    if (eq) {
       return params->vals[i];
     }
   }
@@ -62,7 +68,11 @@ double simparam(void *params_, void *handle, uint32_t *flags, char *name) {
 double simparam_opt(void *params_, char *name, double default_val) {
   OsdiSimParas *params = params_;
   for (int i = 0; params->names[i]; i++) {
-    if (strcmp(params->names[i], name) == 0) {
+    char *p1, *p2;
+    int eq;
+    SCMP(p1, p2, params->names[i], name, eq);
+    // if (strcmp(params->names[i], name) == 0) {
+    if (eq) {
       return params->vals[i];
     }
   }
@@ -74,7 +84,11 @@ extern int strcmp(const char *__s1, const char *__s2);
 char *simparam_str(void *params_, void *handle, uint32_t *flags, char *name) {
   OsdiSimParas *params = params_;
   for (int i = 0; params->names[i]; i++) {
-    if (strcmp(params->names_str[i], name) == 0) {
+    char *p1, *p2;
+    int eq;
+    SCMP(p1, p2, params->names_str[i], name, eq);
+    // if (strcmp(params->names_str[i], name) == 0) {
+    if (eq) {
       return params->names_str[i];
     }
   }
