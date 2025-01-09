@@ -31,22 +31,21 @@ mod setup;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
-pub fn compile(
-    db: &CompilationDB,
-    modules: &[ModuleInfo],
-    dst: &Utf8Path,
-    target: &Target,
-    back: &LLVMBackend,
+pub fn compile<'a>(
+    db: &'a CompilationDB,
+    modules: &'a [ModuleInfo],
+    dst: &'a Utf8Path,
+    target: &'a Target,
+    back: &'a LLVMBackend,
     emit: bool,
     opt_lvl: OptLevel,
-    dump_mir: bool, 
-) -> Vec<Utf8PathBuf> {
+) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
-            let mir = CompiledModule::new(db, module, &mut literals, dump_mir);
+            let mir = CompiledModule::new(db, module, &mut literals);
             for cb in mir.intern.callbacks.iter() {
                 if let CallBackKind::BuiltinLimit { name, num_args } = *cb {
                     lim_table.ensure(OsdiLimFunction { name, num_args: num_args - 2 });
@@ -55,6 +54,7 @@ pub fn compile(
             mir
         })
         .collect();
+
     let name = dst.file_stem().expect("destination is a file").to_owned();
 
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)
@@ -70,7 +70,9 @@ pub fn compile(
         llvm::LLVMCreateTargetData(src.as_ptr())
     };
 
-    let modules: Vec<_> = modules
+    let compiled_modules = modules;
+
+    let osdi_modules: Vec<_> = compiled_modules
         .iter()
         .map(|module| {
             let unit = OsdiModule::new(db, module, &lim_table);
@@ -78,7 +80,7 @@ pub fn compile(
             unit
         })
         .collect();
-
+    
     let db = db.snapshot();
 
     let main_file = dst.with_extension("o");
@@ -89,7 +91,7 @@ pub fn compile(
         let target_data_ = &target_data;
         let paths = &paths;
 
-        for (i, module) in modules.iter().enumerate() {
+        for (i, module) in osdi_modules.iter().enumerate() {
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let access = format!("access_{}", &module.sym);
@@ -169,7 +171,7 @@ pub fn compile(
         let cx = new_codegen(back, &llmod, &literals);
         let tys = OsdiTys::new(&cx, target_data);
 
-        let descriptors: Vec<_> = modules
+        let descriptors: Vec<_> = osdi_modules
             .iter()
             .map(|module| {
                 let cguint = OsdiCompilationUnit::new(&db, module, &cx, &tys, false);
@@ -243,7 +245,8 @@ pub fn compile(
 
     paths.push(main_file);
     unsafe { LLVMDisposeTargetData(target_data) };
-    paths
+
+    (paths, compiled_modules, literals)
 }
 
 impl OsdiModule<'_> {

@@ -11,6 +11,7 @@ use hir::CompilationDB;
 use linker::link;
 use mir_llvm::LLVMBackend;
 use sim_back::collect_modules;
+use sim_back::print_intern;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 pub use basedb::lints::builtin as builtin_lints;
@@ -185,7 +186,62 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     if opts.dry_run {
         return Ok(CompilationTermination::Compiled { lib_file });
     }
-    let paths = osdi::compile(&db, &modules, &lib_file, &opts.target, &back, true, opts.opt_lvl, opts.dump_mir);
+    let (paths, compiled_modules, literals) = osdi::compile(&db, &modules, &lib_file, &opts.target, &back, true, opts.opt_lvl);
+
+    // Dump MIR of compiled modules
+    if opts.dump_mir {
+        let cu = db.compilation_unit();
+        println!("Compilation unit: {}", cu.name(&db));
+        
+        println!("");
+
+        println!("Literals:");
+        for (k, v) in literals.iter() {
+            println!("  {:?} -> '{}'", k, v);
+        }
+
+        println!("");
+                        
+        for(module, cmodule) in modules.iter().zip(compiled_modules.iter()) {
+            // Extract DAE system
+            let dae_system = &cmodule.dae_system;
+            
+            let m = module.module;
+            println!("Module: {:?}", m.name(&db));
+            println!("Ports: {:?}", m.ports(&db));
+            println!("Internal nodes: {:?}", m.internal_nodes(&db));
+            
+            let str = format!("{dae_system:#?}");
+            println!("{}", str);
+            println!("");
+
+            println!("Model param intern");
+            print_intern("  ", &db, &cmodule.model_param_intern);
+            println!("Model param setup");
+            println!("{}", cmodule.model_param_setup.print(&literals));
+            println!("");
+
+            println!("Init intern");
+            print_intern("  ", &db, &cmodule.init.intern);
+            println!("Init cached values");
+            cmodule.init.cached_vals.iter().for_each(|(val, slot)| {
+                println!("  {:?} -> {:?}", val, slot);
+            });
+            cmodule.init.cache_slots.iter_enumerated().for_each(|(slot, (cls, ty))| {
+                println!("  {:?} -> {:?} {:?}", slot, cls, ty);
+            });
+            println!("Init");
+            println!("{}", cmodule.init.func.print(&literals));
+            println!("");
+
+            println!("Evaluation intern");
+            print_intern("  ", &db, &cmodule.intern);
+            println!("Evaluation - trailing arguments are cache slots?");
+            println!("{}", cmodule.eval.print(&literals));
+            println!("");
+        }
+    }
+
     // TODO configure linker
     link(None, &opts.target, lib_file.as_ref(), |linker| {
         for path in &paths {

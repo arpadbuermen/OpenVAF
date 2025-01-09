@@ -52,7 +52,7 @@ pub struct CompiledModule<'a> {
     pub node_collapse: NodeCollapse,
 }
 
-fn print_intern(pfx: &str, db: &CompilationDB, intern: &HirInterner) {
+pub fn print_intern(pfx: &str, db: &CompilationDB, intern: &HirInterner) {
     println!("{pfx}Parameters:");
     intern.params.iter().for_each(|(p, val)| { 
         print!("{pfx}  {:?}", p);
@@ -131,7 +131,6 @@ impl<'a> CompiledModule<'a> {
         db: &CompilationDB,
         module: &'a ModuleInfo,
         literals: &mut Rodeo,
-        dump_mir: bool, 
     ) -> CompiledModule<'a> {
         let mut cx = Context::new(db, literals, module);
         cx.compute_outputs(true);
@@ -147,23 +146,6 @@ impl<'a> CompiledModule<'a> {
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
 
-        // For debugging purposes - print parameters
-        let debugging = dump_mir; //  && cfg!(debug_assertions);
-        if debugging {
-            
-            let cu = db.compilation_unit();
-            println!("Compilation unit: {}", cu.name(db));
-                        
-            let m = module.module;
-            println!("Module: {:?}", m.name(db));
-            println!("Ports: {:?}", m.ports(db));
-            println!("Internal nodes: {:?}", m.internal_nodes(db));
-                        
-            let str = format!("{dae_system:#?}");
-            println!("{}", str);
-            println!("");
-        }
-        
         debug_assert!(cx.func.validate());
 
         cx.refresh_op_dependent_insts();
@@ -197,7 +179,7 @@ impl<'a> CompiledModule<'a> {
         sparse_conditional_constant_propagation(&mut model_param_setup, &cx.cfg);
         simplify_cfg(&mut model_param_setup, &mut cx.cfg);
 
-        let cm = CompiledModule {
+        CompiledModule {
             eval: cx.func,
             intern: cx.intern,
             info: module,
@@ -206,34 +188,6 @@ impl<'a> CompiledModule<'a> {
             model_param_intern,
             model_param_setup,
             node_collapse,
-        };
-
-        if debugging {
-            println!("Model param intern");
-            print_intern("  ", db, &cm.model_param_intern);
-            println!("Model param setup");
-            println!("{}", cm.model_param_setup.print(literals));
-            println!("");
-
-            println!("Init intern");
-            print_intern("  ", db, &cm.init.intern);
-            println!("Init cached values");
-            cm.init.cached_vals.iter().for_each(|(val, slot)| {
-                println!("  {:?} -> {:?}", val, slot);
-            });
-            cm.init.cache_slots.iter_enumerated().for_each(|(slot, (cls, ty))| {
-                println!("  {:?} -> {:?} {:?}", slot, cls, ty);
-            });
-            println!("Init");
-            println!("{}", cm.init.func.print(literals));
-            println!("");
-
-            println!("Evaluation intern");
-            print_intern("  ", db, &cm.intern);
-            println!("Evaluation - trailing arguments are cache slots?");
-            println!("{}", cm.eval.print(literals));
-            println!("");
         }
-        cm
     }
 }
