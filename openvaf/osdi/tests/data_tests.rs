@@ -3,7 +3,7 @@ use std::path::Path;
 use camino::Utf8Path;
 use hir::diagnostics::ConsoleSink;
 use hir::CompilationDB;
-use llvm::OptLevel;
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mini_harness::{harness, Result};
 use mir_llvm::LLVMBackend;
 use paths::AbsPathBuf;
@@ -25,7 +25,7 @@ fn test_compile(root_file: &Path) {
         &target,
         &back,
         emit,
-        OptLevel::None,
+        LLVMCodeGenOptLevel::LLVMCodeGenLevelNone,
         false,
         false,
         false,

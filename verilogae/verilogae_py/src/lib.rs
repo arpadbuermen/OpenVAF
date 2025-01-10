@@ -73,15 +73,15 @@ pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {
         m_free: None,
     };
 
-    if PyType_Ready(&mut VAE_MODEL_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_MODEL_TY)) < 0 {
         return ptr::null_mut();
     }
 
-    if PyType_Ready(&mut VAE_FUNCTION_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_FUNCTION_TY)) < 0 {
         return ptr::null_mut();
     }
 
-    if PyType_Ready(&mut VAE_PARAM_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_PARAM_TY)) < 0 {
         return ptr::null_mut();
     }
 

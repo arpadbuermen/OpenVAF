@@ -36,7 +36,7 @@ pub static mut VAE_MODEL_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeModel\0".as_ptr() as *const c_char;
     res.tp_doc =
         "A Verilog-A module compiled and loaded with Verilog-AE\0".as_ptr() as *const c_char;
-    res.tp_members = unsafe { &mut VAE_MODEL_MEMBERS } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_MODEL_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeModel::dealloc);
     res
 };
@@ -95,7 +95,7 @@ with_offsets! {
 impl VaeModel {
     #[allow(clippy::new_ret_no_self)]
     pub unsafe fn new(handle: *const c_void, full: bool) -> *mut PyObject {
-        let ptr = VAE_MODEL_TY.tp_alloc.unwrap()(&mut VAE_MODEL_TY, 0);
+        let ptr = VAE_MODEL_TY.tp_alloc.unwrap()(std::ptr::addr_of_mut!(VAE_MODEL_TY), 0);
         if ptr.is_null() {
             return ptr::null_mut();
         }
@@ -157,7 +157,7 @@ pub static mut VAE_PARAM_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeParam\0".as_ptr() as *const c_char;
     res.tp_doc = "A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE\0"
         .as_ptr() as *const c_char;
-    res.tp_members = unsafe { &mut VAE_PARAM_MEMBERS } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_PARAM_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeParam::dealloc);
     res
 };
@@ -418,7 +418,7 @@ impl VaeParam {
         unit: *const c_char,
         group: *const c_char,
     ) -> (*mut PyObject, *mut PyObject) {
-        let ptr = VAE_PARAM_TY.tp_alloc.unwrap()(&mut VAE_PARAM_TY, 0);
+        let ptr = VAE_PARAM_TY.tp_alloc.unwrap()(std::ptr::addr_of_mut!(VAE_PARAM_TY), 0);
         if ptr.is_null() {
             Py_XDECREF(default);
             Py_XDECREF(min);
@@ -471,8 +471,8 @@ pub static mut VAE_FUNCTION_TY: PyTypeObject = {
     res.tp_name = "verilogae.VaeFun\0".as_ptr() as *const c_char;
     res.tp_doc =
         "A function (compiled with VerilogAE) to calculate a Verilog-A variable marked with `retrieve`\0".as_ptr() as *const c_char;
-    res.tp_members = unsafe { &mut VAE_FUNCTION_MEMBERS } as *mut _;
-    res.tp_methods = unsafe { &mut VAE_FUNCTION_METHODS } as *mut _;
+    res.tp_members = std::ptr::addr_of_mut!(VAE_FUNCTION_MEMBERS) as *mut _;
+    res.tp_methods = std::ptr::addr_of_mut!(VAE_FUNCTION_METHODS) as *mut _;
     res.tp_dealloc = Some(VaeFun::dealloc);
     res
 };
@@ -704,7 +704,7 @@ impl VaeFun {
     }
     #[allow(clippy::new_ret_no_self)]
     unsafe fn new(handle: *const c_void, name: *mut PyObject, sym: *const c_char) -> *mut PyObject {
-        let ptr = PyType_GenericAlloc(&mut VAE_FUNCTION_TY, 0);
+        let ptr = PyType_GenericAlloc(std::ptr::addr_of_mut!(VAE_FUNCTION_TY), 0);
         if ptr.is_null() {
             return ptr::null_mut();
         }
@@ -1091,7 +1091,8 @@ fn is_array(ty: *mut PyTypeObject) -> bool {
 
 #[inline(always)]
 unsafe fn is_float(ty: *mut PyTypeObject) -> bool {
-    ty == &mut PyFloat_Type || PyType_IsSubtype(ty, &mut PyFloat_Type) != 0
+    ty == std::ptr::addr_of_mut!(PyFloat_Type)
+        || PyType_IsSubtype(ty, std::ptr::addr_of_mut!(PyFloat_Type)) != 0
 }
 
 #[inline(always)]

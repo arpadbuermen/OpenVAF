@@ -31,11 +31,25 @@ macro_rules! zero {
         Init { raw: [0; ::std::mem::size_of::<$ty>()] }.data
     }};
 }
-
 // manual implementation of PyVarObject_HEAD_INIT macro
 pub const fn new_type<T>() -> PyTypeObject {
     let mut res = unsafe { zero!(PyTypeObject) };
-    res.ob_base.ob_base.ob_refcnt = 1;
+
+    #[cfg(all(Py_3_12, not(Py_GIL_DISABLED)))]
+    {
+        res.ob_base.ob_base.ob_refcnt.ob_refcnt = 1;
+    }
+
+    #[cfg(all(not(Py_3_12), not(Py_GIL_DISABLED)))]
+    {
+        res.ob_base.ob_base.ob_refcnt = 1;
+    }
+
+    #[cfg(Py_GIL_DISABLED)]
+    {
+        res.ob_base.ob_base.ob_ref_shared.store(1, Ordering::Relaxed);
+    }
+
     res.tp_basicsize = size_of::<T>() as isize;
     res.tp_flags = TY_FLAGS;
 
