@@ -43,4 +43,4 @@ mir_opt.opt-level = 2
 
 
 [patch.crates-io]
-salsa = { git = 'https://github.com/DSPOM2/salsa'}
+salsa = { git = 'https://github.com/pascalkuthe/salsa'}

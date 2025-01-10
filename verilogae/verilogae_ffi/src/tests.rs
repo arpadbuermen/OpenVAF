@@ -27,7 +27,7 @@ fn gen_ffi() {
     ensure_file_contents(&c_header, &c_header_content);
 
     let res = cmd!(sh, "bindgen {cpp_header} --no-layout-tests --disable-name-namespacing --allowlist-function vae::verilogae_.*
---rustified-enum vae::OptLevel --blacklist-type=vae::NativePath --blacklist-type=vae::FatPtr --blacklist-type=vae::Meta  --allowlist-var=vae::PARAM_FLAGS.* --disable-header-comment").read().unwrap();
+--rustified-enum vae::LLVMCodeGenOptLevel --blacklist-type=vae::NativePath --blacklist-type=vae::FatPtr --blacklist-type=vae::Meta  --allowlist-var=vae::PARAM_FLAGS.* --disable-header-comment").read().unwrap();
     let mut off = 0;
     for line in res.split_terminator('\n') {
         if line.contains("pub type") && (line.contains("__uint") || line.contains("__int")) {

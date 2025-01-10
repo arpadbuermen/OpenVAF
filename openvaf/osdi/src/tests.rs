@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use camino::Utf8Path;
-use llvm::OptLevel;
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::LLVMBackend;
 use paths::AbsPathBuf;
 use sim_back::CompilationDB;
@@ -25,7 +25,7 @@ fn test_compile(root_file: &Path) {
         &target,
         &back,
         emit,
-        OptLevel::Aggressive,
+        LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive,
     );
 }
 
