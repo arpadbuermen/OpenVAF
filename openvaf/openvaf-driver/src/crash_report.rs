@@ -6,7 +6,7 @@ use std::error::Error;
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::Write;
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 use std::path::{Path, PathBuf};
 use std::{env, io, mem, panic};
 
@@ -15,7 +15,7 @@ use backtrace_ext::short_frames_strict;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 // Utility function which will handle dumping information to disk
-pub fn handle_dump(panic_info: &PanicInfo) -> Option<PathBuf> {
+pub fn handle_dump(panic_info: &PanicHookInfo) -> Option<PathBuf> {
     let mut expl = String::new();
 
     #[cfg(feature = "nightly")]
@@ -62,7 +62,7 @@ pub fn install_panic_handler() {
         return;
     }
 
-    panic::set_hook(Box::new(move |info: &PanicInfo| {
+    panic::set_hook(Box::new(move |info: &PanicHookInfo| {
         let file_path = handle_dump(info);
         print_msg(file_path).expect("printing error message to console failed");
     }));
