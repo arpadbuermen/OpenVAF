@@ -31,7 +31,6 @@ macro_rules! zero {
         Init { raw: [0; ::std::mem::size_of::<$ty>()] }.data
     }};
 }
-
 // manual implementation of PyVarObject_HEAD_INIT macro
 pub const fn new_type<T>() -> PyTypeObject {
     let mut res = unsafe { zero!(PyTypeObject) };

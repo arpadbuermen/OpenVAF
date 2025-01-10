@@ -11,7 +11,7 @@ use libloading::os::unix::Library;
 #[cfg(windows)]
 use libloading::os::windows::Library;
 use linker::link;
-pub use llvm::OptLevel;
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::LLVMBackend;
 use salsa::ParallelDatabase;
 use stdx::iter::zip;
