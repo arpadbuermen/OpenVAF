@@ -30,7 +30,7 @@ This is the current state of OSDI 0.4 support
 |Simulator|OSDI version supported|Comment|
 |---------------|------------|---------------------------------------------------------------|
 |[Ngspice](https://ngspice.sourceforge.io/) 43            |0.3         |        |
-|[Ngspice](https://ngspice.sourceforge.io/) pre-master 44 |0.3 & 0.4   |uses only 0.3 features        |
+|[Ngspice](https://ngspice.sourceforge.io/) 44            |0.3 & 0.4   |uses only 0.3 features        |
 |[SPICE OPUS](https://www.spiceopus.si/) 3.0              |0.3         |                                                               |
 |[VACASK](https://codeberg.org/arpadbuermen/VACASK) 0.1.2 |0.3         |                                                               |
 |[VACASK](https://codeberg.org/arpadbuermen/VACASK) 0.2   |0.4         |                                                               |
