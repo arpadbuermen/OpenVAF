@@ -4,8 +4,7 @@ use std::mem::take;
 
 use ahash::AHashMap;
 use bitset::HybridBitSet;
-use mir::Unknown;
-use mir::{FuncRef, KnownDerivatives, Value};
+use mir::{FuncRef, KnownDerivatives, Unknown, Value};
 use stdx::{impl_debug, impl_idx_from};
 use typed_indexmap::TiSet;
 

@@ -6,8 +6,7 @@ use std::{fs, io};
 
 use anyhow::{bail, Result};
 use basedb::lints::{Lint, LintLevel};
-use basedb::AbsPathBuf;
-use basedb::{BaseDB, BaseDatabase, FileId, Vfs, VfsPath, VfsStorage, STANDARD_FLAGS};
+use basedb::{AbsPathBuf, BaseDB, BaseDatabase, FileId, Vfs, VfsPath, VfsStorage, STANDARD_FLAGS};
 use hir_def::db::{HirDefDB, HirDefDatabase, InternDatabase};
 use hir_ty::db::HirTyDatabase;
 use parking_lot::RwLock;

@@ -12,10 +12,11 @@ mod util;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
+use pyo3_ffi::*;
+
 use crate::load::{load_info_py, load_py, load_vfs};
 use crate::model::{VAE_FUNCTION_TY, VAE_MODEL_TY, VAE_PARAM_TY};
 use crate::typeref::init_typerefs;
-use pyo3_ffi::*;
 
 #[cfg(Py_3_8)]
 const FUN_FLAG: c_int = METH_FASTCALL;
@@ -72,15 +73,15 @@ pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {
         m_free: None,
     };
 
-    if PyType_Ready(&mut VAE_MODEL_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_MODEL_TY)) < 0 {
         return ptr::null_mut();
     }
 
-    if PyType_Ready(&mut VAE_FUNCTION_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_FUNCTION_TY)) < 0 {
         return ptr::null_mut();
     }
 
-    if PyType_Ready(&mut VAE_PARAM_TY) < 0 {
+    if PyType_Ready(std::ptr::addr_of_mut!(VAE_PARAM_TY)) < 0 {
         return ptr::null_mut();
     }
 

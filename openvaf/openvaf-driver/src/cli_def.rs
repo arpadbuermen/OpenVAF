@@ -26,7 +26,7 @@ pub fn main_command() -> Command {
             output(),
             batchmode(),
             dry_run(),
-            dump_mir(), 
+            dump_mir(),
             cache_dir(),
             opt_lvl(),
             target(),
