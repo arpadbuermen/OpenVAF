@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [ "resistor.va" ],
+            "args": [ "--dump-unopt-mir", "resistor.va" ],
             "cwd": "${workspaceFolder}/..",
             "env": {
                 "RAYON_NUM_THREADS": "1" 

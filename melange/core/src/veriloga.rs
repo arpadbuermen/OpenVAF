@@ -75,6 +75,7 @@ pub fn compile_va(path: &Utf8Path, opts: &Opts) -> Result<Vec<Box<dyn DeviceImpl
         target_cpu: "native".to_owned(),
         dry_run: false,
         dump_mir: false, 
+        dump_unoptimized_mir: false, 
     };
 
     let res = openvaf::compile(&openvaf_opts);

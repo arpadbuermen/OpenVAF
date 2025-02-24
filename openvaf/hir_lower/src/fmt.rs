@@ -42,6 +42,11 @@ impl BodyLoweringCtx<'_, '_, '_> {
 
         let mut i = 0;
 
+        // Skip first argument (0, 1, or 2) for $fatal
+        if kind == DisplayKind::Fatal {
+            i +=1;
+        }
+
         while let Some(&expr) = args.get(i) {
             i += 1;
             if let Some(Literal::String(ref lit)) = self.body.as_literal(expr) {

@@ -130,9 +130,10 @@ impl<'a> CompiledModule<'a> {
     pub fn new(
         db: &CompilationDB,
         module: &'a ModuleInfo,
-        literals: &mut Rodeo,
+        literals: &mut Rodeo, 
+        dump_unoptimized_mir: bool
     ) -> CompiledModule<'a> {
-        let mut cx = Context::new(db, literals, module);
+        let mut cx = Context::new(db, literals, module, dump_unoptimized_mir);
         cx.compute_outputs(true);
         cx.compute_cfg();
         cx.optimize(OptimiziationStage::Initial);

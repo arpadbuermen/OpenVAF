@@ -10,7 +10,7 @@ use mir_opt::{
 };
 use stdx::packed_option::PackedOption;
 
-use crate::ModuleInfo;
+use crate::{print_intern, ModuleInfo};
 
 pub(crate) struct Context<'a> {
     pub(crate) func: Function,
@@ -32,7 +32,7 @@ pub enum OptimiziationStage {
 }
 
 impl<'a> Context<'a> {
-    pub fn new(db: &'a CompilationDB, literals: &mut Rodeo, module: &'a ModuleInfo) -> Self {
+    pub fn new(db: &'a CompilationDB, literals: &mut Rodeo, module: &'a ModuleInfo, dump_unoptimized_mir: bool) -> Self {
         let (mut func, mut intern) = MirBuilder::new(
             db,
             module.module,
@@ -52,6 +52,12 @@ impl<'a> Context<'a> {
         // TODO hidden state
         intern.insert_var_init(db, &mut func, literals);
 
+        if dump_unoptimized_mir {
+            println!("Interner for unoptimized MIR");
+            print_intern("  ", db, &intern);
+            println!("{}", func.print(&literals));
+        }
+
         Context {
             output_values: BitSet::new_empty(func.dfg.num_values()),
             func,
@@ -68,20 +74,39 @@ impl<'a> Context<'a> {
     pub fn optimize(&mut self, stage: OptimiziationStage) -> GVN {
         if stage == OptimiziationStage::Initial {
             dead_code_elimination(&mut self.func, &self.output_values);
+
+            println!("After dead code elimination");
+            println!("{:?}", self.func);
         }
+
         sparse_conditional_constant_propagation(&mut self.func, &self.cfg);
+
+        println!("After conditional constant propagation");
+        println!("{:?}", self.func);
+
         inst_combine(&mut self.func);
+
+        println!("After inst combine");
+        println!("{:?}", self.func);
+
         if stage == OptimiziationStage::Final {
             simplify_cfg(&mut self.func, &mut self.cfg);
         } else {
             simplify_cfg_no_phi_merge(&mut self.func, &mut self.cfg);
         }
+
+        println!("After cfg simplify");
+        println!("{:?}", self.func);
+
         self.compute_domtree(true, true, false);
 
         let mut gvn = GVN::default();
         gvn.init(&self.func, &self.dom_tree, self.intern.params.len() as u32);
         gvn.solve(&mut self.func);
         gvn.remove_unnecessary_insts(&mut self.func, &self.dom_tree);
+
+        println!("After gvn");
+        println!("{:?}", self.func);
 
         if stage == OptimiziationStage::Final {
             let mut control_dep = SparseBitMatrix::new_square(0);

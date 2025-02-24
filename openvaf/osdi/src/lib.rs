@@ -39,13 +39,14 @@ pub fn compile<'a>(
     back: &'a LLVMBackend,
     emit: bool,
     opt_lvl: OptLevel,
+    dump_unoptimized_mir: bool
 ) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
-            let mir = CompiledModule::new(db, module, &mut literals);
+            let mir = CompiledModule::new(db, module, &mut literals, dump_unoptimized_mir);
             for cb in mir.intern.callbacks.iter() {
                 if let CallBackKind::BuiltinLimit { name, num_args } = *cb {
                     lim_table.ensure(OsdiLimFunction { name, num_args: num_args - 2 });
@@ -54,7 +55,7 @@ pub fn compile<'a>(
             mir
         })
         .collect();
-
+        
     let name = dst.file_stem().expect("destination is a file").to_owned();
 
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)

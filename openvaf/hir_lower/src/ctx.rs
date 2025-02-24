@@ -323,6 +323,10 @@ impl<'a, 'c> LoweringCtx<'a, 'c> {
         self.func.sconst(val)
     }
 
+    pub(crate) fn last_block(&mut self) -> Option<Block> {
+        self.func.func.layout.last_block()
+    }
+
     pub(crate) fn create_block(&mut self) -> Block {
         self.func.create_block()
     }

@@ -29,6 +29,7 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         target_cpu: "native".to_owned(),
         dry_run: false,
         dump_mir: false, 
+        dump_unoptimized_mir: false, 
     };
 
     let res = openvaf::compile(&openvaf_opts).unwrap();
