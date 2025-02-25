@@ -1,5 +1,5 @@
 use indexmap::IndexSet;
-use mir::{strip_optbarrier, Value, F_ZERO};
+use mir::{builder::InstBuilder, cursor::Cursor, strip_optbarrier, Block, Value, F_ZERO};
 use stdx::{impl_debug_display, impl_idx_from};
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
@@ -61,7 +61,8 @@ impl DaeSystem {
         for (eq, contributions) in contributions.implicit_equations.iter_enumerated() {
             builder.build_implicit_equation(eq, contributions)
         }
-        builder.finish()
+        let dae_system = builder.finish();
+        dae_system
     }
 
     pub(super) fn sparsify(&mut self, ctx: &mut Context) {

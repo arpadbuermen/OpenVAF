@@ -32,7 +32,7 @@ pub enum OptimiziationStage {
 }
 
 impl<'a> Context<'a> {
-    pub fn new(db: &'a CompilationDB, literals: &mut Rodeo, module: &'a ModuleInfo, dump_unoptimized_mir: bool) -> Self {
+    pub fn new(db: &'a CompilationDB, literals: &mut Rodeo, module: &'a ModuleInfo) -> Self {
         let (mut func, mut intern) = MirBuilder::new(
             db,
             module.module,
@@ -51,12 +51,6 @@ impl<'a> Context<'a> {
         .build(literals);
         // TODO hidden state
         intern.insert_var_init(db, &mut func, literals);
-
-        if dump_unoptimized_mir {
-            println!("Interner for unoptimized MIR");
-            print_intern("  ", db, &intern);
-            println!("{}", func.print(&literals));
-        }
 
         Context {
             output_values: BitSet::new_empty(func.dfg.num_values()),

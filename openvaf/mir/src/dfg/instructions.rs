@@ -5,7 +5,7 @@ use stdx::iter::zip;
 use typed_index_collections::{TiSliceKeys, TiVec};
 
 use crate::dfg::values::{DfgValues, ValueDataType};
-use crate::entities::Tag;
+use crate::entities::{Tag, Block};
 use crate::instructions::{UseList, UseListPool};
 use crate::{DataFlowGraph, Inst, InstructionData, Use, Value, ValueList, ValueListPool};
 
@@ -248,6 +248,22 @@ impl DataFlowGraph {
         let uses = args.enumerate().map(|(i, arg)| self.values.make_use(arg, inst, i as u16));
         self.insts.uses[inst].extend(uses, &mut self.insts.use_lists);
         inst
+    }
+
+    // Retargets jumps to old_taget so that they point to new_target
+    pub fn retarget_jumps(&mut self, old_target: Block, new_target: Block) {
+        for k in self.insts.declarations.keys() {
+            match self.insts.declarations[k] {
+                InstructionData::Jump { destination} => {
+                    if destination == old_target {
+                        self.insts.declarations[k] = InstructionData::Jump { destination: new_target };
+                    } 
+                    ()
+                }, 
+                _ => ()
+
+            }
+        }
     }
 
     pub fn update_inst(&mut self, inst: Inst, data: InstructionData) {

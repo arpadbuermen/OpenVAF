@@ -91,6 +91,7 @@ impl<'a> Builder<'a> {
     }
 
     pub(super) fn finish(mut self) -> DaeSystem {
+        let destination = self.cursor.layout().last_block().unwrap();
         let sim_unknown_reads = self.sim_unknown_reads();
         let derivative_info = self.intern.unknowns(&self.cursor, true);
         let extra_derivatives = self
@@ -108,6 +109,9 @@ impl<'a> Builder<'a> {
         self.ensure_optbarriers();
 
         self.build_input_unknown_pairs();
+        
+        
+        self.cursor.ins().jump(destination);
 
         let (nres, nreact) = self.count_jacobian_entries();
         self.system.num_resistive = nres;

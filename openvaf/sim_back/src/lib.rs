@@ -1,6 +1,7 @@
 use hir::{BranchWrite, CompilationDB, Node};
 use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
 use lasso::Rodeo;
+use mir::cursor::FuncCursor;
 use mir::Function;
 use mir_opt::{simplify_cfg, sparse_conditional_constant_propagation};
 use stdx::impl_debug_display;
@@ -133,15 +134,44 @@ impl<'a> CompiledModule<'a> {
         literals: &mut Rodeo, 
         dump_unoptimized_mir: bool
     ) -> CompiledModule<'a> {
-        let mut cx = Context::new(db, literals, module, dump_unoptimized_mir);
+        let mut cx = Context::new(db, literals, module);
+
+        // At this point the unoptimized MIR for the module implementation is ready
+        if dump_unoptimized_mir {
+            println!("Interner for unoptimized MIR");
+            print_intern("  ", db, &(cx.intern));
+            println!("{}", cx.func.print(&literals));
+        }
+
+        // Compute outputs
         cx.compute_outputs(true);
+        // Compute control flow graph
         cx.compute_cfg();
         cx.optimize(OptimiziationStage::Initial);
         debug_assert!(cx.func.validate());
 
         let topology = Topology::new(&mut cx);
         debug_assert!(cx.func.validate());
+        
+        // Build DAE system in old_last_block, add jump to old_last_block
+        // Jump will be retargeted to new_last_block
         let mut dae_system = DaeSystem::new(&mut cx, topology);
+
+        // Get (old) last_block
+        let old_last_block = cx.func.layout.last_block().unwrap();
+        
+        // Append new block after last block (it will become the new last block)
+        let new_last_block = cx.func.layout.append_new_block();
+
+        // Retarget jumps to old last block to point at new last block
+        cx.func.dfg.retarget_jumps(old_last_block, new_last_block);
+
+        if dump_unoptimized_mir {
+            println!("Interner for unoptimized MIR after DAE added");
+            print_intern("  ", db, &(cx.intern));
+            println!("{}", cx.func.print(&literals));
+        }
+
         debug_assert!(cx.func.validate());
         cx.compute_cfg();
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
