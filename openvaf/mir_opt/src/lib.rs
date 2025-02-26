@@ -13,5 +13,5 @@ pub use dead_code::dead_code_elimination;
 pub use dead_code_aggressive::aggressive_dead_code_elimination;
 pub use global_value_numbering::{ClassId, GVN};
 pub use inst_combine::inst_combine;
-pub use simplify_cfg::{simplify_cfg, simplify_cfg_no_phi_merge};
+pub use simplify_cfg::{simplify_cfg, simplify_cfg_no_phi_merge, simplify_cfg_no_phi_merge_keep_retblock};
 pub use split_tainted::{propagate_direct_taint, propagate_taint};

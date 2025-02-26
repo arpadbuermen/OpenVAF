@@ -47,6 +47,7 @@ impl Initialization {
         }
         let collapse_implicit = builder.build_init_itern();
         builder.build_init_cache(&gvn, &collapse_implicit);
+        println!("{:?}", builder.init.func);
         builder.optimize(collapse_implicit);
         builder.init
     }
@@ -288,6 +289,7 @@ impl<'a> Builder<'a> {
     fn optimize(&mut self, collapse_implicit: AHashSet<Value>) {
         // perform final optimization/DCE
         simplify_cfg(self.func, self.cfg);
+        println!("{:?}", self.func);
         self.cfg.compute(&self.init.func);
         aggressive_dead_code_elimination(
             &mut self.init.func,
@@ -295,6 +297,7 @@ impl<'a> Builder<'a> {
             &|val, _| self.init.cached_vals.contains_key(&val) || collapse_implicit.contains(&val),
             &self.control_dep,
         );
+        println!("{:?}", self.init.func);
         simplify_cfg(&mut self.init.func, self.cfg);
     }
 

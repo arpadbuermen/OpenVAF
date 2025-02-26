@@ -150,27 +150,41 @@ impl<'a> CompiledModule<'a> {
         cx.optimize(OptimiziationStage::Initial);
         debug_assert!(cx.func.validate());
 
+        if dump_unoptimized_mir {
+            println!("Interner before topology");
+            print_intern("  ", db, &(cx.intern));
+            println!("{}", cx.func.print(&literals));
+        }
+
+
         let topology = Topology::new(&mut cx);
         debug_assert!(cx.func.validate());
-        
-        // Build DAE system in old_last_block, add jump to old_last_block
-        // Jump will be retargeted to new_last_block
+
+        if dump_unoptimized_mir {
+            println!("Interner for initially optimized MIR");
+            print_intern("  ", db, &(cx.intern));
+            println!("{}", cx.func.print(&literals));
+        }
+
+
+        // Build DAE system in last_block, end it with jump to ret_block (in builder.finish())
         let mut dae_system = DaeSystem::new(&mut cx, topology);
 
-        // Get (old) last_block
-        let old_last_block = cx.func.layout.last_block().unwrap();
-        
         // Append new block after last block (it will become the new last block)
-        let new_last_block = cx.func.layout.append_new_block();
+        let ret_block = cx.func.layout.ret_block().unwrap();
+        let entry_block = cx.func.layout.entry_block().unwrap();
 
-        // Retarget jumps to old last block to point at new last block
-        cx.func.dfg.retarget_jumps(old_last_block, new_last_block);
+        // Switch all jumps to ret_block to exit_block
+        // cx.func.dfg.retarget_jumps(ret_block, exit_block);
 
         if dump_unoptimized_mir {
             println!("Interner for unoptimized MIR after DAE added");
             print_intern("  ", db, &(cx.intern));
             println!("{}", cx.func.print(&literals));
         }
+        println!("entry block {:?}", cx.func.layout.entry_block().unwrap());
+        println!("last block {:?}", cx.func.layout.last_block().unwrap());
+        println!("ret block {:?}", cx.func.layout.ret_block());
 
         debug_assert!(cx.func.validate());
         cx.compute_cfg();
@@ -178,6 +192,13 @@ impl<'a> CompiledModule<'a> {
         dae_system.sparsify(&mut cx);
 
         debug_assert!(cx.func.validate());
+
+        if dump_unoptimized_mir {
+            println!("Interner post derivative optimization");
+            print_intern("  ", db, &(cx.intern));
+            println!("{}", cx.func.print(&literals));
+        }
+        
 
         cx.refresh_op_dependent_insts();
         let mut init = Initialization::new(&mut cx, gvn);
@@ -209,6 +230,10 @@ impl<'a> CompiledModule<'a> {
         simplify_cfg(&mut model_param_setup, &mut cx.cfg);
         sparse_conditional_constant_propagation(&mut model_param_setup, &cx.cfg);
         simplify_cfg(&mut model_param_setup, &mut cx.cfg);
+
+        println!("{:?}", model_param_setup);
+
+        println!("{:?}", init.func);
 
         CompiledModule {
             eval: cx.func,

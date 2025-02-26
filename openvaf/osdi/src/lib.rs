@@ -110,6 +110,26 @@ pub fn compile<'a>(
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
             });
+
+            let _db = db.snapshot();
+            scope.spawn(move |_| {
+                let access = format!("eval_{}", &module.sym);
+                let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
+                let cx = new_codegen(back, &llmod, literals_);
+                let tys = OsdiTys::new(&cx, target_data_);
+                let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
+
+                // println!("{:?}", module.eval);
+                cguint.eval();
+                // println!("{}", llmod.to_str());
+                debug_assert!(llmod.verify_and_print());
+
+                if emit {
+                    let path = &paths[i * 4 + 3];
+                    llmod.optimize();
+                    assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
+                }
+            });
             
             let _db = db.snapshot();
             scope.spawn(move |_| {
@@ -146,26 +166,10 @@ pub fn compile<'a>(
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
             });
+            
+            // eval was here
 
-            let _db = db.snapshot();
-            scope.spawn(move |_| {
-                let access = format!("eval_{}", &module.sym);
-                let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
-                let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
-                let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
-
-                // println!("{:?}", module.eval);
-                cguint.eval();
-                // println!("{}", llmod.to_str());
-                debug_assert!(llmod.verify_and_print());
-
-                if emit {
-                    let path = &paths[i * 4 + 3];
-                    llmod.optimize();
-                    assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
-                }
-            });
+            
         }
 
         let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };

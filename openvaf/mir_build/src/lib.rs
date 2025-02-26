@@ -103,7 +103,9 @@ pub trait RetBuilder {
 
 impl<'short, 'long> RetBuilder for InsertBuilder<'short, FuncInstBuilder<'short, 'long>> {
     fn ret(self) -> Inst {
-        let exit = self.inserter.builder.func.layout.last_block().unwrap();
+        // ret jumps to ret_block
+        // let exit = self.inserter.builder.func.layout.last_block().unwrap();
+        let exit = self.inserter.builder.func.layout.ret_block().unwrap();
         self.jump(exit)
     }
 }
@@ -194,6 +196,12 @@ impl<'a> FunctionBuilder<'a> {
         func_ctx.blocks.push(BlockData { filled: false, pristine: true });
         func_ctx.ssa.declare_block();
 
+        let ret_block = func.layout.append_new_block();
+        func_ctx.blocks.push(BlockData { filled: false, pristine: true });
+        func_ctx.ssa.declare_block();
+        // Ugly, but makes it possible to access ret_block in ret builder
+        func.layout.declare_ret_block(ret_block);
+        
         let exit = func.layout.append_new_block();
         func_ctx.blocks.push(BlockData { filled: false, pristine: true });
         func_ctx.ssa.declare_block();
@@ -205,7 +213,7 @@ impl<'a> FunctionBuilder<'a> {
             func_ctx,
             position: entry,
             end: exit,
-            tag_writes,
+            tag_writes, 
         };
         res.seal_block(entry);
         res

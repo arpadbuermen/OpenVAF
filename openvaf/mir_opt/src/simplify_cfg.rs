@@ -13,7 +13,8 @@ pub fn simplify_cfg(func: &mut Function, cfg: &mut ControlFlowGraph) {
         merge_phis: true,
         vals_changed: BitSet::new_filled(func.layout.num_blocks()),
         func,
-        local_changed: false,
+        local_changed: false, 
+        keep_retblock: false, 
         // table: RawTable::with_capacity(8),
         // hash_builer: ahash::RandomState::new(),
         // unconditional_preds: Vec::with_capacity(4),
@@ -28,6 +29,22 @@ pub fn simplify_cfg_no_phi_merge(func: &mut Function, cfg: &mut ControlFlowGraph
         vals_changed: BitSet::new_filled(func.layout.num_blocks()),
         func,
         local_changed: false,
+        keep_retblock: false, 
+        // table: RawTable::with_capacity(8),
+        // hash_builer: ahash::RandomState::new(),
+        // unconditional_preds: Vec::with_capacity(4),
+    };
+    simplify.iteratively_simplify_cfg();
+}
+
+pub fn simplify_cfg_no_phi_merge_keep_retblock(func: &mut Function, cfg: &mut ControlFlowGraph) {
+    let mut simplify = SimplifyCfg {
+        cfg,
+        merge_phis: false,
+        vals_changed: BitSet::new_filled(func.layout.num_blocks()),
+        func,
+        local_changed: false,
+        keep_retblock: true, 
         // table: RawTable::with_capacity(8),
         // hash_builer: ahash::RandomState::new(),
         // unconditional_preds: Vec::with_capacity(4),
@@ -43,6 +60,7 @@ struct SimplifyCfg<'a> {
     // table: RawTable<Inst>,
     // hash_builer: ahash::RandomState,
     vals_changed: BitSet<Block>,
+    keep_retblock: bool, 
     // unconditional_preds: Vec<(Block, InstCursor)>,
 }
 
@@ -56,7 +74,10 @@ impl<'a> SimplifyCfg<'a> {
             let mut cursor = self.func.layout.blocks_cursor();
             // Loop over all of the basic blocks and remove them if they are unneeded.
             while let Some(bb) = cursor.next {
-                self.simplify_bb(bb);
+                let rb = self.func.layout.ret_block();
+                if !self.keep_retblock || rb.is_none() || bb != rb.unwrap() {
+                    self.simplify_bb(bb);
+                }
                 // only advance after simplification to avoid visiting dead blocks
                 cursor.next(&self.func.layout);
             }
@@ -585,7 +606,7 @@ impl<'a> SimplifyCfg<'a> {
         // Remove basic blocks that have no predecessors (except the entry block)...
         // or that just have themself as a predecessor.  These are unreachable.
         if (self.cfg[bb].predecessors.is_empty() || self.cfg.self_loop(bb))
-            && Some(bb) != self.func.layout.entry_block()
+            && Some(bb) != self.func.layout.entry_block() 
         {
             // remove phi phi_edges
             for succ in self.cfg.succ_iter(bb) {
@@ -626,7 +647,10 @@ impl<'a> SimplifyCfg<'a> {
         if self.merge_phis {
             if let Some(term) = self.func.layout.last_inst(bb) {
                 if let InstructionData::Jump { destination } = self.func.dfg.insts[term] {
-                    self.simplify_unconditional_jmp_term(bb, destination)
+                    // If destination is the ret_block, do not simplify jmp
+                    if Some(destination)!=self.func.layout.ret_block() {
+                        self.simplify_unconditional_jmp_term(bb, destination)
+                    }
                 }
 
                 // TODO merge common code in successor (for branch)

@@ -5,7 +5,7 @@ use lasso::Rodeo;
 use mir::{Block, ControlFlowGraph, DominatorTree, Function, Inst, Value};
 use mir_opt::{
     aggressive_dead_code_elimination, dead_code_elimination, inst_combine, propagate_direct_taint,
-    propagate_taint, simplify_cfg, simplify_cfg_no_phi_merge,
+    propagate_taint, simplify_cfg, simplify_cfg_no_phi_merge, simplify_cfg_no_phi_merge_keep_retblock, 
     sparse_conditional_constant_propagation, GVN,
 };
 use stdx::packed_option::PackedOption;
@@ -85,6 +85,8 @@ impl<'a> Context<'a> {
 
         if stage == OptimiziationStage::Final {
             simplify_cfg(&mut self.func, &mut self.cfg);
+        } else if stage == OptimiziationStage::Initial {
+            simplify_cfg_no_phi_merge_keep_retblock(&mut self.func, &mut self.cfg);
         } else {
             simplify_cfg_no_phi_merge(&mut self.func, &mut self.cfg);
         }

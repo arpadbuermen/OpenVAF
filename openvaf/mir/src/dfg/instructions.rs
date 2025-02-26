@@ -251,6 +251,7 @@ impl DataFlowGraph {
     }
 
     // Retargets jumps to old_taget so that they point to new_target
+    // TODO: remove
     pub fn retarget_jumps(&mut self, old_target: Block, new_target: Block) {
         for k in self.insts.declarations.keys() {
             match self.insts.declarations[k] {

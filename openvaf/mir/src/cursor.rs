@@ -225,6 +225,11 @@ pub trait Cursor {
         self.goto_bottom(self.layout().last_block().unwrap());
     }
 
+    // Go to ret_block
+    fn goto_block(&mut self, block: Block) {
+        self.goto_bottom(block);
+    }
+
     /// Get the block corresponding to the current position.
     fn current_block(&self) -> Option<Block> {
         use self::CursorPosition::*;

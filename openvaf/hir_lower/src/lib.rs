@@ -510,7 +510,10 @@ impl<'a> MirBuilder<'a> {
                 }
             })
             .collect();
-        ctx.func.ins().ret();
+        // ctx.func.ins().ret();
+        // Jump to last block instead of performing a ret which is used for premature exit
+        let last = ctx.last_block().unwrap();
+        ctx.func.ins().jump(last);
         ctx.func.finalize();
         (func, interner)
     }

@@ -437,27 +437,11 @@ impl BodyLoweringCtx<'_, '_, '_> {
             BuiltIn::fatal => {
                 self.ins_display(DisplayKind::Fatal, true, args);
                 self.ctx.ins().ret();
-
+                
                 // Anything that follows $fatal will go to an unreachable block
                 let unreachable_bb = self.ctx.create_block();
-
-                // Branch to last_block on true, unreachable on false
-                // let exit = self.ctx.last_block().unwrap();
-                // let (inst, dfg) = self.ctx.ins().unary(Opcode::IBcast, always_true);
-                // let cond = dfg.first_result(inst);
-                // self.ctx.ins().br(cond, exit, unreachable_bb);
-
                 self.ctx.seal_block(unreachable_bb);
-
                 self.ctx.switch_to_block(unreachable_bb);
-                
-                // Add dummy command to unreachable block
-                // let dummy = self.ctx.iconst(1);
-                // self.ctx.ins().ineg(dummy);
-
-                
-
-                
                 
                 GRAVESTONE
             }

@@ -41,6 +41,9 @@ pub struct Layout {
 
     /// Last block in the layout order, or `None` when no blocks have been laid out.
     last_block: Option<Block>,
+
+    /// Ret block where ret commands jump
+    ret_block: Option<Block>, 
 }
 
 impl Default for Layout {
@@ -52,7 +55,7 @@ impl Default for Layout {
 impl Layout {
     /// Create a new empty `Layout`.
     pub fn new() -> Self {
-        Self { blocks: TiVec::new(), insts: TiVec::new(), first_block: None, last_block: None }
+        Self { blocks: TiVec::new(), insts: TiVec::new(), first_block: None, last_block: None, ret_block: None }
     }
 
     /// Clear the layout.
@@ -61,6 +64,7 @@ impl Layout {
         self.insts.clear();
         self.first_block = None;
         self.last_block = None;
+        self.ret_block = None;
     }
 
     /// Returns the capacity of the `BlockData` map.
@@ -233,6 +237,19 @@ impl Layout {
     /// Get the last block in the layout.
     pub fn last_block(&self) -> Option<Block> {
         self.last_block
+    }
+
+    // Declare ret_block
+    pub fn declare_ret_block(&mut self, block: Block) {
+        if self.ret_block.is_some() {
+            panic!("Attempt to redefine ret_block.");
+        }
+        self.ret_block = Some(block);
+    }
+
+    // Return ret_block
+    pub fn ret_block(&self) -> Option<Block> {
+        self.ret_block
     }
 
     /// Get the block preceding `block` in the layout order.
