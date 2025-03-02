@@ -436,11 +436,16 @@ impl BodyLoweringCtx<'_, '_, '_> {
 
             BuiltIn::fatal => {
                 self.ins_display(DisplayKind::Fatal, true, args);
-                self.ctx.ins().ret();
+                // Fatal code is 0 (used for translation MIR->IR)
+                let call_args = vec![];
+                self.ctx.call(CallBackKind::SetRetFlag{flag: 0}, &call_args);
+                let call_args = vec![];
+                self.ctx.call(CallBackKind::Abort, &call_args);
+                // self.ctx.ins().ret();
 
-                let unreachable_bb = self.ctx.create_block();
-                self.ctx.switch_to_block(unreachable_bb);
-                self.ctx.seal_block(unreachable_bb);
+                // let unreachable_bb = self.ctx.create_block();
+                // self.ctx.switch_to_block(unreachable_bb);
+                // self.ctx.seal_block(unreachable_bb);
                 GRAVESTONE
             }
             BuiltIn::analysis => {
@@ -668,7 +673,19 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 }
                 GRAVESTONE
             }
-            BuiltIn::finish | BuiltIn::stop => GRAVESTONE,
+            BuiltIn::finish => {
+                // Finish code is 1 (used for translation MIR->IR)
+                let call_args = vec![];
+                self.ctx.call(CallBackKind::SetRetFlag{flag: 1}, &call_args);
+                GRAVESTONE
+            }
+            
+            BuiltIn::stop => {
+                // Stop code is 2 (used for translation MIR->IR)
+                let call_args = vec![];
+                self.ctx.call(CallBackKind::SetRetFlag{flag: 2}, &call_args);
+                GRAVESTONE
+            },
 
             /* TODO: absdelay
             BuiltIn::absdelay => {

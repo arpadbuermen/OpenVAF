@@ -229,7 +229,34 @@ pub fn general_callbacks<'ll>(
                 CallBackKind::Print { kind, arg_tys } => {
                     let (fun, fun_ty) = print_callback(builder.cx, *kind, arg_tys);
                     CallbackFun { fun_ty, fun, state: Box::new([handle]), num_state: 0 }
+                }, 
+                CallBackKind::SetRetFlag { flag } => {
+                    let fun = if *flag==0 {
+                        // Fatal
+                        builder
+                            .cx
+                            .get_func_by_name("set_ret_flag_fatal")
+                            .expect("stdlib function set_ret_flag_fatal is missing")
+                    } else if  *flag==1 {
+                        // Finish
+                        builder
+                            .cx
+                            .get_func_by_name("set_ret_flag_finish")
+                            .expect("stdlib function set_ret_flag_finish is missing")
+                    } else {
+                        // Stop
+                        builder
+                            .cx
+                            .get_func_by_name("set_ret_flag_stop")
+                            .expect("stdlib function set_ret_flag_stop is missing")
+                    };
+                    let fun_ty = builder.cx.ty_func(
+                        &[ptr_ty],
+                        builder.cx.ty_void(),
+                    );
+                    CallbackFun { fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 }
                 }
+                CallBackKind::Abort => return None, 
             };
             Some(cb)
         })

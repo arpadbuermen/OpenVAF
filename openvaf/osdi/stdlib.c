@@ -173,6 +173,12 @@ char *fmt_binary(int val) {
 
 void lim_discontinuity(int *flags) { *flags |= EVAL_RET_FLAG_LIM; }
 
+void set_ret_flag_fatal(int *flags) { *flags |= EVAL_RET_FLAG_FATAL; }
+
+void set_ret_flag_finish(int *flags) { *flags |= EVAL_RET_FLAG_FINISH; }
+
+void set_ret_flag_stop(int *flags) { *flags |= EVAL_RET_FLAG_STOP; }
+
 double store_lim(void *sim_info_, int idx, double val) {
   OsdiSimInfo *sim_info = (OsdiSimInfo *)sim_info_;
   sim_info->next_state[idx] = val;

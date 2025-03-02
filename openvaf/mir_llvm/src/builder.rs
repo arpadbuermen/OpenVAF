@@ -7,8 +7,7 @@ use llvm::{
     UNNAMED,
 };
 use mir::{
-    Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef,
-    F_ZERO, ZERO,
+    Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef, F_ZERO, ZERO
 };
 use typed_index_collections::TiVec;
 
@@ -457,6 +456,8 @@ impl<'ll> Builder<'_, '_, 'll> {
                 let callback = if let Some(res) = self.callbacks[func_ref].as_ref() {
                     res
                 } else {
+                    // Callback not found, it is not supported in the function we are building
+                    // because it is not in the TiVec of built callbacks
                     return; // assume nooop
                 };
 

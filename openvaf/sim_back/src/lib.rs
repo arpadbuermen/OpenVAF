@@ -133,6 +133,7 @@ impl<'a> CompiledModule<'a> {
         literals: &mut Rodeo,
     ) -> CompiledModule<'a> {
         let mut cx = Context::new(db, literals, module);
+        
         cx.compute_outputs(true);
         cx.compute_cfg();
         cx.optimize(OptimiziationStage::Initial);
@@ -148,6 +149,9 @@ impl<'a> CompiledModule<'a> {
 
         debug_assert!(cx.func.validate());
 
+        println!("{:?}", cx.func);
+
+        
         cx.refresh_op_dependent_insts();
         let mut init = Initialization::new(&mut cx, gvn);
         let node_collapse = NodeCollapse::new(&init, &dae_system, &cx);
@@ -162,6 +166,8 @@ impl<'a> CompiledModule<'a> {
             .filter_map(|(param, info)| info.is_instance.then_some(*param))
             .collect();
         init.intern.insert_param_init(db, &mut init.func, literals, false, true, &inst_params);
+
+        println!("{:?}", init.func);
 
         let mut model_param_setup = Function::default();
         let model_params: Vec<_> = module.params.keys().copied().collect();
@@ -178,6 +184,8 @@ impl<'a> CompiledModule<'a> {
         simplify_cfg(&mut model_param_setup, &mut cx.cfg);
         sparse_conditional_constant_propagation(&mut model_param_setup, &cx.cfg);
         simplify_cfg(&mut model_param_setup, &mut cx.cfg);
+        
+        println!("{:?}", init.func);
 
         CompiledModule {
             eval: cx.func,

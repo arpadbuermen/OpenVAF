@@ -33,6 +33,8 @@ pub enum CallBackKind {
     WhiteNoise { name: Spur, idx: u32 },
     FlickerNoise { name: Spur, idx: u32 },
     NoiseTable(Box<NoiseTable>),
+    SetRetFlag{ flag: u32 }, 
+    Abort, 
 }
 
 impl CallBackKind {
@@ -138,6 +140,18 @@ impl CallBackKind {
                 params: 1,
                 returns: 1,
                 has_sideeffects: false,
+            },
+            CallBackKind::SetRetFlag { flag } => FunctionSignature {
+                name: format!("SetRetFlag[{}]", flag),
+                params: 0,
+                returns: 0,
+                has_sideeffects: true,
+            },
+            CallBackKind::Abort => FunctionSignature {
+                name: "Abort".to_string(),
+                params: 0,
+                returns: 0,
+                has_sideeffects: true,
             },
         }
     }
