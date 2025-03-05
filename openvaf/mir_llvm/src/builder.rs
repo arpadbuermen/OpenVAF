@@ -3,8 +3,7 @@ use std::slice;
 use arrayvec::ArrayVec;
 use libc::c_uint;
 use llvm::{
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMGetReturnType,
-    UNNAMED,
+    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, UNNAMED,
 };
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef, F_ZERO, ZERO
@@ -96,7 +95,8 @@ pub enum BuilderVal<'ll> {
     Undef,
     Eager(&'ll llvm::Value),
     Load(Box<MemLoc<'ll>>),
-    Call(Box<CallbackFun<'ll>>),
+    // Never used
+    // Call(Box<CallbackFun<'ll>>),
 }
 
 impl<'ll> From<&'ll llvm::Value> for BuilderVal<'ll> {
@@ -114,7 +114,17 @@ impl<'ll> BuilderVal<'ll> {
             BuilderVal::Undef => unreachable!("attempted to read undefined value"),
             BuilderVal::Eager(val) => val,
             BuilderVal::Load(loc) => loc.read(builder.llbuilder),
-            BuilderVal::Call(call) => builder.call(call.fun_ty, call.fun, &call.state),
+            // Never used
+            // BuilderVal::Call(cb) => {
+            //     match cb.as_ref() {
+            //         CallbackFun::Prebuilt(call) => {
+            //             builder.call(call.fun_ty, call.fun, &call.state)
+            //         }, 
+            //         CallbackFun::Inline(cbbuilder) => {
+            //             panic!("Cannot handle BuilderVal::Call with inline callback.")
+            //         }
+            //     }
+            // }
         }
     }
 
@@ -126,7 +136,17 @@ impl<'ll> BuilderVal<'ll> {
             BuilderVal::Undef => return None,
             BuilderVal::Eager(val) => builder.cx.val_ty(val),
             BuilderVal::Load(loc) => loc.ty,
-            BuilderVal::Call(call) => LLVMGetReturnType(call.fun_ty),
+            // Never used
+            // BuilderVal::Call(cb) => {
+            //     match cb.as_ref() {
+            //         CallbackFun::Prebuilt(call) => {
+            //             LLVMGetReturnType(call.fun_ty)
+            //         }, 
+            //         CallbackFun::Inline(inline) => {
+            //             panic!("Cannot handle BuilderVal::Call with inline callback.")
+            //         }
+            //     }
+            // }
         };
         Some(ty)
     }
@@ -406,14 +426,14 @@ impl<'ll> Builder<'_, '_, 'll> {
     /// # Safety
     /// must not be called multiple times
     /// a terminator must not be build for the exit bb trough other means
-    pub unsafe fn ret(&mut self, val: &'ll llvm::Value) {
+    pub unsafe fn ret(&self, val: &'ll llvm::Value) {
         llvm::LLVMBuildRet(self.llbuilder, val);
     }
 
     /// # Safety
     /// must not be called multiple times
     /// a terminator must not be build for the exit bb trough other means
-    pub unsafe fn ret_void(&mut self) {
+    pub unsafe fn ret_void(& self) {
         llvm::LLVMBuildRetVoid(self.llbuilder);
     }
 
@@ -464,38 +484,46 @@ impl<'ll> Builder<'_, '_, 'll> {
                 let args = args.as_slice(&self.func.dfg.insts.value_lists);
                 let args = args.iter().map(|operand| self.values[*operand].get(self));
 
-                if callback.num_state != 0 {
-                    let args: Vec<_> = args.collect();
-                    let num_iter = callback.state.len() as u32 / callback.num_state;
-                    for i in 0..num_iter {
-                        let start = (i * callback.num_state) as usize;
-                        let end = ((i + 1) * callback.num_state) as usize;
-                        let operands: Vec<_> = callback.state[start..end]
-                            .iter()
-                            .copied()
-                            .chain(args.iter().copied())
-                            .collect();
-                        self.call(callback.fun_ty, callback.fun, &operands);
-                        debug_assert!(self.func.dfg.inst_results(inst).is_empty());
-                    }
-                } else {
-                    let operands: Vec<_> = callback.state.iter().copied().chain(args).collect();
-                    let res = self.call(callback.fun_ty, callback.fun, &operands);
-                    let inst_res = self.func.dfg.inst_results(inst);
-
-                    match inst_res {
-                        [] => (),
-                        [val] => self.values[*val] = res.into(),
-                        vals => {
-                            for (i, val) in vals.iter().enumerate() {
-                                let res =
-                                    LLVMBuildExtractValue(self.llbuilder, res, i as u32, UNNAMED);
-                                self.values[*val] = res.into();
+                match callback {
+                    CallbackFun::Prebuilt(callback) => {
+                        if callback.num_state != 0 {
+                            let args: Vec<_> = args.collect();
+                            let num_iter = callback.state.len() as u32 / callback.num_state;
+                            for i in 0..num_iter {
+                                let start = (i * callback.num_state) as usize;
+                                let end = ((i + 1) * callback.num_state) as usize;
+                                let operands: Vec<_> = callback.state[start..end]
+                                    .iter()
+                                    .copied()
+                                    .chain(args.iter().copied())
+                                    .collect();
+                                self.call(callback.fun_ty, callback.fun, &operands);
+                                debug_assert!(self.func.dfg.inst_results(inst).is_empty());
+                            }
+                        } else {
+                            let operands: Vec<_> = callback.state.iter().copied().chain(args).collect();
+                            let res = self.call(callback.fun_ty, callback.fun, &operands);
+                            let inst_res = self.func.dfg.inst_results(inst);
+        
+                            match inst_res {
+                                [] => (),
+                                [val] => self.values[*val] = res.into(),
+                                vals => {
+                                    for (i, val) in vals.iter().enumerate() {
+                                        let res =
+                                            LLVMBuildExtractValue(self.llbuilder, res, i as u32, UNNAMED);
+                                        self.values[*val] = res.into();
+                                    }
+                                }
                             }
                         }
+                        return;
+                    }, 
+                    CallbackFun::Inline{builder, state} => {
+                        builder.build_inline(self, state);
+                        return;
                     }
                 }
-                return;
             }
         };
 

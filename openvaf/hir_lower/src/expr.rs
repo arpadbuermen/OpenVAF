@@ -12,7 +12,6 @@ use hir::signatures::{
 use hir::{Body, BuiltIn, Expr, ExprId, Literal, /*ParamSysFun,*/ Ref, ResolvedFun, Type};
 use mir::builder::InstBuilder;
 use mir::{Opcode, Value, FALSE, F_ZERO, GRAVESTONE, INFINITY, TRUE, ZERO};
-use mir_build::RetBuilder;
 use stdx::iter::zip;
 use syntax::ast::{BinaryOp, UnaryOp};
 
@@ -441,11 +440,6 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 self.ctx.call(CallBackKind::SetRetFlag{flag: 0}, &call_args);
                 let call_args = vec![];
                 self.ctx.call(CallBackKind::Abort, &call_args);
-                // self.ctx.ins().ret();
-
-                // let unreachable_bb = self.ctx.create_block();
-                // self.ctx.switch_to_block(unreachable_bb);
-                // self.ctx.seal_block(unreachable_bb);
                 GRAVESTONE
             }
             BuiltIn::analysis => {

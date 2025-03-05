@@ -7,11 +7,48 @@ use llvm::{
     UNNAMED,
 };
 use mir::ControlFlowGraph;
-use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx};
+use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder};
 use sim_back::SimUnknownKind;
 
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
 use crate::inst_data::OsdiInstanceParam;
+
+struct VoidAbortCallback;
+
+impl<'ll> InlineCallbackBuilder<'ll> for VoidAbortCallback {
+    fn build_inline(&self, builder: & Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Value { 
+        let cx = builder.cx;
+        unsafe {
+            // state[0] .. ret_flags value
+            // state[1] .. pointer where to store it at exit
+            // state[2] .. llfunc prototype
+
+            // Store ret_flags in flags field
+            let ret_flags = builder.load(cx.ty_int(), state[0]);
+            builder.store(state[1], ret_flags);
+            
+            // Create return and continue block
+            let ret_block = LLVMAppendBasicBlockInContext(cx.llcx, state[2], UNNAMED);
+            let cont_block = LLVMAppendBasicBlockInContext(cx.llcx, state[2], UNNAMED);
+            
+            // Branch always to return block
+            let cond = cx.const_bool(true);
+            LLVMBuildCondBr(builder.llbuilder, cond, ret_block, cont_block);
+            
+            // Add ret_void to return block
+            LLVMPositionBuilderAtEnd(builder.llbuilder, ret_block);
+            builder.ret_void();
+            
+            // Position builder at start of continue block (will be discarded after optimization)
+            LLVMPositionBuilderAtEnd(builder.llbuilder, cont_block);
+        }
+        cx.const_int(0) 
+    }
+
+    fn return_type(&self, builder: &Builder<'_, '_, 'll>, _state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Type {
+        builder.cx.ty_int()
+    }
+}
 
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     fn mark_collapsed(&self) -> (&'ll llvm::Value, &'ll llvm::Type) {
@@ -145,12 +182,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     let id =
                         model_data.params.get_index_of(param).unwrap() + inst_data.params.len();
                     let err_param = cx.const_unsigned_int(id as u32);
-                    let cb = CallbackFun {
+                    let cb = CallbackFun::Prebuilt(BuiltCallbackFun {
                         fun_ty: invalid_param_err.0,
                         fun: invalid_param_err.1,
                         state: vec![err_ptr, err_len, err_cap, err_param].into_boxed_slice(),
                         num_state: 0,
-                    };
+                    });
 
                     builder.callbacks[call_id] = Some(cb);
                 }
@@ -184,7 +221,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         builder.select_bb(exit_bb);
-        unsafe { builder.ret_void() }
+        unsafe { 
+            let ret_flags_val = builder.load(cx.ty_int(), ret_flags);
+            builder.store(flags, ret_flags_val);
+            builder.ret_void() 
+        }
 
         llfunc
     }
@@ -339,14 +380,14 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         inst_data.params.get_index_of(&OsdiInstanceParam::User(*param))
                     {
                         let err_param = cx.const_unsigned_int(id as u32);
-                        CallbackFun {
+                        CallbackFun::Prebuilt(BuiltCallbackFun {
                             fun_ty: invalid_param_err.0,
                             fun: invalid_param_err.1,
                             state: vec![err_ptr, err_len, err_cap, err_param].into_boxed_slice(),
                             num_state: 0,
-                        }
+                        })
                     } else {
-                        trivial_cb.clone()
+                        CallbackFun::Prebuilt(trivial_cb.clone())
                     }
                 }
                 CallBackKind::CollapseHint(node1, node2) => {
@@ -362,11 +403,17 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         state.push(instance);
                         state.push(cx.const_unsigned_int(pair.into()));
                     });
-                    CallbackFun {
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
                         fun_ty: mark_collapsed.1,
                         fun: mark_collapsed.0,
                         state: state.into_boxed_slice(),
                         num_state: 2,
+                    })
+                }
+                CallBackKind::Abort => {
+                    CallbackFun::Inline { 
+                        builder: Box::new(VoidAbortCallback), 
+                        state: Box::new([ret_flags, flags, llfunc])
                     }
                 }
                 _ => continue,
@@ -424,7 +471,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             }
         }
 
-        unsafe { builder.ret_void() }
+        unsafe { 
+            let ret_flags_val = builder.load(cx.ty_int(), ret_flags);
+            builder.store(flags, ret_flags_val);
+            builder.ret_void() 
+        }
 
         for (&val, &slot) in module.init.cached_vals.iter() {
             let inst = func.dfg.value_def(val).unwrap_inst();

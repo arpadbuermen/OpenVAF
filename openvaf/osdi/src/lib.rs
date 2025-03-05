@@ -3,15 +3,18 @@ use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm::{LLVMDisposeTargetData, OptLevel, LLVMABISizeOfType};
+use llvm::{LLVMABISizeOfType, LLVMDisposeTargetData, LLVMPrintModuleToString, OptLevel};
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
 use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
+use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
 
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
@@ -39,13 +42,17 @@ pub fn compile<'a>(
     back: &'a LLVMBackend,
     emit: bool,
     opt_lvl: OptLevel,
+    dump_mir: bool, 
+    dump_unopt_mir: bool, 
+    dump_ir: bool, 
 ) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
+    let mnames: Vec<_> = modules.iter().map(|m| {m.module.name(db)}).collect();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
-            let mir = CompiledModule::new(db, module, &mut literals);
+            let mir = CompiledModule::new(db, module, &mut literals, dump_unopt_mir, dump_mir);
             for cb in mir.intern.callbacks.iter() {
                 if let CallBackKind::BuiltinLimit { name, num_args } = *cb {
                     lim_table.ensure(OsdiLimFunction { name, num_args: num_args - 2 });
@@ -56,7 +63,7 @@ pub fn compile<'a>(
         .collect();
 
     let name = dst.file_stem().expect("destination is a file").to_owned();
-
+        
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)
         .map(|i| {
             let num = base_n::encode((i + 1) as u128, CASE_INSENSITIVE);
@@ -84,7 +91,9 @@ pub fn compile<'a>(
     let db = db.snapshot();
 
     let main_file = dst.with_extension("o");
-
+    
+    let irs = Arc::new(Mutex::new(HashMap::new()));
+    
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
@@ -93,14 +102,19 @@ pub fn compile<'a>(
 
         for (i, module) in osdi_modules.iter().enumerate() {
             let _db = db.snapshot();
+            let irs_clone = Arc::clone(&irs);
             scope.spawn(move |_| {
                 let access = format!("access_{}", &module.sym);
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
-
+                
                 cguint.access_function();
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, access), cx.to_str().to_string());
+                }
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -110,6 +124,7 @@ pub fn compile<'a>(
                 }
             });
             
+            let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_model_{}", &module.sym);
@@ -119,6 +134,10 @@ pub fn compile<'a>(
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_model();
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, "setup_model".to_string()), cx.to_str().to_string());
+                }
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -127,7 +146,8 @@ pub fn compile<'a>(
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
             });
-
+            
+            let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_instance_{}", &module.sym);
@@ -137,6 +157,10 @@ pub fn compile<'a>(
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, "setup_instance".to_string()), cx.to_str().to_string());
+                }
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -146,6 +170,7 @@ pub fn compile<'a>(
                 }
             });
 
+            let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let access = format!("eval_{}", &module.sym);
@@ -154,9 +179,11 @@ pub fn compile<'a>(
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
 
-                // println!("{:?}", module.eval);
                 cguint.eval();
-                // println!("{}", llmod.to_str());
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, "eval".to_string()), cx.to_str().to_string());
+                }
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -242,6 +269,16 @@ pub fn compile<'a>(
             assert_eq!(llmod.emit_object(main_file.as_ref()), Ok(()))
         }
     });
+
+    if dump_ir {
+        let irs_clone = Arc::clone(&irs);
+        let irs = irs_clone.lock().unwrap();
+        for ((i, fname), v) in irs.iter() {
+            println!("LLVM IR for {} in {}", fname, mnames[*i]);
+            println!("{}", v);
+            println!();
+        }
+    }
 
     paths.push(main_file);
     unsafe { LLVMDisposeTargetData(target_data) };

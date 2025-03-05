@@ -25,6 +25,8 @@ mod callbacks;
 mod tests;
 
 pub use builder::{Builder, BuilderVal, MemLoc};
+pub use callbacks::InlineCallbackBuilder;
+pub use callbacks::BuiltCallbackFun;
 pub use callbacks::CallbackFun;
 pub use context::CodegenCx;
 

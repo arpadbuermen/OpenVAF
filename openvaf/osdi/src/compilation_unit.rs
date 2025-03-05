@@ -11,7 +11,7 @@ use llvm::{
     LLVMSetUnnamedAddress, UnnamedAddr, UNNAMED,
 };
 use mir::{FuncRef, Function};
-use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm};
+use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, BuiltCallbackFun};
 use sim_back::dae::DaeSystem;
 use sim_back::init::Initialization;
 use sim_back::node_collapse::NodeCollapse;
@@ -171,12 +171,12 @@ pub fn general_callbacks<'ll>(
                         &[ptr_ty, ptr_ty, ptr_ty, builder.cx.ty_ptr()],
                         builder.cx.ty_double(),
                     );
-                    CallbackFun {
+                    CallbackFun::Prebuilt(BuiltCallbackFun{
                         fun_ty,
                         fun,
                         state: vec![simparam, handle, ret_flags].into_boxed_slice(),
                         num_state: 0,
-                    }
+                    })
                 }
                 CallBackKind::SimParamOpt => {
                     let fun = builder
@@ -187,12 +187,12 @@ pub fn general_callbacks<'ll>(
                         &[ptr_ty, builder.cx.ty_ptr(), builder.cx.ty_double()],
                         builder.cx.ty_double(),
                     );
-                    CallbackFun {
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
                         fun_ty,
                         fun,
                         state: vec![simparam].into_boxed_slice(),
                         num_state: 0,
-                    }
+                    })
                 }
                 CallBackKind::SimParamStr => {
                     let fun = builder
@@ -203,17 +203,17 @@ pub fn general_callbacks<'ll>(
                         &[ptr_ty, ptr_ty, ptr_ty, builder.cx.ty_ptr()],
                         builder.cx.ty_ptr(),
                     );
-                    CallbackFun {
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
                         fun_ty,
                         fun,
                         state: vec![simparam, handle, ret_flags].into_boxed_slice(),
                         num_state: 0,
-                    }
+                    })
                 }
                 // If these derivative were non zero they would have been removed
                 CallBackKind::Derivative(_) | CallBackKind::NodeDerivative(_) => {
                     let zero = builder.cx.const_real(0.0);
-                    builder.cx.const_callback(&[builder.cx.ty_double()], zero)
+                    CallbackFun::Prebuilt(builder.cx.const_callback(&[builder.cx.ty_double()], zero))
                 }
                 CallBackKind::ParamInfo(_, _)
                 | CallBackKind::CollapseHint(_, _)
@@ -228,7 +228,7 @@ pub fn general_callbacks<'ll>(
 
                 CallBackKind::Print { kind, arg_tys } => {
                     let (fun, fun_ty) = print_callback(builder.cx, *kind, arg_tys);
-                    CallbackFun { fun_ty, fun, state: Box::new([handle]), num_state: 0 }
+                    CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([handle]), num_state: 0 })
                 }, 
                 CallBackKind::SetRetFlag { flag } => {
                     let fun = if *flag==0 {
@@ -254,7 +254,7 @@ pub fn general_callbacks<'ll>(
                         &[ptr_ty],
                         builder.cx.ty_void(),
                     );
-                    CallbackFun { fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 }
+                    CallbackFun::Prebuilt( BuiltCallbackFun{ fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 } )
                 }
                 CallBackKind::Abort => return None, 
             };

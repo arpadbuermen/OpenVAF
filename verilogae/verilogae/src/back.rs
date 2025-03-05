@@ -6,7 +6,7 @@ use hir_lower::{CallBackKind, CurrentKind, HirInterner, ParamInfoKind, ParamKind
 use lasso::Rodeo;
 use llvm::{OptLevel, UNNAMED};
 use mir::{ControlFlowGraph, FuncRef, Function};
-use mir_llvm::{Builder, BuilderVal, CallbackFun, CodegenCx, LLVMBackend};
+use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, LLVMBackend};
 use stdx::iter::multiunzip;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
@@ -16,18 +16,18 @@ use crate::compiler_db::{
 };
 
 pub fn sim_param_stub<'ll>(cx: &CodegenCx<'_, 'll>) -> CallbackFun<'ll> {
-    cx.const_callback(&[cx.ty_ptr()], cx.const_real(0.0))
+    CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_ptr()], cx.const_real(0.0)))
 }
 
 pub fn sim_param_opt_stub<'ll>(cx: &CodegenCx<'_, 'll>) -> CallbackFun<'ll> {
-    cx.const_return(&[cx.ty_ptr(), cx.ty_double()], 1)
+    CallbackFun::Prebuilt(cx.const_return(&[cx.ty_ptr(), cx.ty_double()], 1))
 }
 
 pub fn sim_param_str_stub<'ll>(cx: &CodegenCx<'_, 'll>) -> CallbackFun<'ll> {
     let empty_str = cx.literals.get("").unwrap();
     let empty_str = cx.const_str(empty_str);
     let ty_str = cx.ty_ptr();
-    cx.const_callback(&[ty_str], empty_str)
+    CallbackFun::Prebuilt(cx.const_callback(&[ty_str], empty_str))
 }
 
 pub fn lltype<'ll>(ty: &Type, cx: &CodegenCx<'_, 'll>) -> &'ll llvm::Type {
@@ -61,15 +61,17 @@ pub fn stub_callbacks<'ll>(
                 | CallBackKind::FlickerNoise { .. }
                 | CallBackKind::WhiteNoise { .. }
                 | CallBackKind::NoiseTable(_) => {
-                    cx.const_callback(&[cx.ty_double()], cx.const_real(0.0))
+                    CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_double()], cx.const_real(0.0)))
                 }
                 CallBackKind::Print { .. }
                 | CallBackKind::ParamInfo(_, _)
                 | CallBackKind::BuiltinLimit { .. }
                 | CallBackKind::StoreLimit(_)
                 | CallBackKind::LimDiscontinuity
-                | CallBackKind::CollapseHint(_, _) => return None,
-                CallBackKind::Analysis => cx.const_callback(&[cx.ty_ptr()], cx.const_int(1)),
+                | CallBackKind::CollapseHint(_, _) 
+                | CallBackKind::SetRetFlag { .. } 
+                | CallBackKind::Abort => return None,
+                CallBackKind::Analysis => CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_ptr()], cx.const_int(1))),
             };
 
             Some(res)
@@ -595,12 +597,12 @@ impl CodegenCtx<'_, '_> {
                     param_info_unset_cb
                 };
 
-                let res = CallbackFun {
+                let res = CallbackFun::Prebuilt(BuiltCallbackFun {
                     fun_ty,
                     fun,
                     state: vec![dst, builder.cx.const_u8(bits)].into_boxed_slice(),
                     num_state: 0,
-                };
+                });
 
                 let cb = intern.callbacks.unwrap_index(&CallBackKind::ParamInfo(kind, *param));
                 builder.callbacks[cb] = Some(res)
