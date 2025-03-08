@@ -34,10 +34,12 @@ pub mod cursor;
 pub mod flowgraph;
 pub mod write;
 
+use core::fmt;
+
 use ahash::AHashMap;
 use bitset::HybridBitSet;
-use core::fmt;
 pub use lasso::{Interner, Spur};
+pub use stdx::Ieee64;
 use stdx::{impl_debug, impl_display, impl_idx_from};
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
@@ -55,7 +57,6 @@ pub use crate::instructions::{
 };
 pub use crate::layout::{InstCursor, InstIter, Layout};
 use crate::write::DummyResolver;
-pub use stdx::Ieee64;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct FunctionSignature {

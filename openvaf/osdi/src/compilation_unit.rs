@@ -2,16 +2,15 @@ use hir::CompilationDB;
 use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
 use hir_lower::{CallBackKind, HirInterner};
 use lasso::Rodeo;
-use llvm::Linkage;
 use llvm::{
     IntPredicate, LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd,
     LLVMBuildArrayMalloc, LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul,
     LLVMBuildFree, LLVMBuildICmp, LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi,
     LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
-    LLVMSetUnnamedAddress, UnnamedAddr, UNNAMED,
+    LLVMSetUnnamedAddress, Linkage, UnnamedAddr, UNNAMED,
 };
 use mir::{FuncRef, Function};
-use mir_llvm::{CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm, BuiltCallbackFun};
+use mir_llvm::{BuiltCallbackFun, CallbackFun, CodegenCx, LLVMBackend, ModuleLlvm};
 use sim_back::dae::DaeSystem;
 use sim_back::init::Initialization;
 use sim_back::node_collapse::NodeCollapse;
@@ -171,7 +170,7 @@ pub fn general_callbacks<'ll>(
                         &[ptr_ty, ptr_ty, ptr_ty, builder.cx.ty_ptr()],
                         builder.cx.ty_double(),
                     );
-                    CallbackFun::Prebuilt(BuiltCallbackFun{
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
                         fun_ty,
                         fun,
                         state: vec![simparam, handle, ret_flags].into_boxed_slice(),
@@ -213,7 +212,9 @@ pub fn general_callbacks<'ll>(
                 // If these derivative were non zero they would have been removed
                 CallBackKind::Derivative(_) | CallBackKind::NodeDerivative(_) => {
                     let zero = builder.cx.const_real(0.0);
-                    CallbackFun::Prebuilt(builder.cx.const_callback(&[builder.cx.ty_double()], zero))
+                    CallbackFun::Prebuilt(
+                        builder.cx.const_callback(&[builder.cx.ty_double()], zero),
+                    )
                 }
                 CallBackKind::ParamInfo(_, _)
                 | CallBackKind::CollapseHint(_, _)
@@ -228,16 +229,21 @@ pub fn general_callbacks<'ll>(
 
                 CallBackKind::Print { kind, arg_tys } => {
                     let (fun, fun_ty) = print_callback(builder.cx, *kind, arg_tys);
-                    CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([handle]), num_state: 0 })
-                }, 
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
+                        fun_ty,
+                        fun,
+                        state: Box::new([handle]),
+                        num_state: 0,
+                    })
+                }
                 CallBackKind::SetRetFlag { flag } => {
-                    let fun = if *flag==0 {
+                    let fun = if *flag == 0 {
                         // Fatal
                         builder
                             .cx
                             .get_func_by_name("set_ret_flag_fatal")
                             .expect("stdlib function set_ret_flag_fatal is missing")
-                    } else if  *flag==1 {
+                    } else if *flag == 1 {
                         // Finish
                         builder
                             .cx
@@ -250,13 +256,15 @@ pub fn general_callbacks<'ll>(
                             .get_func_by_name("set_ret_flag_stop")
                             .expect("stdlib function set_ret_flag_stop is missing")
                     };
-                    let fun_ty = builder.cx.ty_func(
-                        &[ptr_ty],
-                        builder.cx.ty_void(),
-                    );
-                    CallbackFun::Prebuilt( BuiltCallbackFun{ fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 } )
+                    let fun_ty = builder.cx.ty_func(&[ptr_ty], builder.cx.ty_void());
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
+                        fun_ty,
+                        fun,
+                        state: Box::new([ret_flags]),
+                        num_state: 0,
+                    })
                 }
-                CallBackKind::Abort => return None, 
+                CallBackKind::Abort => return None,
             };
             Some(cb)
         })

@@ -6,7 +6,12 @@ use anyhow::{bail, Context, Result};
 use basedb::VfsStorage;
 use camino::{Utf8Path, Utf8PathBuf};
 use lasso::Rodeo;
+#[cfg(unix)]
+use libloading::os::unix::Library;
+#[cfg(windows)]
+use libloading::os::windows::Library;
 use linker::link;
+pub use llvm::OptLevel;
 use mir_llvm::LLVMBackend;
 use salsa::ParallelDatabase;
 use stdx::iter::zip;
@@ -18,13 +23,6 @@ use crate::api::{Opts, VfsEntry};
 use crate::compiler_db::{CompilationDB, ModelInfo};
 use crate::middle::{build_module_mir, build_param_init_mir};
 use crate::opts::abs_path;
-pub use llvm::OptLevel;
-
-#[cfg(windows)]
-use libloading::os::windows::Library;
-
-#[cfg(unix)]
-use libloading::os::unix::Library;
 
 pub mod api;
 mod back;

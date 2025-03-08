@@ -12,10 +12,11 @@ mod util;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
+use pyo3_ffi::*;
+
 use crate::load::{load_info_py, load_py, load_vfs};
 use crate::model::{VAE_FUNCTION_TY, VAE_MODEL_TY, VAE_PARAM_TY};
 use crate::typeref::init_typerefs;
-use pyo3_ffi::*;
 
 #[cfg(Py_3_8)]
 const FUN_FLAG: c_int = METH_FASTCALL;

@@ -1,4 +1,6 @@
+pub use basedb::diagnostics::*;
 use basedb::AstIdMap;
+pub use basedb::{BaseDB, FileId};
 use hir_def::db::HirDefDB;
 use hir_def::nameres::diagnostics::DefDiagnosticWrapped;
 use hir_def::nameres::{DefMap, LocalScopeId, ScopeDefItem, ScopeOrigin};
@@ -10,9 +12,6 @@ use hir_ty::validation::{
 };
 use syntax::sourcemap::SourceMap;
 use syntax::{Parse, SourceFile};
-
-pub use basedb::diagnostics::*;
-pub use basedb::{BaseDB, FileId};
 
 use crate::{CompilationDB, HirDatabase};
 

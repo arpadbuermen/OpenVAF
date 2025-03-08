@@ -25,9 +25,7 @@ mod callbacks;
 mod tests;
 
 pub use builder::{Builder, BuilderVal, MemLoc};
-pub use callbacks::InlineCallbackBuilder;
-pub use callbacks::BuiltCallbackFun;
-pub use callbacks::CallbackFun;
+pub use callbacks::{BuiltCallbackFun, CallbackFun, InlineCallbackBuilder};
 pub use context::CodegenCx;
 
 pub struct LLVMBackend<'t> {

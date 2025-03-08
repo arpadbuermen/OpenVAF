@@ -1,5 +1,4 @@
 use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
-
 use llvm::IntPredicate::IntSLT;
 use llvm::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,
@@ -7,7 +6,9 @@ use llvm::{
     UNNAMED,
 };
 use mir::ControlFlowGraph;
-use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder};
+use mir_llvm::{
+    Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder,
+};
 use sim_back::SimUnknownKind;
 
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
@@ -16,7 +17,11 @@ use crate::inst_data::OsdiInstanceParam;
 struct VoidAbortCallback;
 
 impl<'ll> InlineCallbackBuilder<'ll> for VoidAbortCallback {
-    fn build_inline(&self, builder: & Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Value { 
+    fn build_inline(
+        &self,
+        builder: &Builder<'_, '_, 'll>,
+        state: &Box<[&'ll llvm::Value]>,
+    ) -> &'ll llvm::Value {
         let cx = builder.cx;
         unsafe {
             // state[0] .. ret_flags value
@@ -26,26 +31,30 @@ impl<'ll> InlineCallbackBuilder<'ll> for VoidAbortCallback {
             // Store ret_flags in flags field
             let ret_flags = builder.load(cx.ty_int(), state[0]);
             builder.store(state[1], ret_flags);
-            
+
             // Create return and continue block
             let ret_block = LLVMAppendBasicBlockInContext(cx.llcx, state[2], UNNAMED);
             let cont_block = LLVMAppendBasicBlockInContext(cx.llcx, state[2], UNNAMED);
-            
+
             // Branch always to return block
             let cond = cx.const_bool(true);
             LLVMBuildCondBr(builder.llbuilder, cond, ret_block, cont_block);
-            
+
             // Add ret_void to return block
             LLVMPositionBuilderAtEnd(builder.llbuilder, ret_block);
             builder.ret_void();
-            
+
             // Position builder at start of continue block (will be discarded after optimization)
             LLVMPositionBuilderAtEnd(builder.llbuilder, cont_block);
         }
-        cx.const_int(0) 
+        cx.const_int(0)
     }
 
-    fn return_type(&self, builder: &Builder<'_, '_, 'll>, _state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Type {
+    fn return_type(
+        &self,
+        builder: &Builder<'_, '_, 'll>,
+        _state: &Box<[&'ll llvm::Value]>,
+    ) -> &'ll llvm::Type {
         builder.cx.ty_int()
     }
 }
@@ -221,10 +230,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         builder.select_bb(exit_bb);
-        unsafe { 
+        unsafe {
             let ret_flags_val = builder.load(cx.ty_int(), ret_flags);
             builder.store(flags, ret_flags_val);
-            builder.ret_void() 
+            builder.ret_void()
         }
 
         llfunc
@@ -410,12 +419,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         num_state: 2,
                     })
                 }
-                CallBackKind::Abort => {
-                    CallbackFun::Inline { 
-                        builder: Box::new(VoidAbortCallback), 
-                        state: Box::new([ret_flags, flags, llfunc])
-                    }
-                }
+                CallBackKind::Abort => CallbackFun::Inline {
+                    builder: Box::new(VoidAbortCallback),
+                    state: Box::new([ret_flags, flags, llfunc]),
+                },
                 _ => continue,
             };
 
@@ -471,10 +478,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             }
         }
 
-        unsafe { 
+        unsafe {
             let ret_flags_val = builder.load(cx.ty_int(), ret_flags);
             builder.store(flags, ret_flags_val);
-            builder.ret_void() 
+            builder.ret_void()
         }
 
         for (&val, &slot) in module.init.cached_vals.iter() {

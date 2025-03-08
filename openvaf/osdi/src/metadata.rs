@@ -12,7 +12,7 @@ use smol_str::SmolStr;
 
 use crate::compilation_unit::{OsdiCompilationUnit, OsdiModule};
 use crate::inst_data::{
-    OsdiInstanceParam, COLLAPSED, JACOBIAN_PTR_REACT, JACOBIAN_PTR_RESIST, NODE_MAPPING, STATE_IDX
+    OsdiInstanceParam, COLLAPSED, JACOBIAN_PTR_REACT, JACOBIAN_PTR_RESIST, NODE_MAPPING, STATE_IDX,
 };
 use crate::load::JacobianLoadType;
 use crate::metadata::osdi_0_4::{
@@ -232,13 +232,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     }
 
     pub fn inputs(&self) -> Vec<OsdiNodePair> {
-        self.module.dae_system.model_inputs.iter().map(|(node1, node2)| {
-            OsdiNodePair {
-                node_1: (*node1).into(), 
-                node_2: (*node2).into(), 
-            }
-        })
-        .collect()
+        self.module
+            .dae_system
+            .model_inputs
+            .iter()
+            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1).into(), node_2: (*node2).into() })
+            .collect()
     }
 
     pub fn descriptor(
@@ -249,7 +248,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let collapsible = self.collapsible();
         let inputs = self.inputs();
         let OsdiCompilationUnit { ref inst_data, ref model_data, module, cx, .. } = *self;
-        
+
         unsafe {
             let node_mapping_offset =
                 LLVMOffsetOfElement(target_data, inst_data.ty, NODE_MAPPING) as u32;
@@ -260,7 +259,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let bound_step_offset = inst_data.bound_step_elem().map_or(u32::MAX, |elem| {
                 LLVMOffsetOfElement(target_data, inst_data.ty, elem) as u32
             });
-            
+
             let state_idx_off = LLVMOffsetOfElement(target_data, inst_data.ty, STATE_IDX) as u32;
 
             let instance_size = LLVMABISizeOfType(target_data, inst_data.ty) as u32;
@@ -319,15 +318,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 num_states: self.module.intern.lim_state.len() as u32,
                 load_limit_rhs_resist: self.load_lim_rhs(false),
                 load_limit_rhs_react: self.load_lim_rhs(true),
-                given_flag_model: self.given_flag_model(), 
-                given_flag_instance: self.given_flag_instance(), 
-                num_resistive_jacobian_entries: module.dae_system.num_resistive, 
-                num_reactive_jacobian_entries: module.dae_system.num_reactive, 
+                given_flag_model: self.given_flag_model(),
+                given_flag_instance: self.given_flag_instance(),
+                num_resistive_jacobian_entries: module.dae_system.num_resistive,
+                num_reactive_jacobian_entries: module.dae_system.num_reactive,
                 write_jacobian_array_resist: self.write_jacobian_array(JacobianLoadType::Resist),
                 write_jacobian_array_react: self.write_jacobian_array(JacobianLoadType::React),
-                num_inputs: inputs.len() as u32, 
-                inputs: inputs, 
-                load_jacobian_with_offset_resist: self.load_jacobian(JacobianLoadType::Resist, true),
+                num_inputs: inputs.len() as u32,
+                inputs,
+                load_jacobian_with_offset_resist: self
+                    .load_jacobian(JacobianLoadType::Resist, true),
                 load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
             }
         }

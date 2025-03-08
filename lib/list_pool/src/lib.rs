@@ -2,6 +2,7 @@
 
 use std::marker::PhantomData;
 use std::mem;
+
 use stdx::packed_option::ReservedValue;
 
 /// A small list of entity references allocated from a pool.

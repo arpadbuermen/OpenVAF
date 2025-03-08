@@ -68,10 +68,12 @@ pub fn stub_callbacks<'ll>(
                 | CallBackKind::BuiltinLimit { .. }
                 | CallBackKind::StoreLimit(_)
                 | CallBackKind::LimDiscontinuity
-                | CallBackKind::CollapseHint(_, _) 
-                | CallBackKind::SetRetFlag { .. } 
+                | CallBackKind::CollapseHint(_, _)
+                | CallBackKind::SetRetFlag { .. }
                 | CallBackKind::Abort => return None,
-                CallBackKind::Analysis => CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_ptr()], cx.const_int(1))),
+                CallBackKind::Analysis => {
+                    CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_ptr()], cx.const_int(1)))
+                }
             };
 
             Some(res)

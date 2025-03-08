@@ -5,11 +5,10 @@ use std::sync::Mutex;
 use anyhow::{bail, Result};
 use camino::Utf8PathBuf;
 use clap::ArgMatches;
-use mimalloc::MiMalloc;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
-
 use cli_def::{main_command, INPUT};
+use mimalloc::MiMalloc;
 use openvaf::{compile, expand, CompilationDestination, CompilationTermination, Opts};
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use crate::cli_def::{DUMP_JSON, PRINT_EXPANSION};
 use crate::cli_process::matches_to_opts;

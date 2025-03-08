@@ -4,9 +4,11 @@
 
 use std::error::Error;
 use std::fmt::Write as FmtWrite;
+use std::fs::File;
+use std::io::Write;
 use std::panic::PanicInfo;
-use std::{env, fs::File, io::Write, path::Path, path::PathBuf};
-use std::{io, mem, panic};
+use std::path::{Path, PathBuf};
+use std::{env, io, mem, panic};
 
 use backtrace::Backtrace;
 use backtrace_ext::short_frames_strict;
