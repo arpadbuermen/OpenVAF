@@ -126,11 +126,10 @@ impl<N: AstToken> Iterator for AstChildTokens<N> {
 }
 
 pub(crate) mod support {
-    use crate::ast::RevAstChildren;
-
     use super::{
         AstChildTokens, AstChildren, AstNode, AstToken, SyntaxKind, SyntaxNode, SyntaxToken,
     };
+    use crate::ast::RevAstChildren;
 
     pub(crate) fn child<N: AstNode>(parent: &SyntaxNode) -> Option<N> {
         parent.children().find_map(N::cast)

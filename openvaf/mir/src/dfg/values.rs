@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 
 use ahash::AHashMap;
+use consts::*;
 use lasso::Spur;
 use stdx::packed_option::PackedOption;
 use typed_index_collections::TiVec;
@@ -8,8 +9,6 @@ use typed_index_collections::TiVec;
 use crate::dfg::uses::UseData;
 use crate::entities::{Param, Tag};
 use crate::{DataFlowGraph, Ieee64, Inst, Use, Value};
-
-use consts::*;
 
 macro_rules! consts {
     (
@@ -53,9 +52,7 @@ macro_rules! consts {
 pub mod consts {
     use std::f64::consts::{LN_2, LOG10_E};
 
-    use super::DfgValues;
-    use super::Value;
-    use super::ValueDataType;
+    use super::{DfgValues, Value, ValueDataType};
 
     consts! {
         // Place holder for unused values that must remain (in phis)

@@ -33,8 +33,8 @@ pub enum CallBackKind {
     WhiteNoise { name: Spur, idx: u32 },
     FlickerNoise { name: Spur, idx: u32 },
     NoiseTable(Box<NoiseTable>),
-    SetRetFlag{ flag: u32 }, 
-    Abort, 
+    SetRetFlag { flag: u32 },
+    Abort,
 }
 
 impl CallBackKind {

@@ -44,10 +44,10 @@ pub struct DaeSystem {
     /// noise
     pub noise_sources: Vec<NoiseSource>,
     /// model inputs (node pairs)
-    pub model_inputs: Vec<(u32, u32)>, 
+    pub model_inputs: Vec<(u32, u32)>,
     /// Jacobian entry counts
-    pub num_resistive : u32, 
-    pub num_reactive : u32, 
+    pub num_resistive: u32,
+    pub num_reactive: u32,
 }
 
 impl DaeSystem {

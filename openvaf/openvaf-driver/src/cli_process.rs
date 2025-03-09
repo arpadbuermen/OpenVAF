@@ -4,12 +4,14 @@ use std::process::exit;
 use anyhow::{bail, Context, Result};
 use camino::Utf8PathBuf;
 use clap::ArgMatches;
-use openvaf::{builtin_lints, get_target_names, host_triple, AbsPathBuf, LintLevel, OptLevel};
+use openvaf::{
+    builtin_lints, get_target_names, host_triple, AbsPathBuf, LLVMCodeGenOptLevel, LintLevel,
+};
 use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 
 use crate::cli_def::{
-    ALLOW, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPMIR, DUMPUNOPTMIR, DUMPIR, INCLUDE, INPUT, LINTS, OPT_LVL,
-    OUTPUT, SUPPORTED_TARGETS, TARGET, TARGET_CPU, WARN,
+    ALLOW, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPIR, DUMPMIR, DUMPUNOPTMIR,
+    INCLUDE, INPUT, LINTS, OPT_LVL, OUTPUT, SUPPORTED_TARGETS, TARGET, TARGET_CPU, WARN,
 };
 use crate::{CompilationDestination, Opts};
 
@@ -83,10 +85,10 @@ pub fn matches_to_opts(matches: ArgMatches) -> Result<Opts> {
     let include = include?;
 
     let opt_lvl = match &**matches.get_one::<String>(OPT_LVL).unwrap() {
-        "0" => OptLevel::None,
-        "1" => OptLevel::Less,
-        "2" => OptLevel::Default,
-        "3" => OptLevel::Aggressive,
+        "0" => LLVMCodeGenOptLevel::LLVMCodeGenLevelNone,
+        "1" => LLVMCodeGenOptLevel::LLVMCodeGenLevelLess,
+        "2" => LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault,
+        "3" => LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive,
         lvl => bail!("unknown opt lvl {lvl}"),
     };
 
@@ -114,9 +116,9 @@ pub fn matches_to_opts(matches: ArgMatches) -> Result<Opts> {
         opt_lvl,
         target,
         target_cpu,
-        dump_mir: matches.get_flag(DUMPMIR), 
-        dump_unopt_mir: matches.get_flag(DUMPUNOPTMIR), 
-        dump_ir: matches.get_flag(DUMPIR), 
+        dump_mir: matches.get_flag(DUMPMIR),
+        dump_unopt_mir: matches.get_flag(DUMPUNOPTMIR),
+        dump_ir: matches.get_flag(DUMPIR),
         dry_run: matches.get_flag(DRYRUN),
     })
 }
