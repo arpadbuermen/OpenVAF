@@ -860,7 +860,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                 let sum = self.ins().fadd(dlhs, drhs);
                 self.ins().fdiv(sum, cache[0].unwrap_unchecked())
             }
-            Opcode::Br | Opcode::Jmp | Opcode::Phi  => unreachable!(),
+            Opcode::Br | Opcode::Jmp | Opcode::Phi | Opcode::Exit  => unreachable!(),
         };
 
         self.insert_derivative(res, unknown, val)

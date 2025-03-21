@@ -101,6 +101,10 @@ pub trait RetBuilder {
     fn ret(self) -> Inst;
 }
 
+// This should not be used for returning because it creates an invalid MIR. 
+// Must implement a new instruction (e.g. Exit). 
+// Currently it is used only in MirBuilder within hir_lowering for jumping to 
+// last_block after the Verilog-A code. 
 impl<'short, 'long> RetBuilder for InsertBuilder<'short, FuncInstBuilder<'short, 'long>> {
     fn ret(self) -> Inst {
         let exit = self.inserter.builder.func.layout.last_block().unwrap();
@@ -135,6 +139,9 @@ impl<'short, 'long> InstInserterBase<'short> for FuncInstBuilder<'short, 'long> 
             }
             InstructionData::Jump { destination } => {
                 self.builder.declare_successor(destination);
+                self.builder.fill_current_block()
+            }
+            InstructionData::Exit  => {
                 self.builder.fill_current_block()
             }
 

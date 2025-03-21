@@ -3,25 +3,33 @@ use std::slice;
 use arrayvec::ArrayVec;
 use libc::c_uint;
 use llvm::{
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, UNNAMED,
+    TypeKind, 
+    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMGetReturnType, LLVMGetTypeKind, LLVMTypeOf, UNNAMED
 };
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef, F_ZERO, ZERO
 };
 use typed_index_collections::TiVec;
+use std::cell::Cell;
 
 use crate::callbacks::CallbackFun;
 use crate::CodegenCx;
 
 #[derive(Clone)]
 pub struct MemLoc<'ll> {
+    // Pointer to structure
     pub ptr: &'ll llvm::Value,
+    // Structure type
     pub ptr_ty: &'ll llvm::Type,
+    // Field type
     pub ty: &'ll llvm::Type,
+    // Indices
     pub indices: Box<[&'ll llvm::Value]>,
 }
 
 impl<'ll> MemLoc<'ll> {
+    // Construct a MemLoc for accessing a structure pointed to by ptr 
+    // of type ptr_type. Field type is ty and field index is idx. 
     pub fn struct_gep(
         ptr: &'ll llvm::Value,
         ptr_ty: &'ll llvm::Type,
@@ -39,6 +47,8 @@ impl<'ll> MemLoc<'ll> {
     /// # Safety
     ///
     /// ptr_ty, ty and indices must be valid for ptr
+    /// 
+    /// Read the value corresponding to this MemLoc. 
     pub unsafe fn read(&self, llbuilder: &llvm::Builder<'ll>) -> &'ll llvm::Value {
         self.read_with_ptr(llbuilder, self.ptr)
     }
@@ -46,6 +56,8 @@ impl<'ll> MemLoc<'ll> {
     /// # Safety
     ///
     /// ptr_ty, ty and indices must be valid for ptr
+    /// 
+    /// Read the value pointed to by ptr. The type is given by self.ty. 
     pub unsafe fn read_with_ptr(
         &self,
         llbuilder: &llvm::Builder<'ll>,
@@ -58,6 +70,9 @@ impl<'ll> MemLoc<'ll> {
     /// # Safety
     ///
     /// ptr_ty and indices must be valid for ptr
+    /// 
+    /// Read structure field corresponding to this MemLoc. 
+    /// Builds a GEP instruction. 
     pub unsafe fn to_ptr(&self, llbuilder: &llvm::Builder<'ll>) -> &'ll llvm::Value {
         self.to_ptr_from(llbuilder, self.ptr)
     }
@@ -65,6 +80,10 @@ impl<'ll> MemLoc<'ll> {
     /// # Safety
     ///
     /// ptr_ty and indices must be valid for ptr
+    /// 
+    /// Read field from a structure pointed to by ptr. 
+    /// Structure type is obtained from self.ptr_ty. 
+    /// Indices are obtained from self.indices. 
     pub unsafe fn to_ptr_from(
         &self,
         llbuilder: &llvm::Builder<'ll>,
@@ -85,6 +104,7 @@ impl<'ll> MemLoc<'ll> {
 }
 
 impl<'ll> From<MemLoc<'ll>> for BuilderVal<'ll> {
+    // Conversion of MemLoc into BuilderVal. 
     fn from(loc: MemLoc<'ll>) -> Self {
         BuilderVal::Load(Box::new(loc))
     }
@@ -92,14 +112,18 @@ impl<'ll> From<MemLoc<'ll>> for BuilderVal<'ll> {
 
 #[derive(Clone)]
 pub enum BuilderVal<'ll> {
+    // No defined
     Undef,
+    // Value that is an LLVM IR Value
     Eager(&'ll llvm::Value),
+    // Value that must be read from memory
     Load(Box<MemLoc<'ll>>),
     // Never used
     // Call(Box<CallbackFun<'ll>>),
 }
 
 impl<'ll> From<&'ll llvm::Value> for BuilderVal<'ll> {
+    // Conversion from LLVM IR Value into BuilderVal
     fn from(val: &'ll llvm::Value) -> Self {
         BuilderVal::Eager(val)
     }
@@ -109,6 +133,8 @@ impl<'ll> BuilderVal<'ll> {
     /// # Safety
     ///
     /// For Self::Load and Self::Call, the values must be valid
+    /// 
+    /// Get the value described by this BuilderVal. 
     pub unsafe fn get(&self, builder: &Builder<'_, '_, 'll>) -> &'ll llvm::Value {
         match self {
             BuilderVal::Undef => unreachable!("attempted to read undefined value"),
@@ -131,6 +157,8 @@ impl<'ll> BuilderVal<'ll> {
     /// # Safety
     ///
     /// For Self::Load and Self::Call, the values must be valid
+    /// 
+    /// Get the Value type described by this BuilderVal. 
     pub unsafe fn get_ty(&self, builder: &Builder<'_, '_, 'll>) -> Option<&'ll llvm::Type> {
         let ty = match self {
             BuilderVal::Undef => return None,
@@ -165,6 +193,21 @@ pub struct Builder<'a, 'cx, 'll> {
     pub prepend_pos: &'ll llvm::BasicBlock,
     pub unfinished_phis: Vec<(PhiNode, &'ll llvm::Value)>,
     pub fun: &'ll llvm::Value,
+    // True if the functiomn that is being built returns void
+    pub return_void: bool, 
+    // Value allocated on stack that holds the return value. 
+    // Here the SetRetFlag callback will store the return value. 
+    pub ret_allocated: Option<&'ll llvm::Value>, 
+    // Type of the return value. If ret_allocated is None this is None too. 
+    pub ret_alloc_type: Option<&'ll llvm::Type>, 
+    // Pointer to a memory location where the ret_allocated value will 
+    // be stored before return from the function. 
+    // This pointer is set later (after new()) because we need 
+    // a working builder to extract the pointer to a member from 
+    // a structure. That's why it is wrapped in a Cell. 
+    // Initially the value in the Cell is None. 
+    // If None, nothing is stored at return. 
+    pub ret_store_ptr: Cell<Option<&'ll llvm::Value>>, 
 }
 
 impl Drop for Builder<'_, '_, '_> {
@@ -186,6 +229,8 @@ impl<'a, 'cx, 'll> Builder<'a, 'cx, 'll> {
         cx: &'a CodegenCx<'cx, 'll>,
         mir_func: &'a Function,
         llfunc: &'ll llvm::Value,
+        ret_alloc_type: Option<&'ll llvm::Type>, 
+        return_void: bool, 
     ) -> Self {
         let entry = unsafe { llvm::LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED) };
         let llbuilder = unsafe { llvm::LLVMCreateBuilderInContext(cx.llcx) };
@@ -195,6 +240,15 @@ impl<'a, 'cx, 'll> Builder<'a, 'cx, 'll> {
                 unsafe { Some(llvm::LLVMAppendBasicBlockInContext(cx.llcx, llfunc, UNNAMED)) };
         }
         unsafe { llvm::LLVMPositionBuilderAtEnd(llbuilder, entry) };
+        
+        // Allocate return value if not void
+        let ret_allocated = unsafe {
+            if let Some(ret_alloc_type) = ret_alloc_type {
+                Some(llvm::LLVMBuildAlloca(llbuilder, ret_alloc_type, UNNAMED))
+            } else {
+                None
+            }
+        };
 
         Builder {
             llbuilder,
@@ -207,6 +261,10 @@ impl<'a, 'cx, 'll> Builder<'a, 'cx, 'll> {
             fun: llfunc,
             prepend_pos: entry,
             unfinished_phis: Vec::new(),
+            return_void, 
+            ret_allocated, 
+            ret_alloc_type, 
+            ret_store_ptr: Cell::new(None), 
         }
     }
 }
@@ -423,17 +481,42 @@ impl<'ll> Builder<'_, '_, 'll> {
         }
     }
 
-    /// # Safety
-    /// must not be called multiple times
-    /// a terminator must not be build for the exit bb trough other means
-    pub unsafe fn ret(&self, val: &'ll llvm::Value) {
-        llvm::LLVMBuildRet(self.llbuilder, val);
+    /// Store value where self.ret_store_ptr points. 
+    /// This is done only if self.ret_store_ptr is not None. 
+    unsafe fn ret_store(&self, val: &'ll llvm::Value) {
+        let ptr_w = self.ret_store_ptr.get();
+        if let Some(ptr) = ptr_w {
+            self.store(ptr, val);
+        }
     }
 
     /// # Safety
     /// must not be called multiple times
     /// a terminator must not be build for the exit bb trough other means
+    /// If ret_allocated is None, panics. 
+    /// Takes the value from where self.ret_allocated points to. 
+    /// Stores the value where ret_store_ptr points to (if given). 
+    /// Builds a ret. 
+    pub unsafe fn ret(&self) {
+        if self.ret_allocated.is_none() {
+            panic!("Attempt to create a ret instruction without allocated return value.")
+        }
+        let ret_val_ptr = self.ret_allocated.unwrap();
+        let ret_val = self.load(self.ret_alloc_type.unwrap(), ret_val_ptr);
+        self.ret_store(ret_val);
+        llvm::LLVMBuildRet(self.llbuilder, ret_val);
+    }
+
+    /// # Safety
+    /// must not be called multiple times
+    /// a terminator must not be build for the exit bb trough other means
+    /// Stores the value where ret_store_ptr points to (if given). 
+    /// Builds a ret_void. 
     pub unsafe fn ret_void(& self) {
+        if let Some(ret_val_ptr) = self.ret_allocated {
+            let ret_val = self.load(self.ret_alloc_type.unwrap(), ret_val_ptr);
+            self.ret_store(ret_val); 
+        }
         llvm::LLVMBuildRetVoid(self.llbuilder);
     }
 
@@ -466,6 +549,14 @@ impl<'ll> Builder<'_, '_, 'll> {
                 self.unfinished_phis.push((phi.clone(), llval));
                 let res = self.func.dfg.first_result(inst);
                 self.values[res] = llval.into();
+                return;
+            }
+            mir::InstructionData::Exit => {
+                if self.return_void {
+                    self.ret_void();
+                } else {
+                    self.ret();
+                }
                 return;
             }
             mir::InstructionData::Jump { destination } => {
@@ -680,7 +771,7 @@ impl<'ll> Builder<'_, '_, 'll> {
             Opcode::Atanh => self.intrinsic(args, "atanh"),
             Opcode::Pow => self.intrinsic(args, "llvm.pow.f64"),
             Opcode::OptBarrier => self.values[args[0]].get(self),
-            Opcode::Br | Opcode::Jmp | Opcode::Call | Opcode::Phi => unreachable!(),
+            Opcode::Br | Opcode::Jmp | Opcode::Call | Opcode::Phi | Opcode::Exit => unreachable!(),
         };
 
         let res = self.func.dfg.first_result(inst);

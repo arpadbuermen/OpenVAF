@@ -69,8 +69,7 @@ pub fn stub_callbacks<'ll>(
                 | CallBackKind::StoreLimit(_)
                 | CallBackKind::LimDiscontinuity
                 | CallBackKind::CollapseHint(_, _) 
-                | CallBackKind::SetRetFlag { .. } 
-                | CallBackKind::Abort => return None,
+                | CallBackKind::SetRetFlag { .. } => return None,
                 CallBackKind::Analysis => CallbackFun::Prebuilt(cx.const_callback(&[cx.ty_ptr()], cx.const_int(1))),
             };
 
@@ -320,7 +319,7 @@ impl CodegenCtx<'_, '_> {
         let llfun = cx.declare_ext_fn(&spec.prefix, fun_ty);
 
         // setup builder
-        let mut builder = Builder::new(&cx, func, llfun);
+        let mut builder = Builder::new(&cx, func, llfun, Some(cx.ty_int()), true); 
 
         let mut codegen =
             Codegen { db, model_info: self.model_info, intern, builder: &mut builder, func, spec };
@@ -656,7 +655,7 @@ impl CodegenCtx<'_, '_> {
 
         let llfun = cx.declare_ext_fn("init_modelcard", fun_ty);
 
-        let mut builder = Builder::new(&cx, &param_init_func, llfun);
+        let mut builder = Builder::new(&cx, &param_init_func, llfun, Some(cx.ty_int()), true);
 
         // read parameters
 

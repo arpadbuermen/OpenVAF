@@ -157,6 +157,7 @@ impl<'a> CompiledModule<'a> {
         dump_unopt_mir: bool, 
         dump_mir: bool, 
     ) -> CompiledModule<'a> {
+        // Build MIR for the module
         let mut cx = Context::new(db, literals, module);
 
         if dump_unopt_mir {
@@ -164,11 +165,13 @@ impl<'a> CompiledModule<'a> {
             print_mir(literals, &cx.func);
         }
         
+        // Some basic optimization
         cx.compute_outputs(true);
         cx.compute_cfg();
         cx.optimize(OptimiziationStage::Initial);
         debug_assert!(cx.func.validate());
-
+        
+        // Add extra stuff needed for evaluating the DAE system
         let topology = Topology::new(&mut cx);
         debug_assert!(cx.func.validate());
         let mut dae_system = DaeSystem::new(&mut cx, topology);
@@ -179,26 +182,34 @@ impl<'a> CompiledModule<'a> {
             print_mir(literals, &cx.func);
         }
         
+        // Optimization
         cx.compute_cfg();
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
 
         debug_assert!(cx.func.validate());
 
+        // Instance setup MIR - a copy of module MIR where only those instructions 
+        // are kept that do not depend on op. 
+        // This removes all instructions that do not depend on op from module MIR. 
         cx.refresh_op_dependent_insts();
         let mut init = Initialization::new(&mut cx, gvn);
+        // Build node collapse pairs
         let node_collapse = NodeCollapse::new(&init, &dae_system, &cx);
         debug_assert!(cx.func.validate());
         debug_assert!(init.func.validate());
         
         // TODO: refactor param intilization to use tables
+        // Make a list of instance parameters
         let inst_params: Vec<_> = module
             .params
             .iter()
             .filter_map(|(param, info)| info.is_instance.then_some(*param))
             .collect();
+        // Add initialization of instance parameters
         init.intern.insert_param_init(db, &mut init.func, literals, false, true, &inst_params);
-
+        
+        // Model setup MIR
         let mut model_param_setup = Function::default();
         let model_params: Vec<_> = module.params.keys().copied().collect();
         let mut model_param_intern = HirInterner::default();
@@ -217,7 +228,7 @@ impl<'a> CompiledModule<'a> {
         
         if dump_mir {
             println!("Optimized model setup MIR of {}", module.module.name(db));
-            print_mir(literals, &init.func);
+            print_mir(literals, &model_param_setup);
             println!();
         
             println!("Optimized instance setup MIR of {}", module.module.name(db));

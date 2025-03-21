@@ -35,6 +35,7 @@ pub enum InstructionData {
     PhiNode(PhiNode),
     Jump { destination: Block },
     Call { func_ref: FuncRef, args: ValueList },
+    Exit, 
 }
 
 impl From<PhiNode> for InstructionData {
@@ -62,7 +63,7 @@ impl InstructionData {
     }
 
     pub fn is_terminator(&self) -> bool {
-        matches!(self, InstructionData::Branch { .. } | InstructionData::Jump { .. })
+        matches!(self, InstructionData::Branch { .. } | InstructionData::Jump { .. } | InstructionData::Exit)
     }
 
     pub fn unwrap_phi_mut(&mut self) -> &mut PhiNode {
@@ -90,6 +91,7 @@ impl InstructionData {
             }
 
             InstructionData::Jump { .. } => &mut [],
+            InstructionData::Exit { .. } => &mut [],
         }
     }
 
@@ -106,6 +108,7 @@ impl InstructionData {
             }
 
             InstructionData::Jump { .. } => &[],
+            InstructionData::Exit { .. } => &[],
         }
     }
 
@@ -117,6 +120,7 @@ impl InstructionData {
             InstructionData::Jump { .. } => Opcode::Jmp,
             InstructionData::PhiNode { .. } => Opcode::Phi,
             InstructionData::Branch { .. } => Opcode::Br,
+            InstructionData::Exit { .. } => Opcode::Exit,
         }
     }
 
@@ -194,6 +198,9 @@ impl InstructionData {
                 args.as_slice(val_pool).hash(state);
             }
             InstructionData::PhiNode(node) => node.hash(state, val_pool, forest),
+            InstructionData::Exit  => {
+                0.hash(state);
+            }, 
         }
     }
 

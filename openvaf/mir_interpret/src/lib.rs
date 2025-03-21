@@ -101,6 +101,10 @@ impl<'a> Interpreter<'a> {
                 self.state.next_inst = self.func.layout.next_inst(inst);
                 return;
             }
+            mir::InstructionData::Exit => {
+                self.state.next_inst = None;
+                return;
+            }
         };
 
         // advance first so we can early return later
@@ -180,7 +184,7 @@ impl<'a> Interpreter<'a> {
             mir::Opcode::Atan2 => f64::atan2(args(0).f64(), args(1).f64()).into(),
             mir::Opcode::Pow => f64::powf(args(0).f64(), args(1).f64()).into(),
             mir::Opcode::Br | mir::Opcode::Jmp => unreachable!(),
-            mir::Opcode::Call | mir::Opcode::Phi => return,
+            mir::Opcode::Call | mir::Opcode::Phi | Opcode::Exit => return,
         };
         self.state.vals[res] = val;
     }

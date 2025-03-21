@@ -293,6 +293,9 @@ pub fn write_operands(w: &mut dyn Write, dfg: &DataFlowGraph, inst: Inst) -> fmt
         InstructionData::Jump { destination, .. } => {
             write!(w, " {}", destination)
         }
+        InstructionData::Exit => {
+            write!(w, "")
+        }
         InstructionData::Branch { then_dst, else_dst, cond, loop_entry, .. } => {
             let tag = if loop_entry { "[loop]" } else { "" };
             write!(w, " {}, {}{}, {}", cond, then_dst, tag, else_dst)

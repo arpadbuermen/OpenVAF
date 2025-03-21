@@ -18,7 +18,7 @@ use syntax::ast::{BinaryOp, UnaryOp};
 use crate::body::BodyLoweringCtx;
 use crate::fmt::DisplayKind;
 use crate::{
-    CallBackKind, CurrentKind, IdtKind, ImplicitEquationKind, NoiseTable, ParamKind, PlaceKind,
+    RetFlag, CallBackKind, CurrentKind, IdtKind, ImplicitEquationKind, NoiseTable, ParamKind, PlaceKind,
 };
 
 impl BodyLoweringCtx<'_, '_, '_> {
@@ -437,9 +437,16 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 self.ins_display(DisplayKind::Fatal, true, args);
                 // Fatal code is 0 (used for translation MIR->IR)
                 let call_args = vec![];
-                self.ctx.call(CallBackKind::SetRetFlag{flag: 0}, &call_args);
-                let call_args = vec![];
-                self.ctx.call(CallBackKind::Abort, &call_args);
+                self.ctx.call(CallBackKind::SetRetFlag(RetFlag::Abort), &call_args);
+                self.ctx.ins().exit();
+                
+                // Create unreachable block for the remainder of iftrue (after $fatal). 
+                // Seal it (it is the replacement of the original iftrue block). 
+                // Because it has no incoming edges it will be removed from MIR. 
+                let unreachable_bb = self.ctx.create_block();
+                self.ctx.switch_to_block(unreachable_bb);
+                self.ctx.seal_block(unreachable_bb);
+                
                 GRAVESTONE
             }
             BuiltIn::analysis => {
@@ -670,14 +677,14 @@ impl BodyLoweringCtx<'_, '_, '_> {
             BuiltIn::finish => {
                 // Finish code is 1 (used for translation MIR->IR)
                 let call_args = vec![];
-                self.ctx.call(CallBackKind::SetRetFlag{flag: 1}, &call_args);
+                self.ctx.call(CallBackKind::SetRetFlag(RetFlag::Finish), &call_args);
                 GRAVESTONE
             }
             
             BuiltIn::stop => {
                 // Stop code is 2 (used for translation MIR->IR)
                 let call_args = vec![];
-                self.ctx.call(CallBackKind::SetRetFlag{flag: 2}, &call_args);
+                self.ctx.call(CallBackKind::SetRetFlag(RetFlag::Stop), &call_args);
                 GRAVESTONE
             },
 

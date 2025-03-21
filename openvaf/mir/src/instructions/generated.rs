@@ -7,6 +7,7 @@ pub enum InstructionFormat {
     Binary,
     Branch,
     Jump,
+    Exit,
     Call,
     PhiNode,
 }
@@ -79,10 +80,11 @@ pub enum Opcode {
     Pow = 64u8,
     Br = 65u8,
     Jmp = 66u8,
-    Call = 67u8,
-    Phi = 68u8,
+    Exit = 67u8,
+    Call = 68u8,
+    Phi = 69u8,
 }
-pub(super) const OPCODE_CONSTRAINTS: [OpcodeConstraints; 68usize + 1] = [
+pub(super) const OPCODE_CONSTRAINTS: [OpcodeConstraints; 69usize + 1] = [
     OpcodeConstraints::new(0, 0),
     OpcodeConstraints::new(1u8, 1u8),
     OpcodeConstraints::new(1u8, 1u8),
@@ -151,9 +153,10 @@ pub(super) const OPCODE_CONSTRAINTS: [OpcodeConstraints; 68usize + 1] = [
     OpcodeConstraints::new(1u8, 0u8),
     OpcodeConstraints::new(0u8, 0u8),
     OpcodeConstraints::new(0u8, 0u8),
+    OpcodeConstraints::new(0u8, 0u8),
     OpcodeConstraints::new(0u8, 1u8),
 ];
-pub(super) const OPCODE_NAMES: [&str; 68usize + 1] = [
+pub(super) const OPCODE_NAMES: [&str; 69usize + 1] = [
     "",
     "inot",
     "bnot",
@@ -221,10 +224,11 @@ pub(super) const OPCODE_NAMES: [&str; 68usize + 1] = [
     "pow",
     "br",
     "jmp",
+    "exit",
     "call",
     "phi",
 ];
-pub(super) const OPCODE_FORMAT: [InstructionFormat; 68usize + 1] = [
+pub(super) const OPCODE_FORMAT: [InstructionFormat; 69usize + 1] = [
     InstructionFormat::Binary,
     InstructionFormat::Unary,
     InstructionFormat::Unary,
@@ -292,6 +296,7 @@ pub(super) const OPCODE_FORMAT: [InstructionFormat; 68usize + 1] = [
     InstructionFormat::Binary,
     InstructionFormat::Branch,
     InstructionFormat::Jump,
+    InstructionFormat::Exit,
     InstructionFormat::Call,
     InstructionFormat::PhiNode,
 ];
@@ -365,6 +370,7 @@ impl std::str::FromStr for Opcode {
             "pow" => Ok(Opcode::Pow),
             "br" => Ok(Opcode::Br),
             "jmp" => Ok(Opcode::Jmp),
+            "exit" => Ok(Opcode::Exit),
             "call" => Ok(Opcode::Call),
             "phi" => Ok(Opcode::Phi),
             _ => Err("Unknown opcode"),

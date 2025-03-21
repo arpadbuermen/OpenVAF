@@ -148,6 +148,10 @@ opcodes! {
         Jmp
     }
 
+    Exit(0) -> 0 {
+        Exit
+    }
+
     @varargs Call {
         Call(0) -> 0
     }
@@ -351,6 +355,11 @@ fn gen_instr_builder() {
 
             fn jump(self, destination: Block) -> Inst {
                 let data = InstructionData::Jump { destination };
+                self.build(data).0
+            }
+
+            fn exit(self) -> Inst {
+                let data = InstructionData::Exit;
                 self.build(data).0
             }
 

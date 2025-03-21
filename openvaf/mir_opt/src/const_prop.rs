@@ -49,8 +49,9 @@ pub fn sparse_conditional_constant_propagation(func: &mut Function, cfg: &Contro
                 }
             }
         } else if let ValueDef::Result(inst, _) = func.dfg.value_def(val) {
+            // Do not zap last_block because it contains DAE stuff
             if let Some(bb) = func.layout.inst_block(inst) {
-                if !executable_blocks.contains(bb) {
+                if !executable_blocks.contains(bb) && Some(bb)!=func.layout.last_block() {
                     func.dfg.zap_inst(inst);
                     func.layout.remove_inst(inst)
                 }
@@ -167,6 +168,9 @@ impl ConstSolver<'_> {
             }
             InstructionData::Jump { destination } => {
                 self.mark_edge_feasible(bb, destination);
+            }
+            InstructionData::Exit => {
+                // TODO: probably nothing to do
             }
             InstructionData::Call { .. } => {
                 let mut i = 0;

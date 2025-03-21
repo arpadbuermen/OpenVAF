@@ -108,6 +108,8 @@ impl Layout {
     }
 
     /// Insert `block` as the last block in the layout.
+    /// This defines its prev and next pointers and 
+    /// updates the first_block and last_block pointers of the layout. 
     pub fn append_block(&mut self, block: Block) {
         debug_assert!(
             !self.is_block_inserted(block),
@@ -174,7 +176,7 @@ impl Layout {
             curr = n.next.expand();
             *n = InstNode::default();
         }
-
+        
         self.blocks[block].first_inst = None.into();
         self.blocks[block].last_inst = None.into();
     }
@@ -633,12 +635,15 @@ impl InstCursor {
         let rval = self.head;
         if let Some(inst) = rval {
             if self.head == self.tail {
+                // Head and tail point at the same instruction, make both None
                 self.head = None;
                 self.tail = None;
             } else {
+                // Move head forward
                 self.head = layout.insts[inst].next.into();
             }
         }
+        // Return previous position of head
         rval
     }
 }

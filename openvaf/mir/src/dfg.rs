@@ -319,7 +319,7 @@ impl DataFlowGraph {
 
     pub fn has_sideeffects(&self, inst: Inst, keep_branches: bool) -> bool {
         match self.insts[inst] {
-            InstructionData::Branch { .. } | InstructionData::Jump { .. } => keep_branches,
+            InstructionData::Branch { .. } | InstructionData::Jump { .. } | InstructionData::Exit { .. } => keep_branches,
             InstructionData::Call { func_ref, .. } => self.signatures[func_ref].has_sideeffects,
             _ => false,
         }

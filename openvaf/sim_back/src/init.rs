@@ -37,12 +37,20 @@ pub struct Initialization {
 
 impl Initialization {
     pub(super) fn new(cx: &mut Context<'_>, gvn: GVN) -> Initialization {
+        // Create empty blocks in init MIR based on layout of module MIR
         let mut builder = Builder::new(cx);
         for _ in 0..builder.func.layout.num_blocks() {
+            // prev, next references of block node are None 
+            // first_inst, last_inst references of block node are None
+            // The block is empty and not linked to other blocks in the layout
             builder.init.func.layout.make_block();
         }
+        // Start at first block of module MIR (cursor points to the first block with its next field)
         let mut blocks = builder.func.layout.blocks_cursor();
+        // Traverse blocks in the module MIR
         while let Some(bb) = blocks.next(&builder.func.layout) {
+            // Copy instructions that are not op dependent to instance setup MIR
+            // and zap them in module MIR. 
             builder.split_block(bb);
         }
         let collapse_implicit = builder.build_init_itern();
@@ -91,17 +99,31 @@ impl<'a> Builder<'a> {
     }
 
     fn split_block(&mut self, bb: Block) {
+        // Insert block bb at the end of the layout, i.e. define its prev and next pointers
         self.init.func.layout.append_block(bb);
+        // This cursor spans a range of instructions in the module MIR. 
+        // Range is from first to last instruction in bb (head..tail)
         let mut bb_cursor = self.func.layout.block_inst_cursor(bb);
+        // Traverse instructions by moving the cursor head forward
         while let Some(inst) = bb_cursor.next(&self.func.layout) {
             // don't copy operating point dependent instructions to the new
             // function
             if self.op_dependent_insts.contains(inst) {
+                // Instruction depends on op
+                // Branch that depends on op is converted into a jump to the else block. 
+                // Therefore the whole branch and its successors cannot be copied to init... 
+                // we just create a jump to the else branch and remove this whole branch and 
+                // its successors later. 
                 match self.func.dfg.insts[inst] {
                     // We need to copy terminators to ensure the control structure remains intact
                     InstructionData::Branch { else_dst: destination, .. }
                     | InstructionData::Jump { destination } => {
                         FuncCursor::new(&mut self.init.func).at_bottom(bb).ins().jump(destination);
+                        let srcloc = self.func.srclocs.get(inst).copied().unwrap_or_default();
+                        self.init.func.srclocs.push(srcloc);
+                    }
+                    InstructionData::Exit => {
+                        FuncCursor::new(&mut self.init.func).at_bottom(bb).ins().exit();
                         let srcloc = self.func.srclocs.get(inst).copied().unwrap_or_default();
                         self.init.func.srclocs.push(srcloc);
                     }
@@ -116,6 +138,7 @@ impl<'a> Builder<'a> {
                     _ => (),
                 }
             } else {
+                // Instruction does not depend on op, copy it
                 self.copy_instruction(inst, bb)
             }
         }

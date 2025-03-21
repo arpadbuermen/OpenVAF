@@ -22,6 +22,8 @@ use crate::metadata::osdi_0_4::{
 use crate::metadata::OsdiLimFunction;
 use crate::OsdiLimId;
 
+/* 
+// Inline callback example
 struct AbortCallback;
 
 impl<'ll> InlineCallbackBuilder<'ll> for AbortCallback {
@@ -36,13 +38,11 @@ impl<'ll> InlineCallbackBuilder<'ll> for AbortCallback {
             let cont_block = LLVMAppendBasicBlockInContext(cx.llcx, state[1], UNNAMED);
             
             // Branch always to return block
-            let cond = cx.const_bool(true);
-            LLVMBuildCondBr(builder.llbuilder, cond, ret_block, cont_block);
+            LLVMBuildBr(builder.llbuilder, ret_block);
 
             // Add ret to return block
             LLVMPositionBuilderAtEnd(builder.llbuilder, ret_block);
-            let ret_flags = builder.load(cx.ty_int(), state[0]);
-            builder.ret(ret_flags);
+            builder.ret();
 
             // Position builder at start of continue block (will be discarded after optimization)
             LLVMPositionBuilderAtEnd(builder.llbuilder, cont_block);
@@ -54,6 +54,7 @@ impl<'ll> InlineCallbackBuilder<'ll> for AbortCallback {
         builder.cx.ty_int()
     }
 }
+*/
 
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     pub fn eval_prototype(&self) -> &'ll llvm::Value {
@@ -73,7 +74,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let func = module.eval;
         let intern = module.intern;
 
-        let mut builder = Builder::new(cx, func, llfunc);
+        let mut builder = Builder::new(cx, func, llfunc, Some(cx.ty_int()), false);
 
         let handle = unsafe { llvm::LLVMGetParam(llfunc, 0) };
         let instance = unsafe { llvm::LLVMGetParam(llfunc, 1) };
@@ -103,7 +104,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
         let flags = MemLoc::struct_gep(sim_info, sim_info_ty, cx.ty_int(), 5, cx);
 
-        let ret_flags = unsafe { builder.alloca(cx.ty_int()) };
+        let ret_flags = builder.ret_allocated.unwrap();
         unsafe { builder.store(ret_flags, cx.const_int(0)) };
 
         let connected_ports = unsafe { inst_data.load_connected_ports(&builder, instance) };
@@ -304,12 +305,6 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr()], cx.ty_int());
                     CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([sim_info]), num_state: 0 })
                 }
-                CallBackKind::Abort => {
-                    CallbackFun::Inline { 
-                        builder: Box::new(AbortCallback), 
-                        state: Box::new([ret_flags, llfunc])
-                    }
-                }
                 _ => continue,
             };
             builder.callbacks[func] = Some(cb);
@@ -371,8 +366,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
             inst_data.store_bound_step(instance, &builder);
 
-            let ret_flags = builder.load(cx.ty_int(), ret_flags);
-            builder.ret(ret_flags);
+            builder.ret();
         }
 
         llfunc

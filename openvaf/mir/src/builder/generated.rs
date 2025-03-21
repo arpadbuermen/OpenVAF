@@ -47,6 +47,10 @@ pub trait InstBuilder<'f>: InstBuilderBase<'f> {
         let data = InstructionData::Jump { destination };
         self.build(data).0
     }
+    fn exit(self) -> Inst {
+        let data = InstructionData::Exit;
+        self.build(data).0
+    }
     fn build_call(self, func_ref: FuncRef, args: ValueList) -> (Inst, &'f mut DataFlowGraph) {
         let data = InstructionData::Call { args, func_ref };
         self.build(data)

@@ -1,6 +1,6 @@
 use hir::CompilationDB;
 use hir_lower::fmt::{DisplayKind, FmtArg, FmtArgKind};
-use hir_lower::{CallBackKind, HirInterner};
+use hir_lower::{CallBackKind, RetFlag, HirInterner};
 use lasso::Rodeo;
 use llvm::Linkage;
 use llvm::{
@@ -230,25 +230,27 @@ pub fn general_callbacks<'ll>(
                     let (fun, fun_ty) = print_callback(builder.cx, *kind, arg_tys);
                     CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([handle]), num_state: 0 })
                 }, 
-                CallBackKind::SetRetFlag { flag } => {
-                    let fun = if *flag==0 {
+                CallBackKind::SetRetFlag( flag ) => {
+                    let fun = if *flag==RetFlag::Abort {
                         // Fatal
                         builder
                             .cx
                             .get_func_by_name("set_ret_flag_fatal")
                             .expect("stdlib function set_ret_flag_fatal is missing")
-                    } else if  *flag==1 {
+                    } else if  *flag==RetFlag::Finish {
                         // Finish
                         builder
                             .cx
                             .get_func_by_name("set_ret_flag_finish")
                             .expect("stdlib function set_ret_flag_finish is missing")
-                    } else {
+                    } else if *flag==RetFlag::Stop {
                         // Stop
                         builder
                             .cx
                             .get_func_by_name("set_ret_flag_stop")
                             .expect("stdlib function set_ret_flag_stop is missing")
+                    } else {
+                        panic!("Unsupported RetFlag encountered.");
                     };
                     let fun_ty = builder.cx.ty_func(
                         &[ptr_ty],
@@ -256,7 +258,6 @@ pub fn general_callbacks<'ll>(
                     );
                     CallbackFun::Prebuilt( BuiltCallbackFun{ fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 } )
                 }
-                CallBackKind::Abort => return None, 
             };
             Some(cb)
         })

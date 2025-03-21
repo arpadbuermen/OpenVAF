@@ -15,7 +15,7 @@ use stdx::{impl_debug_display, impl_idx_from};
 use typed_index_collections::TiVec;
 use typed_indexmap::{map, TiMap, TiSet};
 
-pub use callbacks::{CallBackKind, NoiseTable, ParamInfoKind};
+pub use callbacks::{RetFlag, CallBackKind, NoiseTable, ParamInfoKind};
 
 use crate::body::BodyLoweringCtx;
 use crate::ctx::LoweringCtx;

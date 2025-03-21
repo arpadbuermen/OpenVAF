@@ -771,6 +771,7 @@ impl<'a> Parser<'a> {
 
                 InstructionData::PhiNode(PhiNode { args, blocks })
             }
+            InstructionFormat::Exit => InstructionData::Exit
         };
         Ok(idata)
     }

@@ -581,11 +581,23 @@ impl<'a> SimplifyCfg<'a> {
         self.local_changed = true;
     }
 
+    fn is_empty_exit_bb(&self, bb: Block) -> bool {
+        // Is first instruction an exit terminator
+        if let Some(terminator) = self.func.layout.block_insts(bb).next() {
+            if let InstructionData::Exit = self.func.dfg.insts[terminator] {
+                return true;
+            }
+        }
+        return false;
+    }
+
     fn simplify_bb(&mut self, bb: Block) {
         // Remove basic blocks that have no predecessors (except the entry block)...
         // or that just have themself as a predecessor.  These are unreachable.
+        // Do not remove last block in layout
         if (self.cfg[bb].predecessors.is_empty() || self.cfg.self_loop(bb))
             && Some(bb) != self.func.layout.entry_block()
+            && self.func.layout.last_block()!=Some(bb)
         {
             // remove phi phi_edges
             for succ in self.cfg.succ_iter(bb) {
@@ -603,6 +615,32 @@ impl<'a> SimplifyCfg<'a> {
             self.cfg.recompute_block(self.func, bb);
             return;
         }
+
+        // Blocks with Branch terminator that lead into an empty block with an Exit terminator. 
+        // The branch terminator is replaced with a Jump to the non-exit block
+        // If both destinations are empty exit blocks, jump to else block
+        if let Some(terminator) = self.func.layout.block_insts(bb).last() {
+            if let InstructionData::Branch { then_dst, else_dst, ..} = self.func.dfg.insts[terminator] {
+                if self.is_empty_exit_bb(then_dst) {
+                    // Replace Branch with jump to else_dst
+                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: else_dst };
+
+                    // Recompute cfg for block
+                    self.cfg.recompute_block(self.func, bb);
+
+                    return;
+                } else if self.is_empty_exit_bb(else_dst) {
+                    // Replace branch with jump to then_dst
+                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: then_dst };
+
+                    // Recompute cfg for block
+                    self.cfg.recompute_block(self.func, bb);
+
+                    return;
+                }
+            }
+        }
+            
 
         self.const_fold_terminator(bb);
         if self.vals_changed.remove(bb) {
