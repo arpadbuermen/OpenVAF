@@ -2,7 +2,6 @@
 #include "llvm/Support/CrashRecoveryContext.h"
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/Function.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
 #include <iostream>
 #include <mutex>
@@ -40,8 +39,4 @@ void LLVMPurgeAttrs(LLVMValueRef V) {
   }
 }
 
-void LLVMPassManagerBuilderSLPVectorize(LLVMPassManagerBuilderRef PMB) {
-  PassManagerBuilder *Builder = unwrap(PMB);
-  Builder->SLPVectorize = true;
-}
 }

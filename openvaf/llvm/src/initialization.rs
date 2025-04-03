@@ -86,17 +86,6 @@ unsafe fn configure_llvm(cg_opts: &[String], tg_opts: &[String]) {
     //     llvm::LLVMTimeTraceProfilerInitialize();
     // }
 
-    let registry = LLVMGetGlobalPassRegistry();
-    LLVMInitializeCore(registry);
-    LLVMInitializeCodeGen(registry);
-    LLVMInitializeScalarOpts(registry);
-    LLVMInitializeVectorization(registry);
-    LLVMInitializeIPO(registry);
-    LLVMInitializeAnalysis(registry);
-    LLVMInitializeTransformUtils(registry);
-    LLVMInitializeInstCombine(registry);
-    LLVMInitializeTarget(registry);
-
     initialize_available_targets();
 
     LLVMParseCommandLineOptions(

@@ -10,7 +10,7 @@ use llvm::support::LLVMString;
 pub use llvm::OptLevel;
 use llvm::{
     LLVMDisposeMessage, LLVMGetDiagInfoDescription, LLVMGetDiagInfoSeverity,
-    LLVMGetHostCPUFeatures, LLVMGetHostCPUName, LLVMPassManagerBuilderDispose,
+    LLVMGetHostCPUFeatures, LLVMGetHostCPUName,
 };
 use target::spec::Target;
 
@@ -193,25 +193,6 @@ impl ModuleLlvm {
     }
 
     pub fn optimize(&self) {
-        let llmod = self.llmod();
-
-        unsafe {
-            let builder = llvm::LLVMPassManagerBuilderCreate();
-            llvm::pass_manager_builder_set_opt_lvl(builder, self.opt_lvl);
-            llvm::LLVMPassManagerBuilderSetSizeLevel(builder, 0);
-
-            let fpm = llvm::LLVMCreateFunctionPassManagerForModule(llmod);
-            llvm::LLVMPassManagerBuilderPopulateFunctionPassManager(builder, fpm);
-            llvm::run_function_pass_manager(fpm, llmod);
-            llvm::LLVMDisposePassManager(fpm);
-
-            let mpm = llvm::LLVMCreatePassManager();
-            llvm::LLVMPassManagerBuilderPopulateModulePassManager(builder, mpm);
-            llvm::LLVMRunPassManager(mpm, llmod);
-            llvm::LLVMDisposePassManager(mpm);
-
-            LLVMPassManagerBuilderDispose(builder);
-        }
     }
 
     /// Verifies this module and prints out  any errors
