@@ -19,8 +19,10 @@
                     "kind": "bin"
                 }
             },
-            "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "initfatal.va" ],
-            // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "resistor.va" ],
+            // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "initfatal.va" ],
+            // "args": [ /*"--dump-mir", "--dump-unopt-mir",*/ "--dump-ir", "simdio.va" ],
+            // "args": [ /*"--dump-mir", "--dump-unopt-mir",*/ "--dump-ir", "-C-ffast-math", "/home/arpadb/sim/VACASK/devices/spice/bjt.va" ],
+            "args": [ /*"--dump-mir", "--dump-unopt-mir",*/ "--dump-ir", "simp.va" ],
             "cwd": "${workspaceFolder}/..",
             "env": {
                 "RAYON_NUM_THREADS": "1" 

@@ -45,6 +45,7 @@ pub fn compile<'a>(
     dump_mir: bool, 
     dump_unopt_mir: bool, 
     dump_ir: bool, 
+    dump_unopt_ir: bool, 
 ) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
@@ -92,6 +93,7 @@ pub fn compile<'a>(
 
     let main_file = dst.with_extension("o");
     
+    let unoptirs = Arc::new(Mutex::new(HashMap::new()));
     let irs = Arc::new(Mutex::new(HashMap::new()));
     
     rayon_core::scope(|scope| {
@@ -102,18 +104,20 @@ pub fn compile<'a>(
 
         for (i, module) in osdi_modules.iter().enumerate() {
             let _db = db.snapshot();
+            let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             scope.spawn(move |_| {
                 let access = format!("access_{}", &module.sym);
+                let name1 = access.clone();
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
                 
                 cguint.access_function();
-                if dump_ir {
-                    let mut irs = irs_clone.lock().unwrap();
-                    irs.insert((i, access), cx.to_str().to_string());
+                if dump_unopt_ir {
+                    let mut unoptirs = unoptirs_clone.lock().unwrap();
+                    unoptirs.insert((i, access), cx.to_str().to_string());
                 }
                 debug_assert!(llmod.verify_and_print());
 
@@ -122,44 +126,58 @@ pub fn compile<'a>(
                     llmod.optimize();
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
+
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, name1), llmod.to_str().to_string());
+                }
             });
             
+            let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_model_{}", &module.sym);
+                let name1 = name.clone();
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_model();
-                if dump_ir {
-                    let mut irs = irs_clone.lock().unwrap();
-                    irs.insert((i, "setup_model".to_string()), cx.to_str().to_string());
+                if dump_unopt_ir {
+                    let mut unoptirs = unoptirs_clone.lock().unwrap();
+                    unoptirs.insert((i, name), cx.to_str().to_string());
                 }
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
                     let path = &paths[i * 4 + 1];
-                    // llmod.optimize();
+                    llmod.optimize();
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
+                }
+
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
             
+            let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let name = format!("setup_instance_{}", &module.sym);
+                let name1 = name.clone();
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
-                if dump_ir {
-                    let mut irs = irs_clone.lock().unwrap();
-                    irs.insert((i, "setup_instance".to_string()), cx.to_str().to_string());
+                if dump_unopt_ir {
+                    let mut unoptirs = unoptirs_clone.lock().unwrap();
+                    unoptirs.insert((i, name), cx.to_str().to_string());
                 }
                 debug_assert!(llmod.verify_and_print());
 
@@ -168,21 +186,28 @@ pub fn compile<'a>(
                     llmod.optimize();
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
                 }
+
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, name1), llmod.to_str().to_string());
+                }
             });
 
+            let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
             scope.spawn(move |_| {
                 let access = format!("eval_{}", &module.sym);
+                let name1 = access.clone();
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
 
                 cguint.eval();
-                if dump_ir {
-                    let mut irs = irs_clone.lock().unwrap();
-                    irs.insert((i, "eval".to_string()), cx.to_str().to_string());
+                if dump_unopt_ir {
+                    let mut unoptirs = unoptirs_clone.lock().unwrap();
+                    unoptirs.insert((i, access), llmod.to_str().to_string());
                 }
                 debug_assert!(llmod.verify_and_print());
 
@@ -190,6 +215,11 @@ pub fn compile<'a>(
                     let path = &paths[i * 4 + 3];
                     llmod.optimize();
                     assert_eq!(llmod.emit_object(path.as_ref()), Ok(()))
+                }
+
+                if dump_ir {
+                    let mut irs = irs_clone.lock().unwrap();
+                    irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
         }
@@ -270,11 +300,21 @@ pub fn compile<'a>(
         }
     });
 
+    if dump_unopt_ir {
+        let unoptirs_clone = Arc::clone(&unoptirs);
+        let unoptirs = unoptirs_clone.lock().unwrap();
+        for ((i, fname), v) in unoptirs.iter() {
+            println!("LLVM IR for {} in {}", fname, mnames[*i]);
+            println!("{}", v);
+            println!();
+        }
+    }
+
     if dump_ir {
         let irs_clone = Arc::clone(&irs);
         let irs = irs_clone.lock().unwrap();
         for ((i, fname), v) in irs.iter() {
-            println!("LLVM IR for {} in {}", fname, mnames[*i]);
+            println!("Optimized LLVM IR for {} in {}", fname, mnames[*i]);
             println!("{}", v);
             println!();
         }

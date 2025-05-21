@@ -3,6 +3,7 @@ use std::mem::size_of;
 use llvm::IntPredicate::{IntEQ, IntNE};
 use llvm::{
     LLVMBuildAnd, LLVMBuildGEP2, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildOr, LLVMBuildStore,
+    mark_load_readonly, 
     UNNAMED,
 };
 use mir_llvm::{CodegenCx, MemLoc};
@@ -47,9 +48,13 @@ pub unsafe fn is_set<'ll>(
     arr_ptr: &'ll llvm::Value,
     arr_ty: &'ll llvm::Type,
     llbuilder: &llvm::Builder<'ll>,
+    readonly: bool, 
 ) -> &'ll llvm::Value {
     let (ptr, mask) = word_ptr_and_mask(cx, pos, arr_ptr, arr_ty, llbuilder);
     let word = LLVMBuildLoad2(llbuilder, cx.ty_int(), ptr, UNNAMED);
+    if readonly {
+        mark_load_readonly(word, cx.llcx);
+    }
     let is_set = LLVMBuildAnd(llbuilder, word, mask, UNNAMED);
     let zero = cx.const_int(0);
     LLVMBuildICmp(llbuilder, IntNE, is_set, zero, UNNAMED)
@@ -74,7 +79,7 @@ pub unsafe fn is_flag_set_mem<'ll>(
     val: &MemLoc<'ll>,
     llbuilder: &llvm::Builder<'ll>,
 ) -> &'ll llvm::Value {
-    is_flag_set(cx, flag, val.read(llbuilder), llbuilder)
+    is_flag_set(cx, flag, val.read(llbuilder, cx), llbuilder)
 }
 
 // pub unsafe fn is_flag_unset_mem<'ll>(

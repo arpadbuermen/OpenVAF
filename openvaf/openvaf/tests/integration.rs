@@ -31,6 +31,7 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         dump_mir: false, 
         dump_unopt_mir: false, 
         dump_ir: false, 
+        dump_unopt_ir: false, 
     };
 
     let res = openvaf::compile(&openvaf_opts).unwrap();

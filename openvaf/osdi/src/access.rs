@@ -262,7 +262,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 LLVMAddCase(switch_inst, case, bb);
                 
                 // Build code for checking the parameter given flag
-                let is_given = inst_data.is_nth_param_given(cx, param_idx as u32, ptr, llbuilder);
+                let is_given = inst_data.is_nth_param_given(cx, param_idx as u32, ptr, llbuilder, false);
                 let is_given = LLVMBuildSelect(llbuilder, is_given, one, zero, UNNAMED);
                 
                 // Return value
@@ -321,7 +321,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 LLVMAddCase(switch_inst, case, bb);
                 
                 // Build code for checking the parameter given flag
-                let is_given = model_data.is_nth_inst_param_given(cx, param_idx as u32, ptr, llbuilder);
+                let is_given = model_data.is_nth_inst_param_given(cx, param_idx as u32, ptr, llbuilder, false);
                 let is_given = LLVMBuildSelect(llbuilder, is_given, one, zero, UNNAMED);
                 
                 // Return value
@@ -339,7 +339,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 LLVMAddCase(switch_inst, case, bb);
                 
                 // Build code for checking the parameter given flag
-                let is_given = model_data.is_nth_param_given(cx, param_idx as u32, ptr, llbuilder);
+                let is_given = model_data.is_nth_param_given(cx, param_idx as u32, ptr, llbuilder, false);
                 let is_given = LLVMBuildSelect(llbuilder, is_given, one, zero, UNNAMED);
                 
                 // Return value

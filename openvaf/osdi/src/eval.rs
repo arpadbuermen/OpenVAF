@@ -143,10 +143,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 let val = unsafe {
                     match *kind {
                         ParamKind::Param(param) => {
-                            return inst_data
+                            let memloc = inst_data
                                 .param_loc(cx, OsdiInstanceParam::User(param), instance)
-                                .unwrap_or_else(|| model_data.param_loc(cx, param, model).unwrap())
-                                .into()
+                                .unwrap_or_else(|| model_data.param_loc(cx, param, model).unwrap()); 
+                            return BuilderVal::Load(Box::new(memloc), true);
                         }
                         ParamKind::Voltage { hi, lo } => {
                             let hi = get_prev_solve(SimUnknownKind::KirchoffLaw(hi));
@@ -182,6 +182,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                                 OsdiInstanceParam::User(param),
                                 instance,
                                 builder.llbuilder,
+                                true
                             );
                             match inst_given {
                                 Some(inst_given) => {
@@ -191,12 +192,13 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                                         OsdiInstanceParam::User(param),
                                         model,
                                         builder.llbuilder,
+                                        true
                                     );
 
                                     builder.select(inst_given, true_, model_given)
                                 }
                                 None => model_data
-                                    .is_param_given(cx, param, model, builder.llbuilder)
+                                    .is_param_given(cx, param, model, builder.llbuilder, true)
                                     .unwrap(),
                             }
                         }
@@ -217,7 +219,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             .unwrap(),
                         ParamKind::HiddenState(_) => unreachable!(), // TODO  hidden state
                         ParamKind::EnableIntegration => {
-                            let flags = flags.read(builder.llbuilder);
+                            let flags = flags.read(builder.llbuilder, builder.cx);
                             let is_not_dc =
                                 is_flag_set(cx, CALC_REACT_JACOBIAN, flags, builder.llbuilder);
                             let is_not_ic =
@@ -252,14 +254,21 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         }
                     }
                 };
+                // println!("Eager evaluation: {:?}", kind);
                 BuilderVal::Eager(val)
             })
             .collect();
-
-        let cache_vals = (0..module.init.cache_slots.len()).map(|i| unsafe {
+        
+        // Eager loading of cache slots, make it lazy
+        let cache_vals = (0..module.init.cache_slots.len()).map(|i| {
             let slot = i.into();
-            let val = inst_data.load_cache_slot(module, builder.llbuilder, slot, instance);
-            BuilderVal::Eager(val)
+            // unsafe {
+            //     let val = inst_data.load_cache_slot(module, builder.llbuilder, builder.cx.llcx, slot, instance);
+            //     BuilderVal::Eager(val)
+            // }
+            
+            let (memloc, booleanize) = inst_data.cache_slot_memloc(module, builder.cx, slot, instance);
+            BuilderVal::LoadCache(Box::new(memloc), true, booleanize)
         });
 
         params.extend(cache_vals);

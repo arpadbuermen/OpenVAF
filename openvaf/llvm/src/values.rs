@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use libc::{c_char, c_double, c_uint, c_ulonglong};
 
 use crate::{
@@ -431,4 +433,18 @@ extern "C" {
         IncomingBlocks: *const &'a BasicBlock,
         Count: c_uint,
     );
+}
+
+pub fn llvm_value_to_string(val: &Value) -> String {
+    unsafe {
+        let c_str = LLVMPrintValueToString(val);
+        if c_str.is_null() {
+            return "<NULL>".to_string();
+        }
+        let c_str = std::ffi::CStr::from_ptr(c_str as *const c_char);
+        match c_str.to_str() {
+            Ok(s) => s.to_owned(), 
+            Err(_) => "<NULL>".to_string()
+        }
+    }
 }

@@ -541,10 +541,11 @@ impl<'ll> OsdiInstanceData<'ll> {
         cx: &CodegenCx<'_, 'll>,
         pos: u32,
         ptr: &'ll llvm::Value,
-        llbuilder: &llvm::Builder<'ll>,
+        llbuilder: &llvm::Builder<'ll>, 
+        readonly: bool
     ) -> &'ll llvm::Value {
         let arr_ptr = LLVMBuildStructGEP2(llbuilder, self.ty, ptr, PARAM_GIVEN, UNNAMED);
-        bitfield::is_set(cx, pos, arr_ptr, self.param_given, llbuilder)
+        bitfield::is_set(cx, pos, arr_ptr, self.param_given, llbuilder, readonly)
     }
 
     pub unsafe fn is_param_given(
@@ -553,9 +554,10 @@ impl<'ll> OsdiInstanceData<'ll> {
         param: OsdiInstanceParam,
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
+        readonly: bool
     ) -> Option<&'ll llvm::Value> {
         let pos = self.params.get_index_of(&param)?;
-        let res = self.is_nth_param_given(cx, pos as u32, ptr, llbuilder);
+        let res = self.is_nth_param_given(cx, pos as u32, ptr, llbuilder, readonly);
         Some(res)
     }
 
@@ -807,10 +809,26 @@ impl<'ll> OsdiInstanceData<'ll> {
         (ptr, ty)
     }
 
+    pub fn cache_slot_memloc(
+        &self,
+        module: &OsdiModule,
+        cx: &CodegenCx<'_, 'll>,
+        slot: CacheSlot, 
+        ptr: &'ll llvm::Value,
+    ) -> (MemLoc<'ll>, bool) {
+        let elem = self.cache_slot_elem(slot);
+        let ty = self.cache_slots[slot];
+        // self.ty is the OsdiInstanceData type, elem is index within OsdiInstanceData
+        // ty is the slot type
+        let booleanize = module.init.cache_slots[slot] == hir::Type::Bool;
+        (MemLoc::struct_gep(ptr, self.ty, ty, elem, cx), booleanize)
+    }
+
     pub unsafe fn load_cache_slot(
         &self,
         module: &OsdiModule,
         llbuilder: &llvm::Builder<'ll>,
+        llcx: &llvm::Context, 
         slot: CacheSlot,
         ptr: &'ll llvm::Value,
     ) -> &'ll llvm::Value {

@@ -80,11 +80,11 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
             let dst = intern.params.unwrap_index(&ParamKind::Param(param));
             let loc = model_data.nth_param_loc(cx, i, model);
-            builder.params[dst] = BuilderVal::Load(Box::new(loc));
+            builder.params[dst] = BuilderVal::Load(Box::new(loc), false);
 
             let dst = intern.params.unwrap_index(&ParamKind::ParamGiven { param });
             let is_given =
-                unsafe { model_data.is_nth_param_given(cx, i, model, builder.llbuilder) };
+                unsafe { model_data.is_nth_param_given(cx, i, model, builder.llbuilder, false) };
             builder.params[dst] = BuilderVal::Eager(is_given);
         }
 
@@ -92,7 +92,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let i = i as u32;
 
             let is_given =
-                unsafe { model_data.is_nth_inst_param_given(cx, i, model, builder.llbuilder) };
+                unsafe { model_data.is_nth_inst_param_given(cx, i, model, builder.llbuilder, false) };
 
             let val =
                 unsafe { model_data.read_nth_inst_param(inst_data, i, model, builder.llbuilder) };
@@ -244,10 +244,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let i = i as u32;
 
             let is_inst_given =
-                unsafe { inst_data.is_nth_param_given(cx, i, instance, builder.llbuilder) };
+                unsafe { inst_data.is_nth_param_given(cx, i, instance, builder.llbuilder, false) };
             let is_given = unsafe {
                 let is_given_model =
-                    model_data.is_nth_inst_param_given(cx, i, model, builder.llbuilder);
+                    model_data.is_nth_inst_param_given(cx, i, model, builder.llbuilder, false);
                 builder.select(is_inst_given, true_, is_given_model)
             };
 
@@ -282,12 +282,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
             if let Some(dst) = intern.params.index(&ParamKind::Param(param)) {
                 let loc = model_data.nth_param_loc(cx, i, model);
-                builder.params[dst] = BuilderVal::Load(Box::new(loc));
+                builder.params[dst] = BuilderVal::Load(Box::new(loc), false);
             }
 
             if let Some(dst) = intern.params.index(&ParamKind::ParamGiven { param }) {
                 let is_given =
-                    unsafe { model_data.is_nth_param_given(cx, i, model, builder.llbuilder) };
+                    unsafe { model_data.is_nth_param_given(cx, i, model, builder.llbuilder, false) };
                 builder.params[dst] = BuilderVal::Eager(is_given);
             }
         }

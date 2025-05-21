@@ -38,6 +38,8 @@ pub mod targets;
 pub mod types;
 pub mod values;
 
+pub mod extra;
+
 pub use attributes::*;
 pub use basic_block::*;
 pub use bitcode::*;
@@ -49,6 +51,8 @@ pub use pass_manager::*;
 pub use targets::*;
 pub use types::*;
 pub use values::*;
+
+pub use extra::*;
 
 pub type Bool = c_uint;
 pub const True: Bool = 1;

@@ -2,9 +2,11 @@ use std::slice;
 
 use arrayvec::ArrayVec;
 use libc::c_uint;
+
 use llvm::{
-    TypeKind, 
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMGetReturnType, LLVMGetTypeKind, LLVMTypeOf, UNNAMED
+    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, 
+    mark_load_readonly, LLVMConstInt, IntPredicate, 
+    UNNAMED
 };
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef, F_ZERO, ZERO
@@ -24,7 +26,7 @@ pub struct MemLoc<'ll> {
     // Field type
     pub ty: &'ll llvm::Type,
     // Indices
-    pub indices: Box<[&'ll llvm::Value]>,
+    pub indices: Box<[&'ll llvm::Value]>, 
 }
 
 impl<'ll> MemLoc<'ll> {
@@ -49,8 +51,9 @@ impl<'ll> MemLoc<'ll> {
     /// ptr_ty, ty and indices must be valid for ptr
     /// 
     /// Read the value corresponding to this MemLoc. 
-    pub unsafe fn read(&self, llbuilder: &llvm::Builder<'ll>) -> &'ll llvm::Value {
-        self.read_with_ptr(llbuilder, self.ptr)
+    pub unsafe fn read(&self, llbuilder: &llvm::Builder<'ll>, cx: &CodegenCx<'_, 'll>) -> &'ll llvm::Value {
+        let load_inst = self.read_with_ptr(llbuilder, self.ptr);
+        load_inst
     }
 
     /// # Safety
@@ -104,9 +107,9 @@ impl<'ll> MemLoc<'ll> {
 }
 
 impl<'ll> From<MemLoc<'ll>> for BuilderVal<'ll> {
-    // Conversion of MemLoc into BuilderVal. 
+    // Conversion of MemLoc into BuilderVal, assume not readonly
     fn from(loc: MemLoc<'ll>) -> Self {
-        BuilderVal::Load(Box::new(loc))
+        BuilderVal::Load(Box::new(loc), false)
     }
 }
 
@@ -116,8 +119,10 @@ pub enum BuilderVal<'ll> {
     Undef,
     // Value that is an LLVM IR Value
     Eager(&'ll llvm::Value),
-    // Value that must be read from memory
-    Load(Box<MemLoc<'ll>>),
+    // Value that must be read from memory, optionally mark as invariant.load
+    Load(Box<MemLoc<'ll>>, bool), 
+    // Value is read from instance cache, optionally mark as invariant load, optionally booleanize
+    LoadCache(Box<MemLoc<'ll>>, bool, bool), 
     // Never used
     // Call(Box<CallbackFun<'ll>>),
 }
@@ -139,7 +144,30 @@ impl<'ll> BuilderVal<'ll> {
         match self {
             BuilderVal::Undef => unreachable!("attempted to read undefined value"),
             BuilderVal::Eager(val) => val,
-            BuilderVal::Load(loc) => loc.read(builder.llbuilder),
+            BuilderVal::Load(loc, readonly) => {
+                let val = loc.read(builder.llbuilder, builder.cx);
+                if *readonly {
+                    mark_load_readonly(val, builder.cx.llcx);
+                }
+                val
+            },
+            BuilderVal::LoadCache(loc, readonly, booleanize) => {
+                let val = loc.read(builder.llbuilder, builder.cx);
+                if *readonly {
+                    mark_load_readonly(val, builder.cx.llcx);
+                }
+                if *booleanize {
+                    LLVMBuildICmp(
+                        builder.llbuilder,
+                        IntPredicate::IntNE,
+                        val,
+                        LLVMConstInt(loc.ty, 0, llvm::False),
+                        UNNAMED,
+                    )
+                } else {
+                    val
+                }
+            },
             // Never used
             // BuilderVal::Call(cb) => {
             //     match cb.as_ref() {
@@ -163,7 +191,8 @@ impl<'ll> BuilderVal<'ll> {
         let ty = match self {
             BuilderVal::Undef => return None,
             BuilderVal::Eager(val) => builder.cx.val_ty(val),
-            BuilderVal::Load(loc) => loc.ty,
+            BuilderVal::Load(loc, _) => loc.ty,
+            BuilderVal::LoadCache(loc, _, _) => loc.ty,
             // Never used
             // BuilderVal::Call(cb) => {
             //     match cb.as_ref() {
@@ -715,8 +744,22 @@ impl<'ll> Builder<'_, '_, 'll> {
                         self.func.layout.inst_block(inst).unwrap()
                     );
                 }
+                
+                // println!("begin");
+                // let cbb = LLVMGetInsertBlock(self.llbuilder);
+                // let mut inst = LLVMGetFirstInstruction(cbb);
+                // while inst.is_some() {
+                //     let ptr = LLVMPrintValueToString(inst.unwrap());
+                //     let c_str = CStr::from_ptr(ptr as *const std::ffi::c_char);
+                //     let aa = c_str.to_string_lossy().into_owned();
+                //     println!("{}", aa);
+                //     inst = LLVMGetNextInstruction(inst.unwrap());
+                // }
+                // println!();
+                
                 let lhs = self.values[args[0]].get(self);
                 let rhs = self.values[args[1]].get(self);
+
                 llvm::LLVMBuildFMul(self.llbuilder, lhs, rhs, UNNAMED)
             }
             Opcode::Fdiv => {
