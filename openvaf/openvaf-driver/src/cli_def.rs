@@ -29,6 +29,7 @@ pub fn main_command() -> Command {
             dump_mir(), 
             dump_unopt_mir(), 
             dump_ir(), 
+            dump_unopt_ir(), 
             cache_dir(),
             opt_lvl(),
             target(),
@@ -50,6 +51,7 @@ pub const DRYRUN: &str = "dry-run";
 pub const DUMPMIR: &str = "dump-mir";
 pub const DUMPUNOPTMIR: &str = "dump-unopt-mir";
 pub const DUMPIR: &str = "dump-ir";
+pub const DUMPUNOPTIR: &str = "dump-unopt-ir";
 pub const TARGET: &str = "target";
 pub const SUPPORTED_TARGETS: &str = "supported-targets";
 pub const LINTS: &str = "lints";
@@ -107,6 +109,12 @@ fn dump_ir() -> Arg {
     flag(DUMPIR, "dump-ir")
         .help("Dump LLVM IR during compilation.")
         .long_help("Dump LLVM IR during compilation.\nUsed for debugging.")
+}
+
+fn dump_unopt_ir() -> Arg {
+    flag(DUMPUNOPTIR, "dump-unopt-ir")
+        .help("Dump unoptimized LLVM IR during compilation.")
+        .long_help("Dump unoptimized LLVM IR during compilation.\nUsed for debugging.")
 }
 
 fn target() -> Arg {
