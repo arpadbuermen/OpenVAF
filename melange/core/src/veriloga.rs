@@ -77,6 +77,7 @@ pub fn compile_va(path: &Utf8Path, opts: &Opts) -> Result<Vec<Box<dyn DeviceImpl
         dump_mir: false, 
         dump_unopt_mir: false, 
         dump_ir: false, 
+        dump_unopt_ir: false, 
     };
 
     let res = openvaf::compile(&openvaf_opts);

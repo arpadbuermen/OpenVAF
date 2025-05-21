@@ -46,7 +46,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Support for writing nonzero resistive and reactive Jacobian contributions to an array of doubles. 
 - List of model inputs (node pairs). 
 - Functions for loading Jacobians with offset (for harmonic balance analysis). 
-- --dump-unopt-mir, --dump-mir, and --dump-ir options for dumpring the (unoptimized) MIR and LLVM IR. 
+- --dump-unopt-mir, --dump-mir, --dump-unopt-ir, and --dump-ir options for dumpring the (unoptimized) MIR and LLVM IR. 
 - Support for $fatal, $finish, and $stop. 
 
 
