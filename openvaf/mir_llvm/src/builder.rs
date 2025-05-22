@@ -4,13 +4,14 @@ use arrayvec::ArrayVec;
 use libc::c_uint;
 
 use llvm::{
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, 
-    mark_load_readonly, LLVMConstInt, IntPredicate, 
-    UNNAMED
+    mark_load_readonly, IntPredicate, LLVMBuildExtractValue, LLVMBuildFSub, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMConstInt, UNNAMED
 };
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef, F_ZERO, ZERO
 };
+
+use hir::Node;
+
 use typed_index_collections::TiVec;
 use std::cell::Cell;
 
@@ -119,6 +120,8 @@ pub enum BuilderVal<'ll> {
     Undef,
     // Value that is an LLVM IR Value
     Eager(&'ll llvm::Value),
+    // Difference of two double LLVM values
+    EagerDelta(&'ll llvm::Value, &'ll llvm::Value),
     // Value that must be read from memory, optionally mark as invariant.load
     Load(Box<MemLoc<'ll>>, bool), 
     // Value is read from instance cache, optionally mark as invariant load, optionally booleanize
@@ -144,6 +147,9 @@ impl<'ll> BuilderVal<'ll> {
         match self {
             BuilderVal::Undef => unreachable!("attempted to read undefined value"),
             BuilderVal::Eager(val) => val,
+            BuilderVal::EagerDelta(val1, val2) => {
+                LLVMBuildFSub(builder.llbuilder, val1, val2, UNNAMED)
+            }
             BuilderVal::Load(loc, readonly) => {
                 let val = loc.read(builder.llbuilder, builder.cx);
                 if *readonly {
@@ -191,7 +197,10 @@ impl<'ll> BuilderVal<'ll> {
         let ty = match self {
             BuilderVal::Undef => return None,
             BuilderVal::Eager(val) => builder.cx.val_ty(val),
+            // Assume both values have the same type
+            BuilderVal::EagerDelta(val1, _) => builder.cx.val_ty(val1),
             BuilderVal::Load(loc, _) => loc.ty,
+            // Assume locp and locn have the same type
             BuilderVal::LoadCache(loc, _, _) => loc.ty,
             // Never used
             // BuilderVal::Call(cb) => {

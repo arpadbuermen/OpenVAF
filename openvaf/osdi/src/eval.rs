@@ -1,10 +1,7 @@
 use hir_lower::{CallBackKind, CurrentKind, LimitState, ParamKind};
 use llvm::IntPredicate::{IntNE, IntULT};
 use llvm::{
-    LLVMAppendBasicBlockInContext, LLVMBuildAlloca, LLVMBuildAnd, LLVMBuildBr, LLVMBuildCall2,
-    LLVMBuildCondBr, LLVMBuildICmp, LLVMBuildInBoundsGEP2, LLVMBuildIntCast2, LLVMBuildLoad2,
-    LLVMBuildOr, LLVMBuildRet, LLVMBuildStore, LLVMCreateBuilderInContext, LLVMDisposeBuilder,
-    LLVMGetParam, LLVMPositionBuilderAtEnd, UNNAMED,
+    mark_load_readonly, LLVMAppendBasicBlockInContext, LLVMBuildAlloca, LLVMBuildAnd, LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildICmp, LLVMBuildInBoundsGEP2, LLVMBuildIntCast2, LLVMBuildLoad2, LLVMBuildOr, LLVMBuildRet, LLVMBuildStore, LLVMCreateBuilderInContext, LLVMDisposeBuilder, LLVMGetParam, LLVMPositionBuilderAtEnd, UNNAMED
 };
 use log::info;
 use mir_llvm::{Builder, BuilderVal, CallbackFun, BuiltCallbackFun, MemLoc, InlineCallbackBuilder};
@@ -108,15 +105,22 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         unsafe { builder.store(ret_flags, cx.const_int(0)) };
 
         let connected_ports = unsafe { inst_data.load_connected_ports(&builder, instance) };
+        
+        // Load all old solution components relevant for this module 
+        // Mark them as invariant.read - they are not written
+        // LLVM values are stored in a TiVec with SimUnknownKind as key
         let prev_solve: TiVec<_, _> = module
             .dae_system
             .unknowns
             .indices()
             .map(|node| unsafe {
-                inst_data.read_node_voltage(cx, node, instance, prev_result, builder.llbuilder)
+                let val = inst_data.read_node_voltage(cx, node, instance, prev_result, builder.llbuilder);
+                mark_load_readonly(val, cx.llcx);
+                val
             })
             .collect();
-
+        
+        // Lambda function that extracts the LLVM value for a particular component from old solution
         let get_prev_solve = |node| {
             if let Some(node) = module.dae_system.unknowns.index(&node) {
                 prev_solve[node]
@@ -126,10 +130,17 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             }
         };
 
+        // Load limit state indices in state vector
+        // Mark them as invariant.read - they are not written
+        // LLVM values are stored in a TiVec with LimitState as key
         let state_idx: TiVec<LimitState, _> = (0..intern.lim_state.len())
-            .map(|i| unsafe { inst_data.read_state_idx(cx, i.into(), instance, builder.llbuilder) })
+            .map(|i| unsafe { 
+                let val = inst_data.read_state_idx(cx, i.into(), instance, builder.llbuilder); 
+                mark_load_readonly(val, cx.llcx);
+                val
+            })
             .collect();
-
+        
         let true_ = cx.const_bool(true);
         let mut params: TiVec<_, _> = intern
             .params
@@ -149,14 +160,19 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             return BuilderVal::Load(Box::new(memloc), true);
                         }
                         ParamKind::Voltage { hi, lo } => {
+                            // Eager, we already loaded all relevamt components of old solution
                             let hi = get_prev_solve(SimUnknownKind::KirchoffLaw(hi));
                             if let Some(lo) = lo {
+                                // Compute hi-lo difference
                                 let lo = get_prev_solve(SimUnknownKind::KirchoffLaw(lo));
-                                llvm::LLVMBuildFSub(builder.llbuilder, hi, lo, UNNAMED)
+                                return BuilderVal::EagerDelta(hi, lo);
+                                // llvm::LLVMBuildFSub(builder.llbuilder, hi, lo, UNNAMED)
                             } else {
-                                hi
+                                // Just return hi as Eager value
+                                return BuilderVal::Eager(hi);
                             }
                         }
+                        // Port current is 0 (for now)
                         ParamKind::Current(CurrentKind::Port(_)) => cx.const_real(0.0),
                         ParamKind::Abstime => {
                             let loc = MemLoc::struct_gep(
@@ -166,11 +182,14 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                                 ABSTIME_OFFSET,
                                 cx,
                             );
-                            return loc.into();
+                            return BuilderVal::Load(Box::new(loc), true);
                         }
-
-                        ParamKind::Current(kind) => get_prev_solve(SimUnknownKind::Current(kind)),
+                        ParamKind::Current(kind) => {
+                            // Eager, we already loaded all relevamt components of old solution
+                            get_prev_solve(SimUnknownKind::Current(kind))
+                        }
                         ParamKind::ImplicitUnknown(equation) => {
+                            // Eager, we already loaded all relevamt components of old solution
                             get_prev_solve(SimUnknownKind::Implicit(equation))
                         }
                         ParamKind::Temperature => {
@@ -259,14 +278,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             })
             .collect();
         
-        // Eager loading of cache slots, make it lazy
+        // Cache slots, loaded and marked as invariant.load
         let cache_vals = (0..module.init.cache_slots.len()).map(|i| {
             let slot = i.into();
-            // unsafe {
-            //     let val = inst_data.load_cache_slot(module, builder.llbuilder, builder.cx.llcx, slot, instance);
-            //     BuilderVal::Eager(val)
-            // }
-            
             let (memloc, booleanize) = inst_data.cache_slot_memloc(module, builder.cx, slot, instance);
             BuilderVal::LoadCache(Box::new(memloc), true, booleanize)
         });

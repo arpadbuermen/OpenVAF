@@ -870,6 +870,7 @@ dependencies = [
  "ahash 0.8.6",
  "arrayvec",
  "base_n",
+ "hir",
  "lasso",
  "libc",
  "llvm",
