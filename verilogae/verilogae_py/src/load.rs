@@ -117,7 +117,8 @@ macro_rules! parse_args {
             let mut arg: *mut PyObject = std::ptr::null_mut();
             let mut val: *mut PyObject = std::ptr::null_mut();
             for _i in 0..=len {
-                _PyDict_Next($kwargs, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
+                // _PyDict_Next($kwargs, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
+                PyDict_Next($kwargs, &mut pos, &mut arg, &mut val);
                 if !handle_opt!($fun, $opts, arg, val) {
                     if arg.is_null() {
                         break;
@@ -284,7 +285,8 @@ unsafe fn py_to_vfs(fun: &str, obj: *mut PyObject) -> Option<Vfs> {
     let mut vfs = Vec::with_capacity(len as usize);
 
     for _i in 0..=len {
-        _PyDict_Next(obj, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
+        // _PyDict_Next(obj, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
+        PyDict_Next(obj, &mut pos, &mut arg, &mut val);
         let mut path_size = 0;
         let path = PyUnicode_AsUTF8AndSize(arg, &mut path_size);
         if unlikely(path.is_null()) {
