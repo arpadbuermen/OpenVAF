@@ -13,13 +13,12 @@ use bforest::Map;
 use bitset::HybridBitSet;
 use mir::builder::InstBuilderBase;
 use mir::cursor::{Cursor, FuncCursor};
+pub(crate) use mir::ControlFlowGraph as CompleteCfg;
 use mir::{Block, Function, PhiNode, Value, ValueList, GRAVESTONE};
 use smallvec::SmallVec;
 use stdx::iter::zip;
 use stdx::packed_option::PackedOption;
 use typed_index_collections::TiVec;
-
-pub(crate) use mir::ControlFlowGraph as CompleteCfg;
 
 use crate::Place;
 
@@ -39,8 +38,14 @@ pub(crate) trait ControlFlowGraph {
 }
 
 impl<'c> ControlFlowGraph for &'c CompleteCfg {
-    type Predecessors<'a> = mir::flowgraph::PredecessorIter<'a> where 'c: 'a;
-    type PredecessorsRev<'a> = mir::flowgraph::PredecessorRevIter<'a> where 'c: 'a;
+    type Predecessors<'a>
+        = mir::flowgraph::PredecessorIter<'a>
+    where
+        'c: 'a;
+    type PredecessorsRev<'a>
+        = mir::flowgraph::PredecessorRevIter<'a>
+    where
+        'c: 'a;
 
     const NEEDS_TAG: bool = false;
     fn predecessors(&self, bb: Block) -> Self::Predecessors<'_> {

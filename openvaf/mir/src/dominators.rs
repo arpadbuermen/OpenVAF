@@ -2,12 +2,12 @@ use std::cmp::Ordering;
 use std::fs::File;
 use std::path::Path;
 
-use crate::flowgraph::Successors;
-use crate::ControlFlowGraph;
-use crate::{Block, Function};
 use bitset::SparseBitMatrix;
 use stdx::packed_option::PackedOption;
 use typed_index_collections::{TiSlice, TiVec};
+
+use crate::flowgraph::Successors;
+use crate::{Block, ControlFlowGraph, Function};
 
 /* AB: unused
 trait CfgREVERSE {

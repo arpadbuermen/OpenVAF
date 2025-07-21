@@ -1,5 +1,6 @@
-use crate::{DataFlowGraph, Inst, InstUseIter, Use, Value};
 use bitset::BitSet;
+
+use crate::{DataFlowGraph, Inst, InstUseIter, Use, Value};
 
 pub type PostorderParts<'a> = (BitSet<Inst>, Vec<(Inst, InstUseIter<'a>)>);
 

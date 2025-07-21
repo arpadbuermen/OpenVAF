@@ -7,7 +7,7 @@ use llvm::{
     LLVMGetParam, LLVMPositionBuilderAtEnd, UNNAMED,
 };
 use log::info;
-use mir_llvm::{Builder, BuilderVal, CallbackFun, BuiltCallbackFun, MemLoc, InlineCallbackBuilder};
+use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, InlineCallbackBuilder, MemLoc};
 use sim_back::SimUnknownKind;
 use typed_index_collections::TiVec;
 
@@ -22,21 +22,21 @@ use crate::metadata::osdi_0_4::{
 use crate::metadata::OsdiLimFunction;
 use crate::OsdiLimId;
 
-/* 
+/*
 // Inline callback example
 struct AbortCallback;
 
 impl<'ll> InlineCallbackBuilder<'ll> for AbortCallback {
-    fn build_inline(&self, builder: &Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Value { 
+    fn build_inline(&self, builder: &Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Value {
         let cx = builder.cx;
-        unsafe {    
+        unsafe {
             // state[0] .. ret_flags value
             // state[1] .. llfunc prototype
-            
+
             // Create return and continue block
             let ret_block = LLVMAppendBasicBlockInContext(cx.llcx, state[1], UNNAMED);
             let cont_block = LLVMAppendBasicBlockInContext(cx.llcx, state[1], UNNAMED);
-            
+
             // Branch always to return block
             LLVMBuildBr(builder.llbuilder, ret_block);
 
@@ -47,7 +47,7 @@ impl<'ll> InlineCallbackBuilder<'ll> for AbortCallback {
             // Position builder at start of continue block (will be discarded after optimization)
             LLVMPositionBuilderAtEnd(builder.llbuilder, cont_block);
         }
-        cx.const_int(0) 
+        cx.const_int(0)
     }
 
     fn return_type(&self, builder: &Builder<'_, '_, 'll>, _state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Type {
@@ -295,7 +295,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         .get_func_by_name("lim_discontinuity")
                         .expect("stdlib function lim_discontinuity is missing");
                     let fun_ty = cx.ty_func(&[cx.ty_ptr()], cx.ty_void());
-                    CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([ret_flags]), num_state: 0 })
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
+                        fun_ty,
+                        fun,
+                        state: Box::new([ret_flags]),
+                        num_state: 0,
+                    })
                 }
                 CallBackKind::Analysis => {
                     let fun = builder
@@ -303,7 +308,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         .get_func_by_name("analysis")
                         .expect("stdlib function analysis is missing");
                     let fun_ty = cx.ty_func(&[cx.ty_ptr(), cx.ty_ptr()], cx.ty_int());
-                    CallbackFun::Prebuilt(BuiltCallbackFun { fun_ty, fun, state: Box::new([sim_info]), num_state: 0 })
+                    CallbackFun::Prebuilt(BuiltCallbackFun {
+                        fun_ty,
+                        fun,
+                        state: Box::new([sim_info]),
+                        num_state: 0,
+                    })
                 }
                 _ => continue,
             };
