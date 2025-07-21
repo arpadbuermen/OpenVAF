@@ -110,14 +110,25 @@ jobs:
       with:
         msystem: ${{ matrix.sys }}
         update: true
-        install: base-devel git
+        install: base-devel git ca-certificates
         pacboy: >-
+          openssl:p
           clang:p
           llvm:p
           rust:p
           cc:p
           python:p
           sccache:p
+    #- name: Configure Git to use Schannel
+    #  shell: msys2 {0}
+    #  run: git config --global http.sslBackend schannel
+
+    - name: Configure Cargo to use CLI Git
+      shell: bash
+      run: |
+        mkdir -p .cargo
+        echo '[net]' > .cargo/config.toml
+        echo 'git-fetch-with-cli = true' >> .cargo/config.toml
     - name: Cache sccache
       uses: actions/cache@v3
       with:
