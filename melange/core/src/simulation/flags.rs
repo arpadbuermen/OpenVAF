@@ -1,5 +1,6 @@
-use crate::veriloga::*;
 use bitflags::bitflags;
+
+use crate::veriloga::*;
 
 bitflags! {
     #[derive(Copy, Clone, PartialEq, Eq, Debug)]

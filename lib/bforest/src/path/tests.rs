@@ -1,8 +1,8 @@
-use super::*;
-use crate::{Forest, NodeData, NodePool};
-
 use std::cmp::Ordering;
 use std::fmt;
+
+use super::*;
+use crate::{Forest, NodeData, NodePool};
 
 impl<F: Forest> Path<F> {
     /// Check the internal consistency of this path.

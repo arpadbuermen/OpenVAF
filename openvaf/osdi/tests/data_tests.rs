@@ -18,7 +18,19 @@ fn test_compile(root_file: &Path) {
     let target = Target::host_target().unwrap();
     let back = LLVMBackend::new(&[], &target, "native".to_owned(), &[]);
     let emit = !stdx::IS_CI;
-    osdi::compile(&db, &modules, Utf8Path::new("foo.o"), &target, &back, emit, OptLevel::None, false, false, false, false);
+    osdi::compile(
+        &db,
+        &modules,
+        Utf8Path::new("foo.o"),
+        &target,
+        &back,
+        emit,
+        OptLevel::None,
+        false,
+        false,
+        false,
+        false,
+    );
 }
 
 fn integration_test(dir: &Path) -> Result {
