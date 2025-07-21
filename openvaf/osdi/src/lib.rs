@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::ffi::{CStr, CString};
+use std::sync::{Arc, Mutex};
+
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
@@ -11,10 +15,6 @@ use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
-
-use std::ffi::{CStr, CString};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
@@ -42,14 +42,14 @@ pub fn compile<'a>(
     back: &'a LLVMBackend,
     emit: bool,
     opt_lvl: OptLevel,
-    dump_mir: bool, 
-    dump_unopt_mir: bool, 
-    dump_ir: bool, 
-    dump_unopt_ir: bool, 
+    dump_mir: bool,
+    dump_unopt_mir: bool,
+    dump_ir: bool,
+    dump_unopt_ir: bool,
 ) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
-    let mnames: Vec<_> = modules.iter().map(|m| {m.module.name(db)}).collect();
+    let mnames: Vec<_> = modules.iter().map(|m| m.module.name(db)).collect();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
@@ -64,7 +64,7 @@ pub fn compile<'a>(
         .collect();
 
     let name = dst.file_stem().expect("destination is a file").to_owned();
-        
+
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)
         .map(|i| {
             let num = base_n::encode((i + 1) as u128, CASE_INSENSITIVE);
@@ -88,14 +88,14 @@ pub fn compile<'a>(
             unit
         })
         .collect();
-    
+
     let db = db.snapshot();
 
     let main_file = dst.with_extension("o");
-    
+
     let unoptirs = Arc::new(Mutex::new(HashMap::new()));
     let irs = Arc::new(Mutex::new(HashMap::new()));
-    
+
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
@@ -113,7 +113,7 @@ pub fn compile<'a>(
                 let cx = new_codegen(back, &llmod, literals_);
                 let tys = OsdiTys::new(&cx, target_data_);
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
-                
+
                 cguint.access_function();
                 if dump_unopt_ir {
                     let mut unoptirs = unoptirs_clone.lock().unwrap();
@@ -132,7 +132,7 @@ pub fn compile<'a>(
                     irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
-            
+
             let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
@@ -162,7 +162,7 @@ pub fn compile<'a>(
                     irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
-            
+
             let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
@@ -256,18 +256,13 @@ pub fn compile<'a>(
             cx.const_unsigned_int(OSDI_VERSION.1),
             true,
         );
-        
+
         let descr_size: u32;
         unsafe {
             descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
         }
 
-        cx.export_val(
-            "OSDI_DESCRIPTOR_SIZE",
-            cx.ty_int(),
-            cx.const_unsigned_int(descr_size),
-            true,
-        );
+        cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
 
         if !lim_table.is_empty() {
             let lim: Vec<_> = lim_table.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();

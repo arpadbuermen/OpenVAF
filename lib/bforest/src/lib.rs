@@ -16,10 +16,10 @@
 #![deny(missing_docs, trivial_numeric_casts)]
 #![warn(unused_import_braces)]
 
-use stdx::{impl_debug_display, impl_idx_from, packed_option};
-
 use core::borrow::BorrowMut;
 use core::cmp::Ordering;
+
+use stdx::{impl_debug_display, impl_idx_from, packed_option};
 
 mod map;
 mod node;
@@ -30,11 +30,10 @@ mod set;
 mod tests;
 
 pub use self::map::{Map, MapCursor, MapForest, MapIter};
-pub use self::set::{RevSetIter, Set, SetCursor, SetForest, SetIter};
-
 use self::node::NodeData;
 use self::path::Path;
 use self::pool::NodePool;
+pub use self::set::{RevSetIter, Set, SetCursor, SetForest, SetIter};
 
 /// The maximum branching factor of an inner node in a B+-tree.
 /// The minimum number of outgoing edges is `INNER_SIZE/2`.

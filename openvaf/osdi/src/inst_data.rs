@@ -732,7 +732,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
         reactive: bool,
-        has_offset: bool, 
+        has_offset: bool,
         offset: &'ll llvm::Value,
         val: &'ll llvm::Value,
     ) {
@@ -776,13 +776,13 @@ impl<'ll> OsdiInstanceData<'ll> {
         &self,
         cx: &CodegenCx<'_, 'll>,
         entry: u32,
-        ty: &'ll llvm::Type, 
+        ty: &'ll llvm::Type,
         ptr: &'ll llvm::Value,
         llbuilder: &llvm::Builder<'ll>,
         val: &'ll llvm::Value,
     ) {
         let zero = cx.const_int(0);
-        
+
         // Convert to LLVM u32
         let entry = cx.const_unsigned_int(entry);
         // Create pointer to array entry with index entry

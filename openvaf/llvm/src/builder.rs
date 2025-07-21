@@ -1,7 +1,7 @@
 use ::libc::{c_char, c_uint};
+pub use LLVMBuildInBoundsGEP2 as LLVMBuildGEP2;
 
 use crate::{BasicBlock, Bool, Builder, Context, IntPredicate, RealPredicate, Type, Value};
-pub use LLVMBuildInBoundsGEP2 as LLVMBuildGEP2;
 
 // Core->Instruction Builders
 extern "C" {

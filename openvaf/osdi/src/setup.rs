@@ -1,5 +1,4 @@
 use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
-
 use llvm::IntPredicate::IntSLT;
 use llvm::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,
@@ -7,7 +6,9 @@ use llvm::{
     UNNAMED,
 };
 use mir::ControlFlowGraph;
-use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder};
+use mir_llvm::{
+    Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder,
+};
 use sim_back::SimUnknownKind;
 
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
@@ -186,9 +187,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         builder.select_bb(exit_bb);
-        unsafe { 
-            builder.ret_void() 
-        }
+        unsafe { builder.ret_void() }
 
         llfunc
     }
@@ -430,9 +429,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             }
         }
 
-        unsafe { 
-            builder.ret_void() 
-        }
+        unsafe { builder.ret_void() }
 
         for (&val, &slot) in module.init.cached_vals.iter() {
             let inst = func.dfg.value_def(val).unwrap_inst();
@@ -444,9 +441,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             unsafe {
                 match builder.values[val] {
                     BuilderVal::Undef => {
-                        // Unconditional $fatal() eliminates some values so that 
-                        // the corresponding cache entries are left undefined. 
-                        // Avoid panic in get() and emit a warning. 
+                        // Unconditional $fatal() eliminates some values so that
+                        // the corresponding cache entries are left undefined.
+                        // Avoid panic in get() and emit a warning.
                         println!("Warning: setup MIR {} undefined in cache", val);
                         continue;
                     }

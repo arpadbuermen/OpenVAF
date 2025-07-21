@@ -1,7 +1,3 @@
-use anyhow::{bail, Context, Result};
-use camino::{Utf8Path, Utf8PathBuf};
-use cc::windows_registry;
-
 use std::ffi::{OsStr, OsString};
 use std::fs::{remove_file, File};
 use std::io::Write;
@@ -9,6 +5,10 @@ use std::mem::take;
 use std::path::{Path, PathBuf};
 use std::process::{Output, Stdio};
 use std::{ascii, env, io};
+
+use anyhow::{bail, Context, Result};
+use camino::{Utf8Path, Utf8PathBuf};
+use cc::windows_registry;
 use target::spec::{LinkerFlavor, Target};
 
 pub fn link(

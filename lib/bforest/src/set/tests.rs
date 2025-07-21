@@ -1,6 +1,7 @@
+use std::{fmt, mem};
+
 use super::*;
 use crate::NodeData;
-use std::{fmt, mem};
 
 impl<'a, K, C> SetCursor<'a, K, C>
 where

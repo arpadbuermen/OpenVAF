@@ -1,11 +1,19 @@
 use llvm::UNNAMED;
 
-use crate::CodegenCx;
 use crate::builder::Builder;
+use crate::CodegenCx;
 
 pub trait InlineCallbackBuilder<'ll> {
-    fn build_inline(&self, builder: &Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Value; 
-    fn return_type(&self, builder: &Builder<'_, '_, 'll>, state: &Box<[&'ll llvm::Value]>) -> &'ll llvm::Type;
+    fn build_inline(
+        &self,
+        builder: &Builder<'_, '_, 'll>,
+        state: &Box<[&'ll llvm::Value]>,
+    ) -> &'ll llvm::Value;
+    fn return_type(
+        &self,
+        builder: &Builder<'_, '_, 'll>,
+        state: &Box<[&'ll llvm::Value]>,
+    ) -> &'ll llvm::Type;
 }
 
 impl<'ll> Clone for Box<dyn InlineCallbackBuilder<'ll>> {
@@ -27,11 +35,8 @@ pub struct BuiltCallbackFun<'ll> {
 
 #[derive(Clone)]
 pub enum CallbackFun<'ll> {
-    Inline{
-        builder: Box<dyn InlineCallbackBuilder<'ll>>, 
-        state: Box<[&'ll llvm::Value]>
-    }, 
-    Prebuilt(BuiltCallbackFun<'ll>)
+    Inline { builder: Box<dyn InlineCallbackBuilder<'ll>>, state: Box<[&'ll llvm::Value]> },
+    Prebuilt(BuiltCallbackFun<'ll>),
 }
 
 impl<'ll> CodegenCx<'_, 'll> {

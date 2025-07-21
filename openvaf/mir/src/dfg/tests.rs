@@ -1,9 +1,8 @@
 use expect_test::expect;
 
+use super::*;
 use crate::instructions::{Opcode, PhiMap, PhiNode};
 use crate::{Block, F_ZERO};
-
-use super::*;
 
 #[test]
 fn make_inst() {

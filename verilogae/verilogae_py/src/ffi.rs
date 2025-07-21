@@ -35,7 +35,7 @@ macro_rules! zero {
 // manual implementation of PyVarObject_HEAD_INIT macro
 pub const fn new_type<T>() -> PyTypeObject {
     let mut res = unsafe { zero!(PyTypeObject) };
-    res.ob_base.ob_base.ob_refcnt = PyObjectObRefcnt {ob_refcnt: 1};
+    res.ob_base.ob_base.ob_refcnt = PyObjectObRefcnt { ob_refcnt: 1 };
     res.tp_basicsize = size_of::<T>() as isize;
     res.tp_flags = TY_FLAGS;
 

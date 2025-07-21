@@ -1,8 +1,7 @@
 use std::ffi::CStr;
 use std::mem::take;
 use std::os::raw::c_long;
-use std::ptr;
-use std::slice;
+use std::{ptr, slice};
 
 use libc::{c_char, c_void};
 use pyo3_ffi::structmember::{PyMemberDef, READONLY, T_OBJECT, T_OBJECT_EX};
@@ -27,13 +26,10 @@ use verilogae_ffi::{
 
 use crate::ffi::new_type;
 use crate::numpy::{ItemType, NumpyArray, PyArrayError};
-use crate::typeref::NUMPY_API;
-use crate::typeref::NUMPY_ARR_TYPE;
-use crate::typeref::TEMPERATURE_STR;
-use crate::typeref::VOLTAGES_STR;
-use crate::typeref::{CURRENTS_STR, NUMPY_CDOUBLE_DESCR};
-use crate::util::likely;
-use crate::util::unlikely;
+use crate::typeref::{
+    CURRENTS_STR, NUMPY_API, NUMPY_ARR_TYPE, NUMPY_CDOUBLE_DESCR, TEMPERATURE_STR, VOLTAGES_STR,
+};
+use crate::util::{likely, unlikely};
 
 pub static mut VAE_MODEL_TY: PyTypeObject = {
     let mut res = new_type::<VaeModel>();
