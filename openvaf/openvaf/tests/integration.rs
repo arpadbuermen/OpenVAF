@@ -25,7 +25,10 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         output: CompilationDestination::Path { lib_file: root_file.with_extension("osdi") },
         include: Vec::new(),
         opt_lvl: LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive,
-        target: Target::host_target().unwrap(),
+        target: Target::host_target().expect(
+            "Failed to determine host target. This architecture may not be supported by OpenVAF. \
+             Supported targets include: x86_64-unknown-linux, aarch64-unknown-linux, riscv64-unknown-linux, etc."
+        ),
         target_cpu: "native".to_owned(),
         dry_run: false,
         dump_mir: false,

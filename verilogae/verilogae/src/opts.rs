@@ -48,7 +48,10 @@ impl Opts {
 
     pub(crate) fn target(&self) -> Result<Target> {
         let target = if self.target_cpu.ptr.is_null() {
-            Target::host_target().unwrap()
+            Target::host_target().expect(
+                "Failed to determine host target. This architecture may not be supported by OpenVAF. \
+                 Supported targets include: x86_64-unknown-linux, aarch64-unknown-linux, riscv64-unknown-linux, etc."
+            )
         } else {
             let raw = unsafe { slice::from_raw_parts(self.target.ptr, self.target.len) };
             let name = str::from_utf8(raw).context("target must be valid utf8")?;
