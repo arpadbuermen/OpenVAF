@@ -15,7 +15,10 @@ fn test_compile(root_file: &Path) {
     let root_file = AbsPathBuf::assert(root_file.canonicalize().unwrap());
     let db = CompilationDB::new(root_file, &[], &[], &[]).unwrap();
     let modules = db.collect_modules().unwrap();
-    let target = Target::host_target().unwrap();
+    let target = Target::host_target().expect(
+        "Failed to determine host target. This architecture may not be supported by OpenVAF. \
+         Supported targets include: x86_64-unknown-linux, aarch64-unknown-linux, riscv64-unknown-linux, etc."
+    );
     let back = LLVMBackend::new(&[], &target, "native".to_owned(), &[]);
     let emit = !stdx::IS_CI;
     crate::compile(

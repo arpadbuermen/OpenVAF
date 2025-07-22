@@ -24,6 +24,8 @@ pub fn host_triple() -> &'static str {
     // under MSYS2.
     if triple.contains("windows-gnu") || triple.contains("apple") {
         triple
+    } else if triple.starts_with("riscv64gc-unknown-linux-") {
+        "riscv64-unknown-linux"
     } else {
         triple.rsplit_once('-').unwrap().0
     }
