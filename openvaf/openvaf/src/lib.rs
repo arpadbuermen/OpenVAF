@@ -2,24 +2,20 @@ use std::fs::{create_dir_all, remove_file};
 use std::io::Write;
 use std::time::Instant;
 
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use basedb::diagnostics::{ConsoleSink, DiagnosticSink};
+pub use basedb::lints::{builtin as builtin_lints, LintLevel};
 use basedb::BaseDB;
 use camino::Utf8PathBuf;
 use hir::CompilationDB;
 use linker::link;
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::LLVMBackend;
-use sim_back::collect_modules;
-use sim_back::{print_module, print_intern};
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
-
-pub use basedb::lints::builtin as builtin_lints;
-pub use basedb::lints::LintLevel;
-pub use llvm::OptLevel;
 pub use paths::AbsPathBuf;
+use sim_back::{collect_modules, print_intern, print_module};
 pub use target::host_triple;
 pub use target::spec::{get_target_names, Target};
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 mod cache;
 
@@ -43,13 +39,13 @@ pub struct Opts {
     pub input: Utf8PathBuf,
     pub output: CompilationDestination,
     pub include: Vec<AbsPathBuf>,
-    pub opt_lvl: OptLevel,
+    pub opt_lvl: LLVMCodeGenOptLevel,
     pub target: Target,
     pub target_cpu: String,
-    pub dump_mir: bool, 
-    pub dump_unopt_mir: bool, 
-    pub dump_ir: bool, 
-    pub dump_unopt_ir: bool, 
+    pub dump_mir: bool,
+    pub dump_unopt_mir: bool,
+    pub dump_ir: bool,
+    pub dump_unopt_ir: bool,
 }
 // pub fn dump_json(opts: &Opts) -> Result<CompilationTermination> {
 //     let input =
@@ -131,12 +127,11 @@ pub fn expand(opts: &Opts) -> Result<CompilationTermination> {
                 } else {
                     print!("{}", &text[span.range])
                 }
-            }, 
+            }
             _ => {
                 // Add a space after each token
                 print!("{} ", &text[span.range])
             }
-
         };
     }
     println!();
@@ -189,7 +184,19 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     if opts.dry_run {
         return Ok(CompilationTermination::Compiled { lib_file });
     }
-    let (paths, compiled_modules, literals) = osdi::compile(&db, &modules, &lib_file, &opts.target, &back, true, opts.opt_lvl, opts.dump_mir, opts.dump_unopt_mir, opts.dump_ir, opts.dump_unopt_ir);
+    let (paths, compiled_modules, literals) = osdi::compile(
+        &db,
+        &modules,
+        &lib_file,
+        &opts.target,
+        &back,
+        true,
+        opts.opt_lvl,
+        opts.dump_mir,
+        opts.dump_unopt_mir,
+        opts.dump_ir,
+        opts.dump_unopt_ir,
+    );
 
     // Dump MIR of compiled modules
     if opts.dump_mir || opts.dump_unopt_mir {
@@ -203,7 +210,7 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
         }
         println!("");
 
-        for(module, cmodule) in modules.iter().zip(compiled_modules.iter()) {
+        for (module, cmodule) in modules.iter().zip(compiled_modules.iter()) {
             print_module("  ", &db, &module, &cmodule.dae_system, &cmodule.init);
             println!("");
 

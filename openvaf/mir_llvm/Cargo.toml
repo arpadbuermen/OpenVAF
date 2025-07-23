@@ -10,7 +10,8 @@ doctest = false
 
 
 [dependencies]
-llvm = { version = "0.0.0", path = "../llvm" }
+llvm-sys = {version="181.1.1", features=["prefer-dynamic"]} 
+#target-lexicon = "0.12"
 mir = { version = "0.0.0", path = "../mir" }
 target = { version = "0.0.0", path = "../target" }
 base_n = {version = "1", path="../../lib/base_n"}

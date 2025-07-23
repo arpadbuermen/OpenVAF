@@ -2,7 +2,7 @@
 use std::iter::repeat;
 
 use bitset::BitSet;
-use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE};
+use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE,};
 
 #[cfg(test)]
 mod tests;
@@ -597,7 +597,7 @@ impl<'a> SimplifyCfg<'a> {
         // Do not remove last block in layout
         if (self.cfg[bb].predecessors.is_empty() || self.cfg.self_loop(bb))
             && Some(bb) != self.func.layout.entry_block()
-            && self.func.layout.last_block()!=Some(bb)
+            && self.func.layout.last_block() != Some(bb)
         {
             // remove phi phi_edges
             for succ in self.cfg.succ_iter(bb) {
@@ -616,14 +616,17 @@ impl<'a> SimplifyCfg<'a> {
             return;
         }
 
-        // Blocks with Branch terminator that lead into an empty block with an Exit terminator. 
+        // Blocks with Branch terminator that lead into an empty block with an Exit terminator.
         // The branch terminator is replaced with a Jump to the non-exit block
         // If both destinations are empty exit blocks, jump to else block
         if let Some(terminator) = self.func.layout.block_insts(bb).last() {
-            if let InstructionData::Branch { then_dst, else_dst, ..} = self.func.dfg.insts[terminator] {
+            if let InstructionData::Branch { then_dst, else_dst, .. } =
+                self.func.dfg.insts[terminator]
+            {
                 if self.is_empty_exit_bb(then_dst) {
                     // Replace Branch with jump to else_dst
-                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: else_dst };
+                    self.func.dfg.insts[terminator] =
+                        InstructionData::Jump { destination: else_dst };
 
                     // Recompute cfg for block
                     self.cfg.recompute_block(self.func, bb);
@@ -631,7 +634,8 @@ impl<'a> SimplifyCfg<'a> {
                     return;
                 } else if self.is_empty_exit_bb(else_dst) {
                     // Replace branch with jump to then_dst
-                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: then_dst };
+                    self.func.dfg.insts[terminator] =
+                        InstructionData::Jump { destination: then_dst };
 
                     // Recompute cfg for block
                     self.cfg.recompute_block(self.func, bb);
@@ -640,7 +644,6 @@ impl<'a> SimplifyCfg<'a> {
                 }
             }
         }
-            
 
         self.const_fold_terminator(bb);
         if self.vals_changed.remove(bb) {
@@ -692,4 +695,3 @@ impl<I: Iterator<Item = Value> + Clone> PartialEq for ResolvedPhi<I> {
 }
 impl<I: Iterator<Item = Value> + Clone> Eq for ResolvedPhi<I> {}
 */
-

@@ -3,7 +3,7 @@ use std::path::Path;
 use camino::Utf8Path;
 use hir::diagnostics::ConsoleSink;
 use hir::CompilationDB;
-use llvm::OptLevel;
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mini_harness::{harness, Result};
 use mir_llvm::LLVMBackend;
 use paths::AbsPathBuf;
@@ -15,10 +15,25 @@ fn test_compile(root_file: &Path) {
     let root_file = AbsPathBuf::assert(root_file.canonicalize().unwrap());
     let db = CompilationDB::new_fs(root_file, &[], &[], &[]).unwrap();
     let modules = collect_modules(&db, false, &mut ConsoleSink::new(&db)).unwrap();
-    let target = Target::host_target().unwrap();
+    let target = Target::host_target().expect(
+        "Failed to determine host target. This architecture may not be supported by OpenVAF. \
+         Supported targets include: x86_64-unknown-linux, aarch64-unknown-linux, riscv64-unknown-linux, etc."
+    );
     let back = LLVMBackend::new(&[], &target, "native".to_owned(), &[]);
     let emit = !stdx::IS_CI;
-    osdi::compile(&db, &modules, Utf8Path::new("foo.o"), &target, &back, emit, OptLevel::None, false, false, false, false);
+    osdi::compile(
+        &db,
+        &modules,
+        Utf8Path::new("foo.o"),
+        &target,
+        &back,
+        emit,
+        LLVMCodeGenOptLevel::LLVMCodeGenLevelNone,
+        false,
+        false,
+        false,
+        false,
+    );
 }
 
 fn integration_test(dir: &Path) -> Result {

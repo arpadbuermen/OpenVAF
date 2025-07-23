@@ -1,4 +1,4 @@
-use llvm::{Type, Value};
+use llvm_sys::{LLVMType as Type, LLVMValue as Value};
 
 use crate::CodegenCx;
 
@@ -92,10 +92,10 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
     fn insert_intrinsic(
         &self,
         name: &'static str,
-        args: &[&'ll llvm::Type],
-        ret: &'ll llvm::Type,
+        args: &[&'ll Type],
+        ret: &'ll Type,
         variadic: bool,
-    ) -> (&'ll llvm::Type, &'ll llvm::Value) {
+    ) -> (&'ll Type, &'ll Value) {
         let fn_ty =
             if variadic { self.ty_variadic_func(&[], ret) } else { self.ty_func(args, ret) };
         let f = self.get_func_by_name(name).unwrap_or_else(|| self.declare_ext_fn(name, fn_ty));

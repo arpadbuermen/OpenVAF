@@ -1,7 +1,5 @@
 use bitset::{BitSet, HybridBitSet, SparseBitMatrix};
-use mir::{Block, ControlFlowGraph, Function, Inst, InstructionData, Value};
-
-use mir::DominatorTree;
+use mir::{Block, ControlFlowGraph, DominatorTree, Function, Inst, InstructionData, Value};
 
 pub fn propagate_taint(
     func: &Function,

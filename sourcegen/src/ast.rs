@@ -317,7 +317,7 @@ fn generate_syntax_kinds(grammar: KindsSrc<'_>) -> String {
         if "{}[]()".contains(token) {
             let c = token.chars().next().unwrap();
             quote! { #c }
-        } else if *token == "'{" || *token == "(*" || *token == "*)" {
+        } else if *token == "'{" || *token == "(*" || *token == "*)" || *token == "_" {
             quote! { #token}
         } else {
             let cs = token.chars().map(|c| Punct::new(c, Spacing::Joint));

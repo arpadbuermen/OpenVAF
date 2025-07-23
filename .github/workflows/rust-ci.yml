@@ -1,0 +1,185 @@
+name: Rust CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt
+    - name: Check code formatting
+      run: cargo fmt -- --check
+
+  machete:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup sccache
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      uses: mozilla-actions/sccache-action@v0.0.9
+    - name: Configure sccache
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      run: |
+        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v4
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install cargo-machete
+      run: cargo install cargo-machete
+    - name: Run cargo machete
+      run: cargo machete
+
+  ubuntu-build-test:
+    runs-on: ubuntu-latest
+    needs: [format, machete]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
+        targets: x86_64-pc-windows-gnu
+    - name: Setup sccache
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      uses: mozilla-actions/sccache-action@v0.0.9
+    - name: Configure sccache
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      run: |
+        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+    - name: Install LLVM 18 and Windows cross-compilation tools
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
+        sudo apt-get install -y llvm-18 llvm-18-dev libclang-18-dev
+        
+        # Install llvm-lib for Windows cross-compilation
+        sudo apt-get install -y mingw-w64
+        
+        # Create symlink for llvm-lib
+        sudo ln -s /usr/bin/llvm-ar-18 /usr/local/bin/llvm-lib
+        
+        # Verify installation
+        which llvm-lib
+        llvm-lib --version
+    - name: Set LLVM environment variables
+      run: |
+        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> $GITHUB_ENV
+        echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang" >> $GITHUB_ENV
+        echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> $GITHUB_ENV
+        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+    - name: Build
+      run: cargo build --release
+    - name: Show sccache stats
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      shell: bash
+      run: ${SCCACHE_PATH} --show-stats
+    # someone has to fix the errors
+    # - name: Run Clippy
+    #   run: cargo clippy -- -D warnings
+    - name: Run tests
+      run: cargo test --release
+
+  msys2-build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        sys: [MINGW64, UCRT64]
+    runs-on: windows-latest
+    needs: [format, machete]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.sys }}
+        update: true
+        install: base-devel git ca-certificates
+        pacboy: >-
+          openssl:p
+          clang:p
+          llvm:p
+          rust:p
+          cc:p
+          python:p
+          sccache:p
+    #- name: Configure Git to use Schannel
+    #  shell: msys2 {0}
+    #  run: git config --global http.sslBackend schannel
+
+    - name: Configure Cargo to use CLI Git
+      shell: bash
+      run: |
+        mkdir -p .cargo
+        echo '[net]' > .cargo/config.toml
+        echo 'git-fetch-with-cli = true' >> .cargo/config.toml
+    - name: Cache sccache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/sccache
+        key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-sccache-
+    - name: Locate and configure sccache
+      shell: msys2 {0}
+      run: |
+        # export SCCACHE_PATH=$(which sccache)
+        # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> $GITHUB_ENV
+    - name: Run cargo
+      shell: msys2 {0}
+      run: cargo build --release
+    #- name: Show sccache stats
+    #  if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+    #  shell: msys2 {0}
+    #  run: $SCCACHE_PATH --show-stats
+    - name: Run tests
+      shell: msys2 {0}
+      run: cargo test --release
+
+  macos-build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            macos: 13
+          - arch: x86_64
+            macos: 13
+    runs-on: macos-${{ matrix.macos }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install pkg-config with Homebrew
+      run: |
+        brew install pkg-config mingw-w64 sccache llvm
+        echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+    - name: sccache setup
+      run: |
+        # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=$(which sccache)" >> $GITHUB_ENV
+    
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Run tests
+      run: cargo test --release
+

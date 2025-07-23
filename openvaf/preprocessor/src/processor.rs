@@ -176,13 +176,13 @@ impl<'a> Processor<'a> {
                 if new_args.len() > def.arg_cnt {
                     // macro definition has no arguments, but some were parsed as part of the call
                     // so put the arguments back
-                    dst.push( Token { kind:L_PAREN, span } );
+                    dst.push(Token { kind: L_PAREN, span });
                     for arg in new_args {
                         for tok in arg {
                             dst.push(tok)
                         }
                     }
-                    dst.push( Token { kind:R_PAREN, span } );
+                    dst.push(Token { kind: R_PAREN, span });
                 }
             } else {
                 errors.push(MacroArgumentCountMismatch {
@@ -255,7 +255,7 @@ impl<'a> Processor<'a> {
                     } else {
                         err.push(PreprocessorDiagnostic::MacroNotDefined {
                             name: name.to_owned(),
-                            span: p.current_span()
+                            span: p.current_span(),
                         })
                     }
                     p.bump();
@@ -264,7 +264,7 @@ impl<'a> Processor<'a> {
                     let name = p.current_text();
                     err.push(PreprocessorDiagnostic::UnsupportedCompDir {
                         name: name.to_owned(),
-                        span: p.current_span()
+                        span: p.current_span(),
                     });
                     p.bump();
                 }
