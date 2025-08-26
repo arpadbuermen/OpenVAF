@@ -21,6 +21,22 @@ pub fn simplify_cfg(func: &mut Function, cfg: &mut ControlFlowGraph) {
     simplify.iteratively_simplify_cfg();
 }
 
+pub fn simplify_cfg_init(func: &mut Function, cfg: &mut ControlFlowGraph) {
+    // println!("Before init simlify\n{:?}", func);
+    let mut simplify = SimplifyCfg {
+        cfg,
+        merge_phis: true,
+        vals_changed: BitSet::new_filled(func.layout.num_blocks()),
+        func,
+        local_changed: false,
+        // table: RawTable::with_capacity(8),
+        // hash_builer: ahash::RandomState::new(),
+        // unconditional_preds: Vec::with_capacity(4),
+    };
+    simplify.iteratively_simplify_cfg();
+    // println!("After init simlify\n{:?}", func);
+}
+
 pub fn simplify_cfg_no_phi_merge(func: &mut Function, cfg: &mut ControlFlowGraph) {
     let mut simplify = SimplifyCfg {
         cfg,
@@ -425,21 +441,39 @@ impl<'a> SimplifyCfg<'a> {
     /// their
     fn simplify_unconditional_jmp_term(&mut self, src: Block, dst: Block) {
         if self.cfg.single_predecessor(dst).is_some() {
+            // block has only one predecessor
             // trivial case let `merge_block_into_predecessor` handle this
             return;
         }
 
-        // check that the block only contains phi and a terminator
+        // Do not merge first block because constants that are input to Phi nodes 
+        // originate from this block. 
+        // The problem is that constants are assumed to originate from the first block. 
+        // This is OK as long as the first block is left untouched. If one tries to merge 
+        // it with its successor the only block that dominates all others is no longer 
+        // there so constants have no place where one could attach them. Consequently 
+        // they drop out from Phi instructions and all hell breaks loose. 
+        if self.func.layout.prev_block(src).is_none() {
+            return;
+        }
+
+        // check that the src block only contains phi and a terminator
         let mut insts = self.func.layout.block_insts(src);
+        // Remove last instruction (trerminator) from iterator 
         insts.next_back();
         for inst in insts.clone() {
+            // If an instruction that is not a PhiNode is found in src block, stop, cannot merge
             if !matches!(self.func.dfg.insts[inst], InstructionData::PhiNode(_)) {
+                // Found 
                 return;
             }
-
+            
+            // Loop through all instructions that use the values produced by inst 
             for use_ in self.func.dfg.inst_uses(inst) {
+                // Get the instruction where this value is used
                 let inst = self.func.dfg.use_to_operand(use_).0;
-                // check that all uses are phi nodes (otherwise we produce invalid code in loops
+                // check that all uses of values prduced by src block 
+                // are phi nodes (otherwise we produce invalid code in loops
                 // where we dominate a block with multiple predecessor
                 if self.func.layout.inst_block(inst).is_none() {
                     unreachable!(
@@ -447,6 +481,8 @@ impl<'a> SimplifyCfg<'a> {
                         self.func.dfg.display_inst(inst)
                     );
                 }
+                // If use is not a phi node or happens outside the dst block
+                // block src cannot be merged with block dst
                 if !matches!(self.func.dfg.insts[inst], InstructionData::PhiNode(_))
                     || self.func.layout.inst_block(inst).unwrap() != dst
                 {
@@ -456,8 +492,10 @@ impl<'a> SimplifyCfg<'a> {
         }
 
         // check that the successors phis can be merged
+        // loop through dst block
         for inst in self.func.layout.block_insts(dst) {
             if let InstructionData::PhiNode(phi) = self.func.dfg.insts[inst].clone() {
+                // This is a Phi instruction in dst block
                 // prepare for update
                 let val = self.func.dfg.phi_edge_val(&phi, src).unwrap();
 
@@ -609,7 +647,6 @@ impl<'a> SimplifyCfg<'a> {
             for inst in self.func.layout.block_insts(bb) {
                 self.func.dfg.zap_inst(inst)
             }
-
             self.func.layout.remove_and_clear_block(bb);
             self.local_changed = true;
             self.cfg.recompute_block(self.func, bb);

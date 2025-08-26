@@ -9,7 +9,7 @@ use mir::{
     strip_optbarrier, Block, ControlFlowGraph, DominatorTree, FuncRef, Function, Inst,
     InstructionData, Opcode, Value, FALSE,
 };
-use mir_opt::{aggressive_dead_code_elimination, simplify_cfg, ClassId, GVN};
+use mir_opt::{aggressive_dead_code_elimination, simplify_cfg, simplify_cfg_init, ClassId, GVN};
 use stdx::packed_option::PackedOption;
 use stdx::{impl_debug_display, impl_idx_from};
 use typed_indexmap::TiMap;
@@ -318,7 +318,7 @@ impl<'a> Builder<'a> {
             &|val, _| self.init.cached_vals.contains_key(&val) || collapse_implicit.contains(&val),
             &self.control_dep,
         );
-        simplify_cfg(&mut self.init.func, self.cfg);
+        simplify_cfg_init(&mut self.init.func, self.cfg);
     }
 
     fn build_init_itern(&mut self) -> AHashSet<Value> {
