@@ -6,15 +6,23 @@ use camino::{Utf8Path, Utf8PathBuf};
 use paths::AbsPathBuf;
 use target::spec::Target;
 
-use crate::api::{OptLevel, Opts, Slice};
+use crate::api::{LLVMCodeGenOptLevel, Opts, Slice};
 
-impl From<OptLevel> for llvm::OptLevel {
-    fn from(lvl: OptLevel) -> Self {
+impl From<LLVMCodeGenOptLevel> for llvm_sys::target_machine::LLVMCodeGenOptLevel {
+    fn from(lvl: LLVMCodeGenOptLevel) -> Self {
         match lvl {
-            OptLevel::None => llvm::OptLevel::None,
-            OptLevel::Less => llvm::OptLevel::Less,
-            OptLevel::Default => llvm::OptLevel::Default,
-            OptLevel::Aggressive => llvm::OptLevel::Aggressive,
+            LLVMCodeGenOptLevel::None => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelNone
+            }
+            LLVMCodeGenOptLevel::Less => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelLess
+            }
+            LLVMCodeGenOptLevel::Default => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelDefault
+            }
+            LLVMCodeGenOptLevel::Aggressive => {
+                llvm_sys::target_machine::LLVMCodeGenOptLevel::LLVMCodeGenLevelAggressive
+            }
         }
     }
 }
@@ -40,7 +48,10 @@ impl Opts {
 
     pub(crate) fn target(&self) -> Result<Target> {
         let target = if self.target_cpu.ptr.is_null() {
-            Target::host_target().unwrap()
+            Target::host_target().expect(
+                "Failed to determine host target. This architecture may not be supported by OpenVAF. \
+                 Supported targets include: x86_64-unknown-linux, aarch64-unknown-linux, riscv64-unknown-linux, etc."
+            )
         } else {
             let raw = unsafe { slice::from_raw_parts(self.target.ptr, self.target.len) };
             let name = str::from_utf8(raw).context("target must be valid utf8")?;

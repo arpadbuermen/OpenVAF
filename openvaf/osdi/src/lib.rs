@@ -1,9 +1,16 @@
+use std::collections::HashMap;
+use std::ffi::{CStr, CString};
+use std::ptr::NonNull;
+use std::sync::{Arc, Mutex};
+
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm::{LLVMABISizeOfType, LLVMDisposeTargetData, LLVMPrintModuleToString, OptLevel};
+use llvm_sys::core::LLVMPrintModuleToString;
+use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
+use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
@@ -11,10 +18,6 @@ use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
 use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
-
-use std::ffi::{CStr, CString};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
@@ -34,6 +37,23 @@ mod setup;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
+use std::sync::Once;
+
+use llvm_sys::target::{LLVM_InitializeNativeAsmPrinter, LLVM_InitializeNativeTarget};
+
+static LLVM_INIT: Once = Once::new();
+
+fn initialize_llvm() {
+    LLVM_INIT.call_once(|| unsafe {
+        if LLVM_InitializeNativeTarget() != 0 {
+            panic!("Failed to initialize native target");
+        }
+        if LLVM_InitializeNativeAsmPrinter() != 0 {
+            panic!("Failed to initialize native ASM printer");
+        }
+    });
+}
+
 pub fn compile<'a>(
     db: &'a CompilationDB,
     modules: &'a [ModuleInfo],
@@ -41,15 +61,16 @@ pub fn compile<'a>(
     target: &'a Target,
     back: &'a LLVMBackend,
     emit: bool,
-    opt_lvl: OptLevel,
-    dump_mir: bool, 
-    dump_unopt_mir: bool, 
-    dump_ir: bool, 
-    dump_unopt_ir: bool, 
+    opt_lvl: LLVMCodeGenOptLevel,
+    dump_mir: bool,
+    dump_unopt_mir: bool,
+    dump_ir: bool,
+    dump_unopt_ir: bool,
 ) -> (Vec<Utf8PathBuf>, Vec<CompiledModule<'a>>, Rodeo) {
+    initialize_llvm();
     let mut literals = Rodeo::new();
     let mut lim_table = TiSet::default();
-    let mnames: Vec<_> = modules.iter().map(|m| {m.module.name(db)}).collect();
+    let mnames: Vec<_> = modules.iter().map(|m| m.module.name(db)).collect();
     let modules: Vec<_> = modules
         .iter()
         .map(|module| {
@@ -64,7 +85,7 @@ pub fn compile<'a>(
         .collect();
 
     let name = dst.file_stem().expect("destination is a file").to_owned();
-        
+
     let mut paths: Vec<Utf8PathBuf> = (0..modules.len() * 4)
         .map(|i| {
             let num = base_n::encode((i + 1) as u128, CASE_INSENSITIVE);
@@ -75,7 +96,7 @@ pub fn compile<'a>(
 
     let target_data = unsafe {
         let src = CString::new(target.data_layout.clone()).unwrap();
-        llvm::LLVMCreateTargetData(src.as_ptr())
+        &*llvm_sys::target::LLVMCreateTargetData(src.as_ptr())
     };
 
     let compiled_modules = modules;
@@ -88,18 +109,18 @@ pub fn compile<'a>(
             unit
         })
         .collect();
-    
+
     let db = db.snapshot();
 
     let main_file = dst.with_extension("o");
-    
+
     let unoptirs = Arc::new(Mutex::new(HashMap::new()));
     let irs = Arc::new(Mutex::new(HashMap::new()));
-    
+
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
-        let target_data_ = &target_data;
+        let target_data_ = target_data;
         let paths = &paths;
 
         for (i, module) in osdi_modules.iter().enumerate() {
@@ -111,9 +132,9 @@ pub fn compile<'a>(
                 let name1 = access.clone();
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
-                
+
                 cguint.access_function();
                 if dump_unopt_ir {
                     let mut unoptirs = unoptirs_clone.lock().unwrap();
@@ -132,7 +153,7 @@ pub fn compile<'a>(
                     irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
-            
+
             let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
@@ -141,7 +162,7 @@ pub fn compile<'a>(
                 let name1 = name.clone();
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_model();
@@ -162,7 +183,7 @@ pub fn compile<'a>(
                     irs.insert((i, name1), llmod.to_str().to_string());
                 }
             });
-            
+
             let unoptirs_clone = Arc::clone(&unoptirs);
             let irs_clone = Arc::clone(&irs);
             let _db = db.snapshot();
@@ -171,7 +192,7 @@ pub fn compile<'a>(
                 let name1 = name.clone();
                 let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let mut cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, false);
 
                 cguint.setup_instance();
@@ -179,6 +200,8 @@ pub fn compile<'a>(
                     let mut unoptirs = unoptirs_clone.lock().unwrap();
                     unoptirs.insert((i, name), cx.to_str().to_string());
                 }
+                //let _ir = llmod.to_str();
+                //println!("llmod: {}", _ir);
                 debug_assert!(llmod.verify_and_print());
 
                 if emit {
@@ -201,7 +224,7 @@ pub fn compile<'a>(
                 let name1 = access.clone();
                 let llmod = unsafe { back.new_module(&access, opt_lvl).unwrap() };
                 let cx = new_codegen(back, &llmod, literals_);
-                let tys = OsdiTys::new(&cx, target_data_);
+                let tys = OsdiTys::new(&cx, NonNull::from(target_data_).as_ptr());
                 let cguint = OsdiCompilationUnit::new(&_db, module, &cx, &tys, true);
 
                 cguint.eval();
@@ -226,13 +249,13 @@ pub fn compile<'a>(
 
         let llmod = unsafe { back.new_module(&name, opt_lvl).unwrap() };
         let cx = new_codegen(back, &llmod, &literals);
-        let tys = OsdiTys::new(&cx, target_data);
+        let tys = OsdiTys::new(&cx, NonNull::from(target_data).as_ptr());
 
         let descriptors: Vec<_> = osdi_modules
             .iter()
             .map(|module| {
                 let cguint = OsdiCompilationUnit::new(&db, module, &cx, &tys, false);
-                let descriptor = cguint.descriptor(target_data, &db);
+                let descriptor = cguint.descriptor(&NonNull::from(target_data).as_ptr(), &db);
                 descriptor.to_ll_val(&cx, &tys)
             })
             .collect();
@@ -256,18 +279,16 @@ pub fn compile<'a>(
             cx.const_unsigned_int(OSDI_VERSION.1),
             true,
         );
-        
+
         let descr_size: u32;
         unsafe {
-            descr_size = LLVMABISizeOfType(target_data, tys.osdi_descriptor) as u32;
+            descr_size = LLVMABISizeOfType(
+                NonNull::from(target_data).as_ptr(),
+                NonNull::from(tys.osdi_descriptor).as_ptr(),
+            ) as u32;
         }
 
-        cx.export_val(
-            "OSDI_DESCRIPTOR_SIZE",
-            cx.ty_int(),
-            cx.const_unsigned_int(descr_size),
-            true,
-        );
+        cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
 
         if !lim_table.is_empty() {
             let lim: Vec<_> = lim_table.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
@@ -284,10 +305,22 @@ pub fn compile<'a>(
             cx.get_declared_value("osdi_log").expect("symbol osdi_log missing from std lib");
         let val = cx.const_null_ptr();
         unsafe {
-            llvm::LLVMSetInitializer(osdi_log, val);
-            llvm::LLVMSetLinkage(osdi_log, llvm::Linkage::ExternalLinkage);
-            llvm::LLVMSetUnnamedAddress(osdi_log, llvm::UnnamedAddr::No);
-            llvm::LLVMSetDLLStorageClass(osdi_log, llvm::DLLStorageClass::Export);
+            llvm_sys::core::LLVMSetInitializer(
+                NonNull::from(osdi_log).as_ptr(),
+                NonNull::from(val).as_ptr(),
+            );
+            llvm_sys::core::LLVMSetLinkage(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMLinkage::LLVMExternalLinkage,
+            );
+            llvm_sys::core::LLVMSetUnnamedAddress(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMUnnamedAddr::LLVMNoUnnamedAddr,
+            );
+            llvm_sys::core::LLVMSetDLLStorageClass(
+                NonNull::from(osdi_log).as_ptr(),
+                llvm_sys::LLVMDLLStorageClass::LLVMDLLExportStorageClass,
+            );
         }
 
         debug_assert!(llmod.verify_and_print());
@@ -321,8 +354,7 @@ pub fn compile<'a>(
     }
 
     paths.push(main_file);
-    unsafe { LLVMDisposeTargetData(target_data) };
-
+    unsafe { LLVMDisposeTargetData(NonNull::from(target_data).as_ptr()) };
     (paths, compiled_modules, literals)
 }
 
@@ -385,7 +417,7 @@ fn ty_len(ty: &Type) -> Option<u32> {
     }
 }
 
-fn lltype<'ll>(ty: &Type, cx: &CodegenCx<'_, 'll>) -> &'ll llvm::Type {
+fn lltype<'ll>(ty: &Type, cx: &CodegenCx<'_, 'll>) -> &'ll llvm_sys::LLVMType {
     let llty = match ty.base_type() {
         Type::Real => cx.ty_double(),
         Type::Integer => cx.ty_int(),

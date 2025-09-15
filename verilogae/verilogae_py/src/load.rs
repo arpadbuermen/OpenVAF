@@ -1,3 +1,5 @@
+use std::ptr;
+
 use libc::c_char;
 use pyo3_ffi::*;
 use verilogae_ffi::{verilogae_load, Opts, Slice, Vfs, VfsEntry, VfsExport};
@@ -7,8 +9,6 @@ use crate::model::VaeModel;
 use crate::typeref;
 use crate::unicode::OsStr;
 use crate::util::unlikely;
-
-use std::ptr;
 
 macro_rules! handle_opt {
     ($fun: literal, $dst: expr, $arg: expr, $val: expr) => {

@@ -41,7 +41,7 @@ impl<T: Container> ScopedArea<T> {
             // So the UnsacfeCell is also save here
             let sources = &mut *self.0.get();
             // check if the same data is already guarded by the arena
-            if !sources.iter().any(|x| x.as_ptr() == contents.as_ptr()) {
+            if !sources.iter().any(|x| std::ptr::addr_eq(x.as_ptr(), contents.as_ptr())) {
                 sources.push(T::clone(&contents))
             }
             &*contents.as_ptr()
