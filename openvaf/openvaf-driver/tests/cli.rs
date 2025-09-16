@@ -54,7 +54,7 @@ harness! {
          &[
             "--target_cpu generic",
             "--target_cpu skylake",
-             "--dump-json",
+             // "--dump-json",
              "--supported-targets",
              "--batch",
              "--batch --cache-dir sourcegen",
