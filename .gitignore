@@ -5,6 +5,7 @@
 **.o3
 **.o4
 **.osdi
+**.exp
 **.lib
 **.dot
 /target/
