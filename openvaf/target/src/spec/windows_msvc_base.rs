@@ -2,7 +2,7 @@ use crate::spec::{LinkerFlavor, TargetOptions};
 
 /// MSVC-specific Windows target options, extending the base Windows options.
 pub fn opts() -> TargetOptions {
-    let mut base = super::windows_base::opts_windows_base();
+    let mut base = super::windows_base::opts_windows_base(LinkerFlavor::Msvc);
 
     // Suppress the verbose logo and authorship debugging output, which would needlessly
     // clog any log files.

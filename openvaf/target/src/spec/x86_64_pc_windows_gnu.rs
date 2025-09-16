@@ -1,7 +1,7 @@
 use crate::spec::{LinkerFlavor, Target};
 
 pub fn target() -> Target {
-    let mut base = super::windows_base::opts_windows_base();
+    let mut base = super::windows_base::opts_windows_base(LinkerFlavor::Ld);
     base.cpu = "x86-64".to_string();
     base.linker_flavor = LinkerFlavor::Ld;
     base.pre_link_args.insert(LinkerFlavor::Ld, vec!["-m64".to_string()]);
