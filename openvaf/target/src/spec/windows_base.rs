@@ -5,5 +5,11 @@ pub fn opts_windows_base(flavor: LinkerFlavor) -> TargetOptions {
     let pre_link_args = LinkArgs::new();
     let post_link_args = LinkArgs::new();
 
-    TargetOptions { is_like_windows: true, linker_flavor: flavor, pre_link_args, post_link_args, ..Default::default() }
+    TargetOptions {
+        is_like_windows: true,
+        linker_flavor: flavor,
+        pre_link_args,
+        post_link_args,
+        ..Default::default()
+    }
 }
