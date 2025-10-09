@@ -1,14 +1,14 @@
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::{CString};
 use std::ptr::NonNull;
 use std::sync::{Arc, Mutex};
 
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
+use hir_def::db::HirDefDB;
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
-use llvm_sys::core::LLVMPrintModuleToString;
 use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
@@ -16,8 +16,8 @@ use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
 use stdx::{impl_debug_display, impl_idx_from};
 use target::spec::Target;
-use typed_index_collections::TiVec;
 use typed_indexmap::TiSet;
+use ndatable::{natures_vector, disciplines_vector, attributes_vector};
 
 use crate::compilation_unit::{new_codegen, OsdiCompilationUnit, OsdiModule};
 use crate::metadata::osdi_0_4::OsdiTys;
@@ -34,6 +34,7 @@ mod eval;
 mod load;
 mod noise;
 mod setup;
+mod ndatable;
 
 const OSDI_VERSION: (u32, u32) = (0, 4);
 
@@ -117,6 +118,17 @@ pub fn compile<'a>(
     let unoptirs = Arc::new(Mutex::new(HashMap::new()));
     let irs = Arc::new(Mutex::new(HashMap::new()));
 
+    // Build natures vector, intern strings in Rodeo
+    // Retrieve NDATable
+    let cu = db.compilation_unit();
+    let fileid = cu.root_file();
+    let nda_table = db.nda_table(fileid);
+    
+    // From db.nda_table() construct OsdiNature and OsdiDiscipline vectors
+    let natures_vec = natures_vector(&nda_table, &mut literals);
+    let disciplines_vec = disciplines_vector(&nda_table, &mut literals);
+    let attributes_vec = attributes_vector(&nda_table, &mut literals);
+    
     rayon_core::scope(|scope| {
         let db = db;
         let literals_ = &literals;
@@ -289,7 +301,46 @@ pub fn compile<'a>(
         }
 
         cx.export_val("OSDI_DESCRIPTOR_SIZE", cx.ty_int(), cx.const_unsigned_int(descr_size), true);
+        
+        // Build vector of llvm structures for natures
+        let natures: Vec<_> = natures_vec.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
+        // Export, but only if array has nonzero length
+        if !natures.is_empty() {
+            cx.export_array("OSDI_NATURES", tys.osdi_nature, &natures, true, false);
+            cx.export_val(
+                "OSDI_NATURES_LEN",
+                cx.ty_int(),
+                cx.const_unsigned_int(natures.len() as u32),
+                true,
+            );
+        }
 
+        // Build vector of llvm structures for disciplines
+        let disciplines: Vec<_> = disciplines_vec.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
+        // Export, but only if array has nonzero length
+        if !disciplines.is_empty() {
+            cx.export_array("OSDI_DISCIPLINES", tys.osdi_discipline, &disciplines, true, false);
+            cx.export_val(
+                "OSDI_DISCIPLINES_LEN",
+                cx.ty_int(),
+                cx.const_unsigned_int(disciplines.len() as u32),
+                true,
+            );
+        }
+
+        // Build vector of llvm structures for attributes
+        let attributes: Vec<_> = attributes_vec.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
+        // Export, but only if array has nonzero length
+        if !disciplines.is_empty() {
+            cx.export_array("OSDI_ATTRIBUTES", tys.osdi_attribute, &attributes, true, false);
+            cx.export_val(
+                "OSDI_ATTRIBUTES_LEN",
+                cx.ty_int(),
+                cx.const_unsigned_int(attributes.len() as u32),
+                true,
+            );
+        }
+        
         if !lim_table.is_empty() {
             let lim: Vec<_> = lim_table.iter().map(|entry| entry.to_ll_val(&cx, &tys)).collect();
             cx.export_array("OSDI_LIM_TABLE", tys.osdi_lim_function, &lim, false, false);

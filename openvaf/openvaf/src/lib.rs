@@ -173,8 +173,9 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
         }
         CompilationDestination::Path { lib_file } => lib_file.clone(),
     };
-
-    let modules = if let Some(modules) = collect_modules(&db, false, &mut ConsoleSink::new(&db)) {
+    
+    // Lowering of natures from AST into HIR happens here
+    let modules = if let Some(modules) = collect_modules(&db, false, &mut  ConsoleSink::new(&db)) {
         modules
     } else {
         return Ok(CompilationTermination::FatalDiagnostic);
@@ -184,6 +185,7 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     if opts.dry_run {
         return Ok(CompilationTermination::Compiled { lib_file });
     }
+    // HIR lowering into MIR happens here
     let (paths, compiled_modules, literals) = osdi::compile(
         &db,
         &modules,
@@ -197,6 +199,31 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
         opts.dump_ir,
         opts.dump_unopt_ir,
     );
+
+    // Dump natures, disciplines, and their attributes
+    /*
+    let cu = db.compilation_unit();
+    let nda_table = db.nda_table(cu.root_file());
+    for (i, nature) in nda_table.natures.iter_enumerated() {
+        println!("{:?}: {}", i, nature.name);
+        println!("  parent: {:?}", nature.parent);
+        println!("  ddt: {:?}", nature.ddt_nature);
+        println!("  idt: {:?}", nature.idt_nature);
+        for ndx in nature.attr_range.clone() {
+            let attr = &nda_table.attributes[ndx];
+            println!("  attr {:?} = {:?}", attr.name, attr.value);
+        }
+    }
+    for (i, discipline) in nda_table.disciplines.iter_enumerated() {
+        println!("{:?}: {}", i, discipline.name);
+        println!("  flow: {:?}", discipline.flow_nature);
+        println!("  potential: {:?}", discipline.potential_nature);
+        for ndx in discipline.attr_range.clone() {
+            let attr = &nda_table.attributes[ndx];
+            println!("  attr {:?} = {:?}", attr.name, attr.value);
+        }
+    }
+    */
 
     // Dump MIR of compiled modules
     if opts.dump_mir || opts.dump_unopt_mir {

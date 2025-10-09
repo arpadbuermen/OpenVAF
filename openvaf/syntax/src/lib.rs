@@ -25,6 +25,8 @@ pub use token_text::TokenText;
 pub use tokens::{SyntaxKind, T};
 use vfs::FileId;
 
+pub use ast::ConstExprValue;
+
 /// `Parse` is the result of the parsing: a syntax tree and a collection of
 /// errors.
 ///

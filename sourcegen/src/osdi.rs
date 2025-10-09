@@ -7,6 +7,8 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens, TokenStreamExt};
 use target::spec::get_targets;
 
+use heck::ToUpperCamelCase;
+
 use crate::{add_preamble, ensure_file_contents, project_root, reformat, to_lower_snake_case};
 
 #[test]
@@ -51,18 +53,21 @@ fn gen_osdi_structs() {
                 }
             }
         };
+
+        // osdi*.rs file for compiler (unions are enums), used for lowering
         let file_string = format!("{file_header}\n{stdlib}\n{consts}\n\n{tys}");
         let file_string = add_preamble("gen_osdi_structs", reformat(file_string));
         let file_name = format!("osdi_{}_{}.rs", header.version_major, header.version_minor);
-
         ensure_file_contents(&osdi_src_dir.join(file_name), &file_string);
 
+        // osdi*.rs file for melange and tests (unions are c-style unions), 
+        // used for importing a dynamic library
         let bindings = gen_bindings(&res.tys);
         let file_header = "use std::os::raw::{c_char, c_void};";
         let file_string = format!("{file_header}\n\n{consts}\n\n{bindings}");
         let file_string = add_preamble("gen_osdi_structs", reformat(file_string));
         let file_name = format!("osdi_{}_{}.rs", header.version_major, header.version_minor);
-
+        
         ensure_file_contents(&melange_src_dir.join(&file_name), &file_string);
         ensure_file_contents(&osdi_test_dir.join(&file_name), &file_string);
     }
@@ -191,7 +196,14 @@ impl<'a> HeaderParser<'a> {
             "char" => BaseTy::Char,
             "void" => BaseTy::Void,
             "bool" => BaseTy::Bool,
-            name => BaseTy::Struct(name),
+            name => {
+                let struct_data = self.res.tys.get(name).unwrap();
+                if struct_data.is_union {
+                    BaseTy::Union(name)
+                } else {
+                    BaseTy::Struct(name)
+                }
+            },
         };
 
         let mut indirection = 0;
@@ -253,6 +265,7 @@ enum BaseTy<'a> {
     Bool,
     Void,
     Struct(&'a str),
+    Union(&'a str),
 }
 
 impl ToTokens for BaseTy<'_> {
@@ -269,6 +282,7 @@ impl ToTokens for BaseTy<'_> {
             }
             BaseTy::Void => "c_void",
             BaseTy::Struct(name) => name,
+            BaseTy::Union(name) => name,
         };
 
         tokens.append(Ident::new(ident, Span::call_site()));
@@ -360,6 +374,11 @@ impl ToTokens for LLVMTyInterp<'_, '_> {
                     let ty = &self.lut[ty].llvm_ty_ident;
                     let ty = Ident::new(ty, Span::call_site());
                     quote!(self.#ty.unwrap())
+                }, 
+                BaseTy::Union(ty) => {
+                    let ty = &self.lut[ty].llvm_ty_ident;
+                    let ty = Ident::new(ty, Span::call_site());
+                    quote!(self.#ty.unwrap())
                 }
             }
         } else {
@@ -411,6 +430,11 @@ impl ToTokens for LLVMValInterp<'_, '_> {
                         let ty = &self.lut[ty].llvm_ty_ident;
                         let ty = Ident::new(ty, Span::call_site());
                         quote!(tys.#ty)
+                    }, 
+                    BaseTy::Union(ty) => {
+                        let ty = &self.lut[ty].llvm_ty_ident;
+                        let ty = Ident::new(ty, Span::call_site());
+                        quote!(tys.#ty)
                     }
                 }
             } else {
@@ -421,7 +445,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
             quote!(ctx.const_arr_ptr(#base_ty, &#ident)).to_tokens(tokens);
             return;
         }
-
+        
         let val = match self.ty.base {
             BaseTy::F64 => quote!(ctx.const_real(#src)),
             BaseTy::I32 => quote!(ctx.const_int(#src)),
@@ -433,6 +457,9 @@ impl ToTokens for LLVMValInterp<'_, '_> {
             BaseTy::Bool => quote!(ctx.const_c_bool(#src)),
             BaseTy::Void => unreachable!(),
             BaseTy::Struct(_) => {
+                quote!(#src.to_ll_val(ctx, tys))
+            }, 
+            BaseTy::Union(_) => {
                 quote!(#src.to_ll_val(ctx, tys))
             }
         };
@@ -477,6 +504,9 @@ impl ToTokens for LLVMValPreInterp<'_, '_> {
             BaseTy::Void => unreachable!(),
             BaseTy::Struct(_) => {
                 quote!(#calc_src.to_ll_val(ctx, tys))
+            }, 
+            BaseTy::Union(_) => {
+                quote!(#calc_src.to_ll_val(ctx, tys, self))
             }
         };
 
@@ -493,7 +523,7 @@ impl ToTokens for LLVMValPreInterp<'_, '_> {
 impl ToTokens for OsdiStructInterp<'_, '_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let llvm_ty_ident = Ident::new(&self.info.llvm_ty_ident, Span::call_site());
-
+        
         let OsdiStruct { ident, fields, .. } = self.info;
         if !matches!(
             *ident,
@@ -503,51 +533,77 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                 | "OsdiInitErrorPayload"
                 | "OsdiSimInfo"
         ) {
-            assert!(!self.info.is_union, "union code generation is not implemented (yet)");
-            let ident = Ident::new(ident, Span::call_site());
-            let field_names = fields.iter().map(|(name, _)| Ident::new(name, Span::call_site()));
-            let field_tys = fields.iter().map(|(_, ty)| TyInterpolater { ty, lut: self.lut });
-            let field_ll_arrays = fields
-                .iter()
-                .enumerate()
-                .map(|(pos, (name, ty))| LLVMValPreInterp { ty, name, pos: pos as u32 });
-            let field_ll_vals = fields.iter().enumerate().map(|(pos, (name, ty))| LLVMValInterp {
-                ty,
-                name,
-                pos: pos as u32,
-                lut: self.lut,
-            });
-            let has_ll =
-                fields.iter().any(|(_, ty)| ty.func_args.is_some() || ty.base == BaseTy::Void);
+            // assert!(!self.info.is_union, "union code generation is not implemented (yet)");
+            {
+                let ident = Ident::new(ident, Span::call_site());
+                let field_names = fields.iter().map(|(name, _)| Ident::new(name, Span::call_site()));
+                let field_tys = fields.iter().map(|(_, ty)| TyInterpolater { ty, lut: self.lut });
+                let field_ll_arrays = fields
+                    .iter()
+                    .enumerate()
+                    .map(|(pos, (name, ty))| LLVMValPreInterp { ty, name, pos: pos as u32 });
+                let field_ll_vals = fields.iter().enumerate().map(|(pos, (name, ty))| LLVMValInterp {
+                    ty,
+                    name,
+                    pos: pos as u32,
+                    lut: self.lut,
+                });
+                let has_ll =
+                    fields.iter().any(|(_, ty)| ty.func_args.is_some() || ty.base == BaseTy::Void);
 
-            let mut lt = quote!();
-            let mut func_lt = quote!(<'ll>);
-            if has_ll {
-                swap(&mut lt, &mut func_lt);
-            }
-
-            quote! {
-                pub struct #ident #lt{
-                    #(pub #field_names: #field_tys),*
+                let mut lt = quote!();
+                let mut func_lt = quote!(<'ll>);
+                if has_ll {
+                    swap(&mut lt, &mut func_lt);
                 }
 
-                impl #lt #ident #lt{
-                    pub fn to_ll_val #func_lt (&self, ctx: &CodegenCx<'_,'ll>, tys: &'ll OsdiTys) -> &'ll llvm_sys::LLVMValue{
-                        #(#field_ll_arrays)*
-                        let fields = [#(#field_ll_vals),*];
-                        let ty = tys.#llvm_ty_ident;
-                        ctx.const_struct(ty, &fields)
+                // Capitalize field names to be used in enum
+                let mut v: Vec<String> = Vec::new();
+                let capitalized_field_names = fields.iter().map(|(name, _)| {
+                    v.push(name.to_upper_camel_case());
+                    let s: &str = &v.last().unwrap();
+                    Ident::new(s, Span::call_site())
+                });
+                
+                if self.info.is_union {
+                    quote! {
+                        // In compiler unions are represented as enums
+                        pub enum #ident #lt{
+                            #( #capitalized_field_names ( #field_tys) ),*
+                        }
+
+                        // Will have to write fn to_ll_val() manually for each union type
+                    }
+
+                    
+                } else {
+                    quote! {
+                        pub struct #ident #lt{
+                            #(pub #field_names: #field_tys),*
+                        }
+
+                        impl #lt #ident #lt{
+                            pub fn to_ll_val #func_lt (&self, ctx: &CodegenCx<'_,'ll>, tys: &'ll OsdiTys) -> &'ll llvm_sys::LLVMValue{
+                                #(#field_ll_arrays)*
+                                let fields = [#(#field_ll_vals),*];
+                                let ty = tys.#llvm_ty_ident;
+                                ctx.const_struct(ty, &fields)
+                            }
+                        }
                     }
                 }
-            }
-            .to_tokens(tokens);
-        }
+                .to_tokens(tokens);
+            } 
+        } 
 
         let field_ll_tys =
             self.info.fields.iter().map(|(_, ty)| LLVMTyInterp { ty, lut: self.lut });
         let ident = self.info.ident;
         if self.info.is_union {
             let field_ll_tys2 = field_ll_tys.clone();
+            // Use ty_aint() with element size=alignment*8 bits so that 
+            // llvm will correctly align the union and its parent. 
+            // The number of chunks of size align*8 bits is given by size. 
             quote! {
                 impl OsdiTyBuilder<'_, '_, '_>{
                     fn #llvm_ty_ident(&mut self){
@@ -640,6 +696,7 @@ impl ToTokens for RustBasicTy<'_> {
             BaseTy::Char => "c_char",
             BaseTy::Void => "c_void",
             BaseTy::Struct(name) => name,
+            BaseTy::Union(name) => name,
         };
 
         let base = Ident::new(ident, Span::call_site());

@@ -49,6 +49,9 @@ pub const LOG_LVL_ERR: u32 = 4;
 pub const LOG_LVL_FATAL: u32 = 5;
 pub const LOG_FMT_ERR: u32 = 16;
 pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
+pub const ATTR_TYPE_STR: u32 = 0;
+pub const ATTR_TYPE_INT: u32 = 1;
+pub const ATTR_TYPE_REAL: u32 = 2;
 
 #[repr(C)]
 pub struct OsdiLimFunction {
@@ -301,4 +304,33 @@ impl OsdiDescriptor {
     ) {
         (self.load_jacobian_with_offset_react)(inst, model, offset)
     }
+}
+#[repr(C)]
+pub struct OsdiNature {
+    pub name: *mut c_char,
+    pub parent: u32,
+    pub ddt: u32,
+    pub idt: u32,
+    pub attr_start: u32,
+    pub num_attr: u32,
+}
+#[repr(C)]
+pub struct OsdiDiscipline {
+    pub name: *mut c_char,
+    pub flow: u32,
+    pub potential: u32,
+    pub attr_start: u32,
+    pub num_attr: u32,
+}
+#[repr(C)]
+pub union OsdiAttributeValue {
+    pub string: *mut c_char,
+    pub integer: i32,
+    pub real: f64,
+}
+#[repr(C)]
+pub struct OsdiAttribute {
+    pub name: *mut c_char,
+    pub value_type: u32,
+    pub value: OsdiAttributeValue,
 }

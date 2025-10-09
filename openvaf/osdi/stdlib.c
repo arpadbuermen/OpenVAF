@@ -1,5 +1,10 @@
 #ifdef NO_STD
-typedef int uint32_t;
+// This was used before. Seems wrong. AB
+// typedef int int32_t;
+// Maybe this is better... AB
+typedef unsigned int uint32_t;
+typedef int int32_t;
+// End of change AB
 typedef unsigned char bool;
 typedef __SIZE_TYPE__ size_t;
 extern size_t strlen (const char *__s);

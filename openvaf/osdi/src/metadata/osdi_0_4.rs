@@ -78,6 +78,9 @@ pub const LOG_LVL_ERR: u32 = 4;
 pub const LOG_LVL_FATAL: u32 = 5;
 pub const LOG_FMT_ERR: u32 = 16;
 pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
+pub const ATTR_TYPE_STR: u32 = 0;
+pub const ATTR_TYPE_INT: u32 = 1;
+pub const ATTR_TYPE_REAL: u32 = 2;
 
 pub struct OsdiLimFunction<'ll> {
     pub name: String,
@@ -495,6 +498,151 @@ impl OsdiTyBuilder<'_, '_, '_> {
         self.osdi_descriptor = Some(ty);
     }
 }
+pub struct OsdiNature {
+    pub name: String,
+    pub parent: u32,
+    pub ddt: u32,
+    pub idt: u32,
+    pub attr_start: u32,
+    pub num_attr: u32,
+}
+impl OsdiNature {
+    pub fn to_ll_val<'ll>(
+        &self,
+        ctx: &CodegenCx<'_, 'll>,
+        tys: &'ll OsdiTys,
+    ) -> &'ll llvm_sys::LLVMValue {
+        let fields = [
+            ctx.const_str_uninterned(&self.name),
+            ctx.const_unsigned_int(self.parent),
+            ctx.const_unsigned_int(self.ddt),
+            ctx.const_unsigned_int(self.idt),
+            ctx.const_unsigned_int(self.attr_start),
+            ctx.const_unsigned_int(self.num_attr),
+        ];
+        let ty = tys.osdi_nature;
+        ctx.const_struct(ty, &fields)
+    }
+}
+impl OsdiTyBuilder<'_, '_, '_> {
+    fn osdi_nature(&mut self) {
+        let ctx = self.ctx;
+        let fields =
+            [ctx.ty_ptr(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int()];
+        let ty = ctx.ty_struct("OsdiNature", &fields);
+        self.osdi_nature = Some(ty);
+    }
+}
+pub struct OsdiDiscipline {
+    pub name: String,
+    pub flow: u32,
+    pub potential: u32,
+    pub attr_start: u32,
+    pub num_attr: u32,
+}
+impl OsdiDiscipline {
+    pub fn to_ll_val<'ll>(
+        &self,
+        ctx: &CodegenCx<'_, 'll>,
+        tys: &'ll OsdiTys,
+    ) -> &'ll llvm_sys::LLVMValue {
+        let fields = [
+            ctx.const_str_uninterned(&self.name),
+            ctx.const_unsigned_int(self.flow),
+            ctx.const_unsigned_int(self.potential),
+            ctx.const_unsigned_int(self.attr_start),
+            ctx.const_unsigned_int(self.num_attr),
+        ];
+        let ty = tys.osdi_discipline;
+        ctx.const_struct(ty, &fields)
+    }
+}
+impl OsdiTyBuilder<'_, '_, '_> {
+    fn osdi_discipline(&mut self) {
+        let ctx = self.ctx;
+        let fields = [ctx.ty_ptr(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int()];
+        let ty = ctx.ty_struct("OsdiDiscipline", &fields);
+        self.osdi_discipline = Some(ty);
+    }
+}
+pub enum OsdiAttributeValue {
+    String(String),
+    Integer(i32),
+    Real(f64),
+}
+impl OsdiTyBuilder<'_, '_, '_> {
+    fn osdi_attribute_value(&mut self) {
+        let ctx = self.ctx;
+        unsafe {
+            let align = [
+                llvm_sys::target::LLVMABIAlignmentOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_ptr()).as_ptr(),
+                ),
+                llvm_sys::target::LLVMABIAlignmentOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
+                ),
+                llvm_sys::target::LLVMABIAlignmentOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_double()).as_ptr(),
+                ),
+            ]
+            .into_iter()
+            .max()
+            .unwrap();
+            let mut size = [
+                llvm_sys::target::LLVMABISizeOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_ptr()).as_ptr(),
+                ),
+                llvm_sys::target::LLVMABISizeOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
+                ),
+                llvm_sys::target::LLVMABISizeOfType(
+                    self.target_data.clone(),
+                    core::ptr::NonNull::from(ctx.ty_double()).as_ptr(),
+                ),
+            ]
+            .into_iter()
+            .max()
+            .unwrap() as u32;
+            size = (size + align - 1) / align;
+            let elem = ctx.ty_aint(align * 8);
+            let ty = ctx.ty_array(elem, size);
+            self.osdi_attribute_value = Some(ty);
+        }
+    }
+}
+pub struct OsdiAttribute {
+    pub name: String,
+    pub value_type: u32,
+    pub value: OsdiAttributeValue,
+}
+impl OsdiAttribute {
+    pub fn to_ll_val<'ll>(
+        &self,
+        ctx: &CodegenCx<'_, 'll>,
+        tys: &'ll OsdiTys,
+    ) -> &'ll llvm_sys::LLVMValue {
+        let fields = [
+            ctx.const_str_uninterned(&self.name),
+            ctx.const_unsigned_int(self.value_type),
+            self.value.to_ll_val(ctx, tys),
+        ];
+        let ty = tys.osdi_attribute;
+        ctx.const_struct(ty, &fields)
+    }
+}
+impl OsdiTyBuilder<'_, '_, '_> {
+    fn osdi_attribute(&mut self) {
+        let ctx = self.ctx;
+        let fields = [ctx.ty_ptr(), ctx.ty_int(), self.osdi_attribute_value.unwrap()];
+        let ty = ctx.ty_struct("OsdiAttribute", &fields);
+        self.osdi_attribute = Some(ty);
+    }
+}
 #[derive(Clone)]
 pub struct OsdiTys<'ll> {
     pub osdi_lim_function: &'ll llvm_sys::LLVMType,
@@ -509,6 +657,10 @@ pub struct OsdiTys<'ll> {
     pub osdi_param_opvar: &'ll llvm_sys::LLVMType,
     pub osdi_noise_source: &'ll llvm_sys::LLVMType,
     pub osdi_descriptor: &'ll llvm_sys::LLVMType,
+    pub osdi_nature: &'ll llvm_sys::LLVMType,
+    pub osdi_discipline: &'ll llvm_sys::LLVMType,
+    pub osdi_attribute_value: &'ll llvm_sys::LLVMType,
+    pub osdi_attribute: &'ll llvm_sys::LLVMType,
 }
 impl<'ll> OsdiTys<'ll> {
     pub fn new(ctx: &CodegenCx<'_, 'll>, target_data: llvm_sys::target::LLVMTargetDataRef) -> Self {
@@ -527,6 +679,10 @@ impl<'ll> OsdiTys<'ll> {
             osdi_param_opvar: None,
             osdi_noise_source: None,
             osdi_descriptor: None,
+            osdi_nature: None,
+            osdi_discipline: None,
+            osdi_attribute_value: None,
+            osdi_attribute: None,
         };
         builder.osdi_lim_function();
         builder.osdi_sim_paras();
@@ -540,6 +696,10 @@ impl<'ll> OsdiTys<'ll> {
         builder.osdi_param_opvar();
         builder.osdi_noise_source();
         builder.osdi_descriptor();
+        builder.osdi_nature();
+        builder.osdi_discipline();
+        builder.osdi_attribute_value();
+        builder.osdi_attribute();
         builder.finish()
     }
 }
@@ -558,6 +718,10 @@ struct OsdiTyBuilder<'a, 'b, 'll> {
     osdi_param_opvar: Option<&'ll llvm_sys::LLVMType>,
     osdi_noise_source: Option<&'ll llvm_sys::LLVMType>,
     osdi_descriptor: Option<&'ll llvm_sys::LLVMType>,
+    osdi_nature: Option<&'ll llvm_sys::LLVMType>,
+    osdi_discipline: Option<&'ll llvm_sys::LLVMType>,
+    osdi_attribute_value: Option<&'ll llvm_sys::LLVMType>,
+    osdi_attribute: Option<&'ll llvm_sys::LLVMType>,
 }
 impl<'ll> OsdiTyBuilder<'_, '_, 'll> {
     fn finish(self) -> OsdiTys<'ll> {
@@ -574,6 +738,10 @@ impl<'ll> OsdiTyBuilder<'_, '_, 'll> {
             osdi_param_opvar: self.osdi_param_opvar.unwrap(),
             osdi_noise_source: self.osdi_noise_source.unwrap(),
             osdi_descriptor: self.osdi_descriptor.unwrap(),
+            osdi_nature: self.osdi_nature.unwrap(),
+            osdi_discipline: self.osdi_discipline.unwrap(),
+            osdi_attribute_value: self.osdi_attribute_value.unwrap(),
+            osdi_attribute: self.osdi_attribute.unwrap(),
         }
     }
 }
