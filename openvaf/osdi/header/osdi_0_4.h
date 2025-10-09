@@ -63,6 +63,10 @@
 
 #define INIT_ERR_OUT_OF_BOUNDS 1
 
+#define ATTR_TYPE_STR 0
+#define ATTR_TYPE_INT 1
+#define ATTR_TYPE_REAL 2
+
 
 
 typedef struct OsdiLimFunction {
@@ -204,5 +208,33 @@ typedef struct OsdiDescriptor {
   void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
 }OsdiDescriptor;
 
+typedef struct OsdiNature {
+  char *name;
+  uint32_t parent;
+  uint32_t ddt;
+  uint32_t idt;
+  uint32_t attr_start;
+  uint32_t num_attr;
+} OsdiNature;
+
+typedef struct OsdiDiscipline {
+  char *name;
+  uint32_t flow;
+  uint32_t potential;
+  uint32_t attr_start;
+  uint32_t num_attr;
+} OsdiDiscipline;
+
+typedef union OsdiAttributeValue {
+  char* string;
+  int32_t integer;
+  double real;
+} OsdiAttributeValue;
+
+typedef struct OsdiAttribute {
+  char *name;
+  uint32_t value_type;
+  OsdiAttributeValue value;
+} OsdiAttribute;
 
 

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use arena::Arena;
 use syntax::name::Name;
 use typed_index_collections::TiSlice;
+use ordered_float::OrderedFloat;
 
 use crate::db::HirDefDB;
 use crate::item_tree::{self, BranchKind, DisciplineAttrKind, Domain, NatureRef};
@@ -90,7 +91,7 @@ pub struct NatureData {
     pub idt_nature: Option<NatureRef>,
     pub ddt_nature: Option<NatureRef>,
     pub units: Option<String>,
-    pub abstol: Option<LocalNatureAttrId>,
+    pub abstol: Option<(OrderedFloat<f64>, LocalNatureAttrId)>,
     pub attrs: Arena<NatureAttrData>,
 }
 

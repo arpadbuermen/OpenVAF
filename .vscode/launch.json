@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "simp1.va" ],
+            "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "simdio.va" ],
             // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "resistor.va" ],
             "cwd": "${workspaceFolder}/..",
             "env": {
