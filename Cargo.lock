@@ -973,7 +973,6 @@ dependencies = [
  "expect-test",
  "float-cmp",
  "hir",
- "hir_def",
  "indexmap 2.10.0",
  "libc",
  "libloading",

@@ -173,9 +173,9 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
         }
         CompilationDestination::Path { lib_file } => lib_file.clone(),
     };
-    
+
     // Lowering of natures from AST into HIR happens here
-    let modules = if let Some(modules) = collect_modules(&db, false, &mut  ConsoleSink::new(&db)) {
+    let modules = if let Some(modules) = collect_modules(&db, false, &mut ConsoleSink::new(&db)) {
         modules
     } else {
         return Ok(CompilationTermination::FatalDiagnostic);

@@ -11,8 +11,8 @@
 //! surface syntax.
 
 mod lower;
-mod pretty;
 pub mod ndatable;
+mod pretty;
 
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -335,7 +335,7 @@ pub struct Nature {
 pub struct NatureAttr {
     pub name: Name,
     pub ast_id: AstId<ast::NatureAttr>,
-    pub value: Option<ConstExprValue>, 
+    pub value: Option<ConstExprValue>,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash, Copy)]
