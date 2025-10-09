@@ -71,6 +71,7 @@ impl CompilationUnit {
         db.file_path(self.root_file).name().unwrap_or_else(|| String::from("~.va"))
     }
 
+    // Lowering AST -> HIR for module body
     pub fn diagnostics(self, db: &CompilationDB, sink: &mut impl DiagnosticSink) {
         diagnostics::collect(db, self.root_file, sink)
     }

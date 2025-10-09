@@ -8,6 +8,8 @@ pub mod nameres;
 mod path;
 mod types;
 
+pub use crate::item_tree::ndatable;
+
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 

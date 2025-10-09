@@ -500,6 +500,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
 name = "hermit-abi"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -535,6 +541,7 @@ dependencies = [
  "indexmap 2.10.0",
  "mini_harness",
  "once_cell",
+ "ordered-float",
  "parking_lot",
  "salsa",
  "stdx",
@@ -966,6 +973,7 @@ dependencies = [
  "expect-test",
  "float-cmp",
  "hir",
+ "hir_def",
  "indexmap 2.10.0",
  "libc",
  "libloading",
@@ -1005,6 +1013,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ordered-float"
+version = "4.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "osdi"
 version = "0.0.0"
 dependencies = [
@@ -1014,6 +1031,7 @@ dependencies = [
  "expect-test",
  "float-cmp",
  "hir",
+ "hir_def",
  "hir_lower",
  "indexmap 2.10.0",
  "lasso",
@@ -1029,6 +1047,7 @@ dependencies = [
  "sim_back",
  "smol_str",
  "stdx",
+ "syntax",
  "target",
  "typed-index-collections",
  "typed_indexmap",
@@ -1256,7 +1275,7 @@ name = "salsa-macros"
 version = "0.17.0-pre.2"
 source = "git+https://github.com/pascalkuthe/salsa#73532d7d4d8b5b27f2c9f189a76e012d1fc4de09"
 dependencies = [
- "heck",
+ "heck 0.3.3",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -1343,6 +1362,7 @@ name = "sourcegen"
 version = "0.0.0"
 dependencies = [
  "ahash 0.8.12",
+ "heck 0.5.0",
  "indexmap 2.10.0",
  "proc-macro2",
  "quote",
@@ -1388,6 +1408,7 @@ dependencies = [
 name = "syntax"
 version = "0.0.0"
 dependencies = [
+ "ordered-float",
  "parser",
  "preprocessor",
  "rowan",

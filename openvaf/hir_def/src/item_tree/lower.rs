@@ -1,11 +1,12 @@
 use std::mem;
 use std::sync::Arc;
+use ordered_float::OrderedFloat;
 
 use arena::IdxRange;
 use basedb::{AstId, AstIdMap, FileId};
 use syntax::ast::{self, ParamRef, PathSegmentKind};
 use syntax::name::{kw, AsIdent, AsName};
-use syntax::{match_ast, AstNode, WalkEvent};
+use syntax::{match_ast, AstNode, WalkEvent, ConstExprValue};
 use typed_index_collections::TiVec;
 
 use super::{
@@ -75,27 +76,35 @@ impl Ctx {
 
                 if let Some(name) = name.segment_token().map(|t| t.as_name()) {
                     let ast_id = self.source_ast_id_map.ast_id(&attr);
-
+                    
+                    let mut evaluated: Option<ConstExprValue> = None;
                     match &*name {
                         kw::potential if potential.is_none() => {
                             if let Some(name) = attr.val().and_then(Self::lower_nature_expr) {
-                                potential = Some((name, id.into()))
+                                evaluated = Some(ConstExprValue::String(name.name.to_string()));
+                                potential = Some((name, id.into()));
                             }
                         }
                         kw::flow if flow.is_none() => {
                             if let Some(name) = attr.val().and_then(Self::lower_nature_expr) {
+                                evaluated = Some(ConstExprValue::String(name.name.to_string()));
                                 flow = Some((name, id.into()))
                             }
                         }
                         kw::domain if domain.is_none() => {
                             match attr.val().and_then(|e| e.as_ident()).as_deref() {
                                 Some(kw::continuous) => {
+                                    evaluated = Some(ConstExprValue::String(kw::continuous.to_string()));
                                     domain = Some((Domain::Continuous, id.into()));
                                 }
                                 Some(kw::discrete) => {
+                                    evaluated = Some(ConstExprValue::String(kw::discrete.to_string()));
                                     domain = Some((Domain::Discrete, id.into()));
                                 }
-                                _ => (),
+                                _ => {
+                                    // All other attributes - evaluate ast expression
+                                    evaluated = attr.val().and_then(|v| v.as_constexprval());
+                                },
                             }
                         }
 
@@ -105,7 +114,8 @@ impl Ctx {
                     self.tree.data.discipline_attrs.push(DisciplineAttr {
                         name: name.clone(),
                         kind,
-                        ast_id,
+                        ast_id, 
+                        value: evaluated, 
                     });
                 }
             }
@@ -156,7 +166,7 @@ impl Ctx {
 
     fn lower_nature(&mut self, decl: ast::NatureDecl) -> Option<ItemTreeId<Nature>> {
         let name = decl.name()?.as_name();
-
+        
         let parent = decl.parent().and_then(|it| Self::lower_nature_path(&it));
         let attr_start = self.tree.data.nature_attrs.next_key();
 
@@ -171,20 +181,23 @@ impl Ctx {
                 use kw::raw as kw;
 
                 let ast_id = self.source_ast_id_map.ast_id(&attr);
-
+                let mut evaluated: Option<ConstExprValue> = None;
                 match &*name {
                     kw::access if access.is_none() => {
                         if let Some(name) = attr.val().and_then(|e| e.as_ident()) {
+                            evaluated = Some(ConstExprValue::String(name.to_string()));
                             access = Some((name, id.into()));
                         }
                     }
                     kw::ddt_nature if ddt_nature.is_none() => {
                         if let Some(name) = attr.val().and_then(Self::lower_nature_expr) {
+                            evaluated = Some(ConstExprValue::String(name.name.to_string()));
                             ddt_nature = Some((name, id.into()));
                         }
                     }
                     kw::idt_nature if idt_nature.is_none() => {
                         if let Some(name) = attr.val().and_then(Self::lower_nature_expr) {
+                            evaluated = Some(ConstExprValue::String(name.name.to_string()));
                             idt_nature = Some((name, id.into()));
                         }
                     }
@@ -192,24 +205,36 @@ impl Ctx {
                     kw::units if units.is_none() => {
                         if let Some(ast::LiteralKind::String(lit)) =
                             attr.val().and_then(|e| e.as_literal())
-                        {
-                            units = Some((lit.unescaped_value(), id.into()));
+                        {   
+                            let a = attr.val().unwrap();
+                            let b = a.as_literal();
+                            let s = lit.unescaped_value();
+                            evaluated = Some(ConstExprValue::String(s.clone()));
+                            units = Some((s, id.into()));
                         }
                     }
 
-                    kw::abs if abstol.is_none() => {
-                        abstol = Some(id.into());
+                    kw::abstol if abstol.is_none() => {
+                        let v1 = attr.val().and_then(|v| v.as_constexprval())
+                            .and_then(|v| v.as_real());
+                        if let Some(v) = v1 {
+                            abstol = Some((OrderedFloat(v), id.into()));
+                            evaluated = Some(ConstExprValue::Float(v.into()));
+                        }
                     }
-                    _ => (),
+                    _ => {
+                        // All other attributes - evaluate ast expression
+                        evaluated = attr.val().and_then(|v| v.as_constexprval());
+                    },
                 };
 
-                self.tree.data.nature_attrs.push(NatureAttr { name, ast_id });
+                self.tree.data.nature_attrs.push(NatureAttr { name, ast_id, value: evaluated });
             }
         }
-
+        
         let attr_end = self.tree.data.nature_attrs.next_key();
         let ast_id = self.source_ast_id_map.ast_id(&decl);
-
+        
         let res = Nature {
             ast_id,
             name,
