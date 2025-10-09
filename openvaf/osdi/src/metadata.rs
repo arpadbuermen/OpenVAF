@@ -4,16 +4,16 @@ use std::iter::once;
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
-use llvm_sys::target::{
-    LLVMABISizeOfType, LLVMOffsetOfElement, LLVMTargetDataRef, LLVMCreateTargetData, 
-    LLVMByteOrder, LLVMByteOrdering
-};
 use llvm_sys::core::{
-    LLVMGetArrayLength2, LLVMGetElementType, LLVMConstPtrToInt, 
-    LLVMGetUndef, LLVMConstArray2, LLVMGetDataLayoutStr, LLVMConstInt
+    LLVMConstArray2, LLVMConstInt, LLVMConstPtrToInt, LLVMGetArrayLength2, LLVMGetDataLayoutStr,
+    LLVMGetElementType, LLVMGetUndef,
 };
-use llvm_sys::{LLVMValue};
 use llvm_sys::prelude::LLVMValueRef;
+use llvm_sys::target::{
+    LLVMABISizeOfType, LLVMByteOrder, LLVMByteOrdering, LLVMCreateTargetData, LLVMOffsetOfElement,
+    LLVMTargetDataRef,
+};
+use llvm_sys::LLVMValue;
 use mir::{ValueDef, F_ZERO};
 use mir_llvm::CodegenCx;
 use sim_back::dae::MatrixEntry;
@@ -26,9 +26,10 @@ use crate::inst_data::{
 };
 use crate::load::JacobianLoadType;
 use crate::metadata::osdi_0_4::{
-    OsdiDescriptor, OsdiJacobianEntry, OsdiNode, OsdiNodePair, OsdiNoiseSource, OsdiParamOpvar, OsdiTys, 
-    JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST, JACOBIAN_ENTRY_RESIST, JACOBIAN_ENTRY_RESIST_CONST, 
-    PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT, PARA_TY_REAL, PARA_TY_STR
+    OsdiDescriptor, OsdiJacobianEntry, OsdiNode, OsdiNodePair, OsdiNoiseSource, OsdiParamOpvar,
+    OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST, JACOBIAN_ENTRY_RESIST,
+    JACOBIAN_ENTRY_RESIST_CONST, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT,
+    PARA_TY_REAL, PARA_TY_STR,
 };
 use crate::ty_len;
 
@@ -65,9 +66,9 @@ impl osdi_0_4::OsdiAttributeValue {
         // Union storage type (array of integers)
         let ty = tys.osdi_attribute_value;
         unsafe {
-            // TODO: handle endianness. Currently works for little endian (PC, x86 & arm64 MACS). 
-            // Array elements are i64 or larger. When lowering integers/pointers/doubles that are 
-            // smaller than the array element this is wrong on big endian.  
+            // TODO: handle endianness. Currently works for little endian (PC, x86 & arm64 MACS).
+            // Array elements are i64 or larger. When lowering integers/pointers/doubles that are
+            // smaller than the array element this is wrong on big endian.
             // Check target (it must be little endian)
             let data_layout = LLVMGetDataLayoutStr(NonNull::from(ctx.llmod).as_ptr());
             let target_data = LLVMCreateTargetData(data_layout);
@@ -88,12 +89,12 @@ impl osdi_0_4::OsdiAttributeValue {
                 osdi_0_4::OsdiAttributeValue::String(s) => {
                     // Constant global string
                     let llval = ctx.const_str_uninterned(s);
-                    let valref  = llval as *const LLVMValue as LLVMValueRef;
+                    let valref = llval as *const LLVMValue as LLVMValueRef;
                     // Cast to array entry type
                     let ptr_as_int = LLVMConstPtrToInt(valref, elem_ty);
                     // Fill initializer array
                     elems[0] = ptr_as_int;
-                }, 
+                }
                 osdi_0_4::OsdiAttributeValue::Real(f) => {
                     // Real number
                     let ipat = f.to_bits();
@@ -101,14 +102,14 @@ impl osdi_0_4::OsdiAttributeValue {
                     let entry = LLVMConstInt(elem_ty, ipat, 0);
                     // Fill initializer array
                     elems[0] = entry;
-                }, 
+                }
                 osdi_0_4::OsdiAttributeValue::Integer(i) => {
                     // Integer (i32)
                     let entry = LLVMConstInt(elem_ty, *i as i64 as u64, 0);
                     // Fill initializer array
                     elems[0] = entry;
                 }
-                _ => panic!("Unknown attribute value union member type.")
+                _ => panic!("Unknown attribute value union member type."),
             }
             // Construct array
             &*LLVMConstArray2(elem_ty, elems.as_mut_ptr(), len)

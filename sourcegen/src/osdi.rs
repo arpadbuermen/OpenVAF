@@ -60,14 +60,14 @@ fn gen_osdi_structs() {
         let file_name = format!("osdi_{}_{}.rs", header.version_major, header.version_minor);
         ensure_file_contents(&osdi_src_dir.join(file_name), &file_string);
 
-        // osdi*.rs file for melange and tests (unions are c-style unions), 
+        // osdi*.rs file for melange and tests (unions are c-style unions),
         // used for importing a dynamic library
         let bindings = gen_bindings(&res.tys);
         let file_header = "use std::os::raw::{c_char, c_void};";
         let file_string = format!("{file_header}\n\n{consts}\n\n{bindings}");
         let file_string = add_preamble("gen_osdi_structs", reformat(file_string));
         let file_name = format!("osdi_{}_{}.rs", header.version_major, header.version_minor);
-        
+
         ensure_file_contents(&melange_src_dir.join(&file_name), &file_string);
         ensure_file_contents(&osdi_test_dir.join(&file_name), &file_string);
     }
@@ -203,7 +203,7 @@ impl<'a> HeaderParser<'a> {
                 } else {
                     BaseTy::Struct(name)
                 }
-            },
+            }
         };
 
         let mut indirection = 0;
@@ -374,7 +374,7 @@ impl ToTokens for LLVMTyInterp<'_, '_> {
                     let ty = &self.lut[ty].llvm_ty_ident;
                     let ty = Ident::new(ty, Span::call_site());
                     quote!(self.#ty.unwrap())
-                }, 
+                }
                 BaseTy::Union(ty) => {
                     let ty = &self.lut[ty].llvm_ty_ident;
                     let ty = Ident::new(ty, Span::call_site());
@@ -430,7 +430,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
                         let ty = &self.lut[ty].llvm_ty_ident;
                         let ty = Ident::new(ty, Span::call_site());
                         quote!(tys.#ty)
-                    }, 
+                    }
                     BaseTy::Union(ty) => {
                         let ty = &self.lut[ty].llvm_ty_ident;
                         let ty = Ident::new(ty, Span::call_site());
@@ -445,7 +445,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
             quote!(ctx.const_arr_ptr(#base_ty, &#ident)).to_tokens(tokens);
             return;
         }
-        
+
         let val = match self.ty.base {
             BaseTy::F64 => quote!(ctx.const_real(#src)),
             BaseTy::I32 => quote!(ctx.const_int(#src)),
@@ -458,7 +458,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
             BaseTy::Void => unreachable!(),
             BaseTy::Struct(_) => {
                 quote!(#src.to_ll_val(ctx, tys))
-            }, 
+            }
             BaseTy::Union(_) => {
                 quote!(#src.to_ll_val(ctx, tys))
             }
@@ -504,7 +504,7 @@ impl ToTokens for LLVMValPreInterp<'_, '_> {
             BaseTy::Void => unreachable!(),
             BaseTy::Struct(_) => {
                 quote!(#calc_src.to_ll_val(ctx, tys))
-            }, 
+            }
             BaseTy::Union(_) => {
                 quote!(#calc_src.to_ll_val(ctx, tys, self))
             }
@@ -523,7 +523,6 @@ impl ToTokens for LLVMValPreInterp<'_, '_> {
 impl ToTokens for OsdiStructInterp<'_, '_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let llvm_ty_ident = Ident::new(&self.info.llvm_ty_ident, Span::call_site());
-        
         let OsdiStruct { ident, fields, .. } = self.info;
         if !matches!(
             *ident,
@@ -536,17 +535,15 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
             // assert!(!self.info.is_union, "union code generation is not implemented (yet)");
             {
                 let ident = Ident::new(ident, Span::call_site());
-                let field_names = fields.iter().map(|(name, _)| Ident::new(name, Span::call_site()));
+                let field_names =
+                    fields.iter().map(|(name, _)| Ident::new(name, Span::call_site()));
                 let field_tys = fields.iter().map(|(_, ty)| TyInterpolater { ty, lut: self.lut });
                 let field_ll_arrays = fields
                     .iter()
                     .enumerate()
                     .map(|(pos, (name, ty))| LLVMValPreInterp { ty, name, pos: pos as u32 });
-                let field_ll_vals = fields.iter().enumerate().map(|(pos, (name, ty))| LLVMValInterp {
-                    ty,
-                    name,
-                    pos: pos as u32,
-                    lut: self.lut,
+                let field_ll_vals = fields.iter().enumerate().map(|(pos, (name, ty))| {
+                    LLVMValInterp { ty, name, pos: pos as u32, lut: self.lut }
                 });
                 let has_ll =
                     fields.iter().any(|(_, ty)| ty.func_args.is_some() || ty.base == BaseTy::Void);
@@ -564,7 +561,7 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                     let s: &str = &v.last().unwrap();
                     Ident::new(s, Span::call_site())
                 });
-                
+
                 if self.info.is_union {
                     quote! {
                         // In compiler unions are represented as enums
@@ -574,8 +571,6 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
 
                         // Will have to write fn to_ll_val() manually for each union type
                     }
-
-                    
                 } else {
                     quote! {
                         pub struct #ident #lt{
@@ -593,17 +588,17 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                     }
                 }
                 .to_tokens(tokens);
-            } 
-        } 
+            }
+        }
 
         let field_ll_tys =
             self.info.fields.iter().map(|(_, ty)| LLVMTyInterp { ty, lut: self.lut });
         let ident = self.info.ident;
         if self.info.is_union {
             let field_ll_tys2 = field_ll_tys.clone();
-            // Use ty_aint() with element size=alignment*8 bits so that 
-            // llvm will correctly align the union and its parent. 
-            // The number of chunks of size align*8 bits is given by size. 
+            // Use ty_aint() with element size=alignment*8 bits so that
+            // llvm will correctly align the union and its parent.
+            // The number of chunks of size align*8 bits is given by size.
             quote! {
                 impl OsdiTyBuilder<'_, '_, '_>{
                     fn #llvm_ty_ident(&mut self){
