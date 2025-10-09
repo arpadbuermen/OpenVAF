@@ -8,8 +8,8 @@ use crate::data::{
     AliasParamData, BranchData, DisciplineData, FunctionData, ModuleData, NatureData, NodeData,
     ParamData, VarData,
 };
-use crate::item_tree::ItemTree;
 use crate::item_tree::ndatable::NDATable;
+use crate::item_tree::ItemTree;
 use crate::nameres::{DefMap, ScopeOrigin};
 use crate::{
     AliasParamId, AliasParamLoc, BlockId, BlockLoc, BranchId, BranchLoc, DefWithBodyId,

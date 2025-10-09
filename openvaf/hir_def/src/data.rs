@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use arena::Arena;
+use ordered_float::OrderedFloat;
 use syntax::name::Name;
 use typed_index_collections::TiSlice;
-use ordered_float::OrderedFloat;
 
 use crate::db::HirDefDB;
 use crate::item_tree::{self, BranchKind, DisciplineAttrKind, Domain, NatureRef};

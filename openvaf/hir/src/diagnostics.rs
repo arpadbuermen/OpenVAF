@@ -25,7 +25,7 @@ pub(crate) fn collect(db: &CompilationDB, root_file: FileId, sink: &mut impl Dia
     let parse = db.parse(root_file);
     let sm = db.sourcemap(root_file);
     let item_tree = db.item_tree(root_file);
-    
+
     let diagnostics = validation::TypeValidationDiagnostic::collect(db, root_file);
 
     for diag in diagnostics {
@@ -40,7 +40,7 @@ pub(crate) fn collect(db: &CompilationDB, root_file: FileId, sink: &mut impl Dia
         sink.add_diagnostic(&diag, root_file, db);
     }
 
-    // AST -> HIR lowering of modules 
+    // AST -> HIR lowering of modules
     collect_def_map(db, &def_map, root_file, &parse, &sm, &ast_id_map, sink);
     let root_scope = def_map.root();
     for child in def_map[root_scope].children.values() {
@@ -64,7 +64,7 @@ pub(crate) fn collect(db: &CompilationDB, root_file: FileId, sink: &mut impl Dia
                 &ast_id_map,
             )
         }
-        
+
         collect_scope(db, &def_map, &parse, &sm, &ast_id_map, root_file, sink, *child)
     }
 }
