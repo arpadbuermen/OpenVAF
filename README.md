@@ -49,6 +49,8 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - --dump-unopt-mir, --dump-mir, --dump-unopt-ir, and --dump-ir options for dumpring the (unoptimized) MIR and LLVM IR. 
 - Support for $fatal, $finish, and $stop. 
 - Loops no longer crash the compiler. 
+- Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
+- Disciplines of nodes exposed in OSDI descriptor. 
 
 
 # What about binaries? 
