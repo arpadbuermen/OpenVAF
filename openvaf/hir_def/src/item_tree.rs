@@ -40,7 +40,7 @@ use crate::{
 #[derive(Debug, Eq, PartialEq)]
 pub struct ItemTree {
     pub top_level: Box<[RootItem]>,
-    pub(crate) data: ItemTreeData,
+    pub data: ItemTreeData,
     pub(crate) blocks: AHashMap<AstId<BlockStmt>, Block>,
 }
 
@@ -95,7 +95,7 @@ impl ItemTree {
 }
 
 #[derive(Default, Debug, Eq, PartialEq)]
-pub(crate) struct ItemTreeData {
+pub struct ItemTreeData {
     pub modules: Arena<Module>,
     pub disciplines: Arena<Discipline>,
     pub natures: Arena<Nature>,

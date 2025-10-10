@@ -52,6 +52,13 @@ pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
 pub const ATTR_TYPE_STR: u32 = 0;
 pub const ATTR_TYPE_INT: u32 = 1;
 pub const ATTR_TYPE_REAL: u32 = 2;
+pub const PARENT_NONE: u32 = 0;
+pub const PARENT_NATURE: u32 = 1;
+pub const PARENT_DISCIPLINE_FLOW: u32 = 2;
+pub const PARENT_DISCIPLINE_POTENTIAL: u32 = 3;
+pub const DOMAIN_NOT_GIVEN: u32 = 0;
+pub const DOMAIN_DISCRETE: u32 = 1;
+pub const DOMAIN_CONTINUOUS: u32 = 2;
 
 #[repr(C)]
 pub struct OsdiLimFunction {
@@ -308,6 +315,7 @@ impl OsdiDescriptor {
 #[repr(C)]
 pub struct OsdiNature {
     pub name: *mut c_char,
+    pub parent_type: u32,
     pub parent: u32,
     pub ddt: u32,
     pub idt: u32,
@@ -319,8 +327,11 @@ pub struct OsdiDiscipline {
     pub name: *mut c_char,
     pub flow: u32,
     pub potential: u32,
+    pub domain: u32,
     pub attr_start: u32,
-    pub num_attr: u32,
+    pub num_flow_attr: u32,
+    pub num_potential_attr: u32,
+    pub num_user_attr: u32,
 }
 #[repr(C)]
 pub union OsdiAttributeValue {
