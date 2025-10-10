@@ -385,6 +385,7 @@ pub struct OsdiDescriptor<'ll> {
     pub inputs: Vec<OsdiNodePair>,
     pub load_jacobian_with_offset_resist: &'ll llvm_sys::LLVMValue,
     pub load_jacobian_with_offset_react: &'ll llvm_sys::LLVMValue,
+    pub node_discipline: Vec<u32>,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(
@@ -398,6 +399,8 @@ impl<'ll> OsdiDescriptor<'ll> {
         let arr_9: Vec<_> = self.noise_sources.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_14: Vec<_> = self.param_opvar.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_43: Vec<_> = self.inputs.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
+        let arr_46: Vec<_> =
+            self.node_discipline.iter().map(|it| ctx.const_unsigned_int(*it)).collect();
         let fields = [
             ctx.const_str_uninterned(&self.name),
             ctx.const_unsigned_int(self.num_nodes),
@@ -445,6 +448,7 @@ impl<'ll> OsdiDescriptor<'ll> {
             ctx.const_arr_ptr(tys.osdi_node_pair, &arr_43),
             self.load_jacobian_with_offset_resist,
             self.load_jacobian_with_offset_react,
+            ctx.const_arr_ptr(ctx.ty_int(), &arr_46),
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)
@@ -497,6 +501,7 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_int(),
+            ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),
