@@ -12,7 +12,7 @@ use lasso::Rodeo;
 use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
-use ndatable::{attributes_vector, disciplines_vector, natures_vector};
+use ndatable::nda_arrays;
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
 use stdx::{impl_debug_display, impl_idx_from};
@@ -118,16 +118,8 @@ pub fn compile<'a>(
     let unoptirs = Arc::new(Mutex::new(HashMap::new()));
     let irs = Arc::new(Mutex::new(HashMap::new()));
 
-    // Build natures vector, intern strings in Rodeo
-    // Retrieve NDATable
-    let cu = db.compilation_unit();
-    let fileid = cu.root_file();
-    let nda_table = db.nda_table(fileid);
-
-    // From db.nda_table() construct OsdiNature and OsdiDiscipline vectors
-    let natures_vec = natures_vector(&nda_table, &mut literals);
-    let disciplines_vec = disciplines_vector(&nda_table, &mut literals);
-    let attributes_vec = attributes_vector(&nda_table, &mut literals);
+    // Build natures, disciplines, and attributes vectors, intern strings in Rodeo
+    let (natures_vec, disciplines_vec, attributes_vec) = nda_arrays(&*db, &mut literals);
 
     rayon_core::scope(|scope| {
         let db = db;

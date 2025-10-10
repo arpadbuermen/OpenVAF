@@ -81,6 +81,13 @@ pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
 pub const ATTR_TYPE_STR: u32 = 0;
 pub const ATTR_TYPE_INT: u32 = 1;
 pub const ATTR_TYPE_REAL: u32 = 2;
+pub const PARENT_NONE: u32 = 0;
+pub const PARENT_NATURE: u32 = 1;
+pub const PARENT_DISCIPLINE_FLOW: u32 = 2;
+pub const PARENT_DISCIPLINE_POTENTIAL: u32 = 3;
+pub const DOMAIN_NOT_GIVEN: u32 = 0;
+pub const DOMAIN_DISCRETE: u32 = 1;
+pub const DOMAIN_CONTINUOUS: u32 = 2;
 
 pub struct OsdiLimFunction<'ll> {
     pub name: String,
@@ -500,6 +507,7 @@ impl OsdiTyBuilder<'_, '_, '_> {
 }
 pub struct OsdiNature {
     pub name: String,
+    pub parent_type: u32,
     pub parent: u32,
     pub ddt: u32,
     pub idt: u32,
@@ -514,6 +522,7 @@ impl OsdiNature {
     ) -> &'ll llvm_sys::LLVMValue {
         let fields = [
             ctx.const_str_uninterned(&self.name),
+            ctx.const_unsigned_int(self.parent_type),
             ctx.const_unsigned_int(self.parent),
             ctx.const_unsigned_int(self.ddt),
             ctx.const_unsigned_int(self.idt),
@@ -527,8 +536,15 @@ impl OsdiNature {
 impl OsdiTyBuilder<'_, '_, '_> {
     fn osdi_nature(&mut self) {
         let ctx = self.ctx;
-        let fields =
-            [ctx.ty_ptr(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int()];
+        let fields = [
+            ctx.ty_ptr(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+        ];
         let ty = ctx.ty_struct("OsdiNature", &fields);
         self.osdi_nature = Some(ty);
     }
@@ -537,8 +553,11 @@ pub struct OsdiDiscipline {
     pub name: String,
     pub flow: u32,
     pub potential: u32,
+    pub domain: u32,
     pub attr_start: u32,
-    pub num_attr: u32,
+    pub num_flow_attr: u32,
+    pub num_potential_attr: u32,
+    pub num_user_attr: u32,
 }
 impl OsdiDiscipline {
     pub fn to_ll_val<'ll>(
@@ -550,8 +569,11 @@ impl OsdiDiscipline {
             ctx.const_str_uninterned(&self.name),
             ctx.const_unsigned_int(self.flow),
             ctx.const_unsigned_int(self.potential),
+            ctx.const_unsigned_int(self.domain),
             ctx.const_unsigned_int(self.attr_start),
-            ctx.const_unsigned_int(self.num_attr),
+            ctx.const_unsigned_int(self.num_flow_attr),
+            ctx.const_unsigned_int(self.num_potential_attr),
+            ctx.const_unsigned_int(self.num_user_attr),
         ];
         let ty = tys.osdi_discipline;
         ctx.const_struct(ty, &fields)
@@ -560,7 +582,16 @@ impl OsdiDiscipline {
 impl OsdiTyBuilder<'_, '_, '_> {
     fn osdi_discipline(&mut self) {
         let ctx = self.ctx;
-        let fields = [ctx.ty_ptr(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int(), ctx.ty_int()];
+        let fields = [
+            ctx.ty_ptr(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+            ctx.ty_int(),
+        ];
         let ty = ctx.ty_struct("OsdiDiscipline", &fields);
         self.osdi_discipline = Some(ty);
     }
