@@ -183,6 +183,7 @@ pub struct OsdiDescriptor {
     pub inputs: *mut OsdiNodePair,
     pub load_jacobian_with_offset_resist: fn(*mut c_void, *mut c_void, usize),
     pub load_jacobian_with_offset_react: fn(*mut c_void, *mut c_void, usize),
+    pub node_discipline: *mut u32,
 }
 impl OsdiDescriptor {
     pub fn access(

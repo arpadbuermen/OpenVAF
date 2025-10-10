@@ -2,6 +2,8 @@ use core::ptr::NonNull;
 use std::iter::once;
 
 use hir::{CompilationDB, ParamSysFun, Type};
+use hir_def::db::HirDefDB;
+use hir_def::ndatable::NDATable;
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
 use llvm_sys::core::{
@@ -216,7 +218,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             .unknowns
             .iter_enumerated()
             .map(|(id, unknown)| {
-                let (name, units, is_flow) = sim_unknown_info(*unknown, db);
+                let (name, units, is_flow, _) = sim_unknown_info(*unknown, db);
                 let resist_residual_off =
                     inst_data.residual_off(id, false, target_data).unwrap_or(u32::MAX);
                 let react_residual_off =
@@ -235,6 +237,23 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     is_flow,
                     resist_limit_rhs_off,
                     react_limit_rhs_off,
+                }
+            })
+            .collect()
+    }
+
+    pub fn node_disciplines(&self, db: &CompilationDB) -> Vec<u32> {
+        let OsdiCompilationUnit { module, .. } = self;
+        module
+            .dae_system
+            .unknowns
+            .iter_enumerated()
+            .map(|(id, unknown)| {
+                let (_, _, _, disc_ndx) = sim_unknown_info(*unknown, db);
+                if let Some(ndx) = disc_ndx {
+                    ndx
+                } else {
+                    u32::MAX
                 }
             })
             .collect()
@@ -420,6 +439,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 load_jacobian_with_offset_resist: self
                     .load_jacobian(JacobianLoadType::Resist, true),
                 load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
+                node_discipline: self.node_disciplines(db),
             }
         }
     }
@@ -428,14 +448,17 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 impl OsdiModule<'_> {
     pub fn intern_node_strs(&self, intern: &mut Rodeo, db: &CompilationDB) {
         for &unknown in self.dae_system.unknowns.iter() {
-            let (name, units, _) = sim_unknown_info(unknown, db);
+            let (name, units, _, _) = sim_unknown_info(unknown, db);
             intern.get_or_intern(&name);
             intern.get_or_intern(&units);
         }
     }
 }
 
-fn sim_unknown_info(unknown: SimUnknownKind, db: &CompilationDB) -> (String, String, bool) {
+fn sim_unknown_info(
+    unknown: SimUnknownKind,
+    db: &CompilationDB,
+) -> (String, String, bool, Option<u32>) {
     let name;
     let discipline;
     let is_flow;
@@ -473,6 +496,17 @@ fn sim_unknown_info(unknown: SimUnknownKind, db: &CompilationDB) -> (String, Str
         }
     };
 
+    // Get discipline index
+    let cu = db.compilation_unit();
+    let nda_table = db.nda_table(cu.root_file());
+
+    let ndx = if let Some(discipline) = discipline {
+        let ndx = nda_table.discipline_name_map.get(&discipline.name(db));
+        ndx.map(|e| e.into_raw())
+    } else {
+        None
+    };
+
     // its valid to have disciplines without pot/flow nature but then we can't
     // have branches for those so its ok to unwrap here
     let units = discipline
@@ -486,5 +520,5 @@ fn sim_unknown_info(unknown: SimUnknownKind, db: &CompilationDB) -> (String, Str
         })
         .unwrap_or_default();
 
-    (name, units, is_flow)
+    (name, units, is_flow, ndx)
 }
