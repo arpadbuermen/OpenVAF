@@ -3,7 +3,7 @@ mod builtin;
 mod data;
 pub mod db;
 pub mod expr;
-mod item_tree;
+pub mod item_tree;
 pub mod nameres;
 mod path;
 mod types;
