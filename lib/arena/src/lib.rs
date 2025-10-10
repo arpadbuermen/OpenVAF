@@ -92,6 +92,12 @@ impl<T> From<Idx<T>> for usize {
     }
 }
 
+impl<T> Idx<T> {
+    pub fn into_raw(&self) -> u32 {
+        self.raw
+    }
+}
+
 /// A range of densely allocated arena values.
 pub struct IdxRange<T> {
     range: Range<u32>,
