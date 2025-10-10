@@ -214,6 +214,7 @@ typedef struct OsdiDescriptor {
   OsdiNodePair* inputs;
   void (*load_jacobian_with_offset_resist)(void *inst, void* model, size_t offset);
   void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
+  uint32_t* node_discipline;
 }OsdiDescriptor;
 
 typedef struct OsdiNature {
