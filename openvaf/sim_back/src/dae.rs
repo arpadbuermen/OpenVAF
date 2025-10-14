@@ -52,6 +52,7 @@ pub struct DaeSystem {
 
 impl DaeSystem {
     pub(crate) fn new(ctx: &mut Context, contributions: topology::Topology) -> DaeSystem {
+        // Topology is consumed here.
         let mut builder =
             Builder::new(ctx).with_small_signal_network(contributions.small_signal_vals);
 
@@ -103,6 +104,13 @@ impl DaeSystem {
             matrix_entry.resist != F_ZERO || matrix_entry.react != F_ZERO
         })
     }
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+pub enum ResidualNatureKind {
+    Flow,
+    Potential,
+    Switch,
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
@@ -171,6 +179,8 @@ pub struct Residual {
     /// reactive residual (the jacobian is madeup of both). The reactive component
     /// is stored in this variable.
     pub react_lim_rhs: Value,
+    /// Residual nature kinde (flow/potential/switch)
+    pub nature_kind: ResidualNatureKind,
 }
 
 impl Default for Residual {
@@ -182,6 +192,7 @@ impl Default for Residual {
             react_small_signal: F_ZERO,
             resist_lim_rhs: F_ZERO,
             react_lim_rhs: F_ZERO,
+            nature_kind: ResidualNatureKind::Flow,
         }
     }
 }

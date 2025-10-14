@@ -6,9 +6,9 @@ param "flicker_exp"
 units = "", desc = "", flags = ParameterFlags(0x0)
 
 2 terminals
-node "a" units = "V", runits = ""
+node "a" units = "V", runits = "A"
 residual 4294967295 4294967295 4294967295 4294967295
-node "c" units = "V", runits = ""
+node "c" units = "V", runits = "A"
 residual 4294967295 4294967295 4294967295 4294967295
 noise "white1" (a, c)
 noise "white2" (a, c)
