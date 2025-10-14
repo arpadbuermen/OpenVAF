@@ -11,6 +11,7 @@ DaeSystem {
             react_small_signal: v3,
             resist_lim_rhs: v3,
             react_lim_rhs: v48,
+            nature_kind: Flow,
         },
         sim_node1: Residual {
             resist: v3,
@@ -19,6 +20,7 @@ DaeSystem {
             react_small_signal: v3,
             resist_lim_rhs: v3,
             react_lim_rhs: v51,
+            nature_kind: Flow,
         },
     },
     jacobian: {

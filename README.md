@@ -50,7 +50,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Support for $fatal, $finish, and $stop. 
 - Loops no longer crash the compiler. 
 - Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
-- Disciplines of nodes exposed in OSDI descriptor. 
+- Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
 
 
 # What about binaries? 

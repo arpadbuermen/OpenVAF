@@ -1,7 +1,7 @@
 use crate::metadata::osdi_0_4::{
     OsdiAttribute, OsdiAttributeValue, OsdiDiscipline, OsdiNature, ATTR_TYPE_INT, ATTR_TYPE_REAL,
-    ATTR_TYPE_STR, DOMAIN_CONTINUOUS, DOMAIN_DISCRETE, DOMAIN_NOT_GIVEN, PARENT_DISCIPLINE_FLOW,
-    PARENT_DISCIPLINE_POTENTIAL, PARENT_NATURE, PARENT_NONE,
+    ATTR_TYPE_STR, DOMAIN_CONTINUOUS, DOMAIN_DISCRETE, DOMAIN_NOT_GIVEN, NATREF_DISCIPLINE_FLOW,
+    NATREF_DISCIPLINE_POTENTIAL, NATREF_NATURE, NATREF_NONE,
 };
 use hir::CompilationDB;
 use hir_def::db::HirDefDB;
@@ -75,20 +75,20 @@ fn resolve_nature_ref(nature_ref: Option<&NatureRef>, nda_table: &NDATable) -> (
     if let Some(natref) = nature_ref {
         match natref.kind {
             NatureRefKind::Nature => (
-                PARENT_NATURE,
+                NATREF_NATURE,
                 nda_table.nature_name_map.get(&natref.name.to_string()).unwrap().into_raw(),
             ),
             NatureRefKind::DisciplineFlow => (
-                PARENT_DISCIPLINE_FLOW,
+                NATREF_DISCIPLINE_FLOW,
                 nda_table.discipline_name_map.get(&natref.name.to_string()).unwrap().into_raw(),
             ),
             NatureRefKind::DisciplinePotential => (
-                PARENT_DISCIPLINE_POTENTIAL,
+                NATREF_DISCIPLINE_POTENTIAL,
                 nda_table.discipline_name_map.get(&natref.name.to_string()).unwrap().into_raw(),
             ),
         }
     } else {
-        (PARENT_NONE, u32::MAX)
+        (NATREF_NONE, u32::MAX)
     }
 }
 
@@ -144,11 +144,11 @@ pub fn nda_arrays(
         let (pt, pi) = resolve_nature_ref(nature.parent.as_ref(), &nda_table);
         // Parent type is always a nature for ddt and idt
         let (dt, dni) = resolve_nature_ref(nature.ddt_nature.as_ref().map(|(x, _)| x), &nda_table);
-        if dt != PARENT_NATURE && dt != PARENT_NONE {
+        if dt != NATREF_NATURE && dt != NATREF_NONE {
             panic!("Nature's ddt must be a nature reference.")
         }
         let (it, ini) = resolve_nature_ref(nature.idt_nature.as_ref().map(|(x, _)| x), &nda_table);
-        if it != PARENT_NATURE && it != PARENT_NONE {
+        if it != NATREF_NATURE && it != NATREF_NONE {
             panic!("Nature's idt must be a nature reference.")
         }
 
@@ -193,12 +193,12 @@ pub fn nda_arrays(
         );
         // Flow and potential nature
         let (ft, fni) = resolve_nature_ref(discipline.flow.as_ref().map(|(x, _)| x), &nda_table);
-        if ft != PARENT_NATURE && ft != PARENT_NONE {
+        if ft != NATREF_NATURE && ft != NATREF_NONE {
             panic!("Discipline's flow must be a nature reference.")
         }
         let (pt, pni) =
             resolve_nature_ref(discipline.potential.as_ref().map(|(x, _)| x), &nda_table);
-        if pt != PARENT_NATURE && pt != PARENT_NONE {
+        if pt != NATREF_NATURE && pt != NATREF_NONE {
             panic!("Discipline's potential must be a nature reference.")
         }
 

@@ -16,7 +16,7 @@ use mir_autodiff::auto_diff;
 use typed_index_collections::TiVec;
 
 use crate::context::Context;
-use crate::dae::{DaeSystem, MatrixEntry, Residual, SimUnknown};
+use crate::dae::{DaeSystem, MatrixEntry, Residual, ResidualNatureKind, SimUnknown};
 use crate::noise::NoiseSource;
 use crate::topology::{BranchInfo, Contribution};
 use crate::util::{add, is_op_dependent, update_optbarrier};
@@ -412,13 +412,18 @@ impl<'a> Builder<'a> {
                     self.intern.is_param_live(&self.cursor, &ParamKind::Current(current));
                 let contrib = self.current_branch(contributions);
                 if requires_unknown {
+                    // A branch with current contributions only, its current must remain an unknown
+                    // The residual of the added quation is discipline.flow
                     self.add_source_equation(
                         &contrib,
                         // &contributions.current_src,
                         contributions.current_src.unknown.unwrap(),
                         branch,
+                        ResidualNatureKind::Flow,
                     );
                 } else {
+                    // A branch with current contributions only, current does not rmain an unknown
+                    // This is a KCL equation, its residual is discipline.flow
                     self.add_kirchoff_law(&contrib, branch);
                     // self.add_kirchoff_law(&contributions.current_src, branch);
                 }
@@ -431,10 +436,14 @@ impl<'a> Builder<'a> {
                     self.intern.is_param_live(&self.cursor, &ParamKind::Current(current));
                 if requires_unknown || !contributions.voltage_src.is_trivial() {
                     let contrib = self.voltage_branch(contributions);
+                    // A branch with voltage contributions only, we need a nextra equation
+                    // because its current must be an unknown in the DAE system
+                    // The residual of this extra equation is discipline.potential
                     self.add_source_equation(
                         &contrib,
                         contributions.current_src.unknown.unwrap(),
                         branch,
+                        ResidualNatureKind::Potential,
                     );
                 }
             }
@@ -488,10 +497,16 @@ impl<'a> Builder<'a> {
                     // Go to the end of next_block
                     self.cursor.goto_bottom(next_block);
                     let contrib = self.switch_branch(contributions, voltage_src_bb, start_bb);
+                    // The residual switches between discipline.flow and discipline.potential
+                    // depending on is_voltage_src
+                    //   TRUE  .. discipline.potential
+                    //   FALSE .. discipline.flow
+                    // Will have to expose is_voltage_src in the OSDI API... TODO
                     self.add_source_equation(
                         &contrib,
                         contributions.current_src.unknown.unwrap(),
                         branch,
+                        ResidualNatureKind::Switch,
                     )
                 } else {
                     // Not a real switch branch
@@ -695,10 +710,17 @@ impl<'a> Builder<'a> {
         self.add_noise(contrib, hi, lo);
     }
 
-    fn add_source_equation(&mut self, contrib: &Contribution, eq_val: Value, dst: BranchWrite) {
+    fn add_source_equation(
+        &mut self,
+        contrib: &Contribution,
+        eq_val: Value,
+        dst: BranchWrite,
+        nature_kind: ResidualNatureKind,
+    ) {
         let residual = get_residual!(self, SimUnknownKind::Current(dst.into()));
         residual.add_contribution(contrib, &mut self.cursor, false);
         residual.add(&mut self.cursor, true, contrib.unknown.unwrap());
+        residual.nature_kind = nature_kind;
         // self.add_noise(contrib, SimUnknownKind::Current(dst.into()), None, false);
         self.add_noise(contrib, SimUnknownKind::Current(dst.into()), None);
 
