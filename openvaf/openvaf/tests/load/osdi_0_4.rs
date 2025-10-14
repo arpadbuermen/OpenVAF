@@ -52,10 +52,10 @@ pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
 pub const ATTR_TYPE_STR: u32 = 0;
 pub const ATTR_TYPE_INT: u32 = 1;
 pub const ATTR_TYPE_REAL: u32 = 2;
-pub const PARENT_NONE: u32 = 0;
-pub const PARENT_NATURE: u32 = 1;
-pub const PARENT_DISCIPLINE_FLOW: u32 = 2;
-pub const PARENT_DISCIPLINE_POTENTIAL: u32 = 3;
+pub const NATREF_NONE: u32 = 0;
+pub const NATREF_NATURE: u32 = 1;
+pub const NATREF_DISCIPLINE_FLOW: u32 = 2;
+pub const NATREF_DISCIPLINE_POTENTIAL: u32 = 3;
 pub const DOMAIN_NOT_GIVEN: u32 = 0;
 pub const DOMAIN_DISCRETE: u32 = 1;
 pub const DOMAIN_CONTINUOUS: u32 = 2;
@@ -134,6 +134,11 @@ pub struct OsdiNoiseSource {
     pub nodes: OsdiNodePair,
 }
 #[repr(C)]
+pub struct OsdiNatureRef {
+    pub ref_type: u32,
+    pub index: u32,
+}
+#[repr(C)]
 #[non_exhaustive]
 pub struct OsdiDescriptor {
     pub name: *mut c_char,
@@ -183,7 +188,8 @@ pub struct OsdiDescriptor {
     pub inputs: *mut OsdiNodePair,
     pub load_jacobian_with_offset_resist: fn(*mut c_void, *mut c_void, usize),
     pub load_jacobian_with_offset_react: fn(*mut c_void, *mut c_void, usize),
-    pub node_discipline: *mut u32,
+    pub unknown_nature: *mut OsdiNatureRef,
+    pub residual_nature: *mut OsdiNatureRef,
 }
 impl OsdiDescriptor {
     pub fn access(

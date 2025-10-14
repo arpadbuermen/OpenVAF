@@ -28,13 +28,13 @@ param "minr"
 units = "Ohm", desc = "minr is the value below which the simulator expects elimination of resitance and it will improve simulation efficiency without significantly altering the results.", flags = ParameterFlags(0x0)
 
 3 terminals
-node "A" units = "V", runits = ""
+node "A" units = "V", runits = "A"
 residual 216 224 232 240
-node "C" units = "V", runits = ""
+node "C" units = "V", runits = "A"
 residual 248 4294967295 4294967295 4294967295
-node "dT" units = "K", runits = ""
+node "dT" units = "K", runits = "W"
 residual 256 4294967295 264 4294967295
-node "CI" units = "V", runits = ""
+node "CI" units = "V", runits = "A"
 residual 272 280 288 296
 jacobian (A, A) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT) react_ptr = 120
 jacobian (A, dT) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST) react_ptr = 4294967295

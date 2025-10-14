@@ -18,7 +18,7 @@ use llvm_sys::target::{
 use llvm_sys::LLVMValue;
 use mir::{ValueDef, F_ZERO};
 use mir_llvm::CodegenCx;
-use sim_back::dae::MatrixEntry;
+use sim_back::dae::{MatrixEntry, ResidualNatureKind};
 use sim_back::SimUnknownKind;
 use smol_str::SmolStr;
 
@@ -28,10 +28,11 @@ use crate::inst_data::{
 };
 use crate::load::JacobianLoadType;
 use crate::metadata::osdi_0_4::{
-    OsdiDescriptor, OsdiJacobianEntry, OsdiNode, OsdiNodePair, OsdiNoiseSource, OsdiParamOpvar,
-    OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST, JACOBIAN_ENTRY_RESIST,
-    JACOBIAN_ENTRY_RESIST_CONST, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT,
-    PARA_TY_REAL, PARA_TY_STR,
+    OsdiDescriptor, OsdiJacobianEntry, OsdiNatureRef, OsdiNode, OsdiNodePair, OsdiNoiseSource,
+    OsdiParamOpvar, OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST,
+    JACOBIAN_ENTRY_RESIST, JACOBIAN_ENTRY_RESIST_CONST, NATREF_DISCIPLINE_FLOW,
+    NATREF_DISCIPLINE_POTENTIAL, NATREF_NONE, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR,
+    PARA_TY_INT, PARA_TY_REAL, PARA_TY_STR,
 };
 use crate::ty_len;
 
@@ -218,7 +219,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             .unknowns
             .iter_enumerated()
             .map(|(id, unknown)| {
-                let (name, units, is_flow, _) = sim_unknown_info(*unknown, db);
+                let residual_nature_kind = module.dae_system.residual[id].nature_kind;
+                let (name, units, residual_units, is_flow, _, _) =
+                    sim_unknown_info(*unknown, residual_nature_kind, db);
                 let resist_residual_off =
                     inst_data.residual_off(id, false, target_data).unwrap_or(u32::MAX);
                 let react_residual_off =
@@ -231,29 +234,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 OsdiNode {
                     name,
                     units,
-                    residual_units: String::new(),
+                    residual_units,
                     resist_residual_off,
                     react_residual_off,
                     is_flow,
                     resist_limit_rhs_off,
                     react_limit_rhs_off,
-                }
-            })
-            .collect()
-    }
-
-    pub fn node_disciplines(&self, db: &CompilationDB) -> Vec<u32> {
-        let OsdiCompilationUnit { module, .. } = self;
-        module
-            .dae_system
-            .unknowns
-            .iter_enumerated()
-            .map(|(id, unknown)| {
-                let (_, _, _, disc_ndx) = sim_unknown_info(*unknown, db);
-                if let Some(ndx) = disc_ndx {
-                    ndx
-                } else {
-                    u32::MAX
                 }
             })
             .collect()
@@ -338,6 +324,22 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             .collect()
     }
 
+    pub fn unknown_residual_natures(
+        &self,
+        db: &CompilationDB,
+    ) -> (Vec<OsdiNatureRef>, Vec<OsdiNatureRef>) {
+        let mut uvec = Vec::new();
+        let mut rvec = Vec::new();
+        for (idx, &unknown) in self.module.dae_system.unknowns.iter_enumerated() {
+            let residual_nature_kind = self.module.dae_system.residual[idx].nature_kind;
+            let (_, _, _, _, unknown_natref, residual_natref) =
+                sim_unknown_info(unknown, residual_nature_kind, db);
+            uvec.push(unknown_natref);
+            rvec.push(residual_natref);
+        }
+        (uvec, rvec)
+    }
+
     pub fn descriptor(
         &self,
         target_data: &llvm_sys::target::LLVMTargetDataRef,
@@ -387,6 +389,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 })
                 .collect();
 
+            let (uvec, rvec) = self.unknown_residual_natures(db);
             OsdiDescriptor {
                 name: module.info.module.name(db),
                 num_nodes: module.dae_system.unknowns.len() as u32,
@@ -439,7 +442,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 load_jacobian_with_offset_resist: self
                     .load_jacobian(JacobianLoadType::Resist, true),
                 load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
-                node_discipline: self.node_disciplines(db),
+                unknown_nature: uvec,
+                residual_nature: rvec,
             }
         }
     }
@@ -447,21 +451,27 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
 impl OsdiModule<'_> {
     pub fn intern_node_strs(&self, intern: &mut Rodeo, db: &CompilationDB) {
-        for &unknown in self.dae_system.unknowns.iter() {
-            let (name, units, _, _) = sim_unknown_info(unknown, db);
+        for (idx, &unknown) in self.dae_system.unknowns.iter_enumerated() {
+            let residual_nature_kind = self.dae_system.residual[idx].nature_kind;
+            let (name, units, residual_units, _, _, _) =
+                sim_unknown_info(unknown, residual_nature_kind, db);
             intern.get_or_intern(&name);
             intern.get_or_intern(&units);
+            intern.get_or_intern(&residual_units);
         }
     }
 }
 
 fn sim_unknown_info(
     unknown: SimUnknownKind,
+    residual_nature_kind: ResidualNatureKind,
     db: &CompilationDB,
-) -> (String, String, bool, Option<u32>) {
+) -> (String, String, String, bool, OsdiNatureRef, OsdiNatureRef) {
     let name;
     let discipline;
     let is_flow;
+    let mut unknown_nature = OsdiNatureRef { ref_type: NATREF_NONE, index: u32::MAX };
+    let mut residual_nature = OsdiNatureRef { ref_type: NATREF_NONE, index: u32::MAX };
 
     match unknown {
         SimUnknownKind::KirchoffLaw(node) => {
@@ -500,25 +510,43 @@ fn sim_unknown_info(
     let cu = db.compilation_unit();
     let nda_table = db.nda_table(cu.root_file());
 
-    let ndx = if let Some(discipline) = discipline {
-        let ndx = nda_table.discipline_name_map.get(&discipline.name(db));
-        ndx.map(|e| e.into_raw())
-    } else {
-        None
-    };
+    // Get units
+    let mut units = String::default();
+    let mut residual_units = String::default();
+    if let Some(discipline) = discipline {
+        // Discipline index
+        let ndx = nda_table.discipline_name_map.get(&discipline.name(db)).unwrap().into_raw();
 
-    // its valid to have disciplines without pot/flow nature but then we can't
-    // have branches for those so its ok to unwrap here
-    let units = discipline
-        .map(|discipline| {
-            let nature = if is_flow {
-                discipline.flow(db).unwrap()
-            } else {
-                discipline.potential(db).unwrap()
-            };
-            nature.units(db)
-        })
-        .unwrap_or_default();
-
-    (name, units, is_flow, ndx)
+        // Unknown
+        let nature = if is_flow {
+            unknown_nature.ref_type = NATREF_DISCIPLINE_FLOW;
+            unknown_nature.index = ndx;
+            discipline.flow(db)
+        } else {
+            unknown_nature.ref_type = NATREF_DISCIPLINE_POTENTIAL;
+            unknown_nature.index = ndx;
+            discipline.potential(db)
+        };
+        if let Some(nature) = nature {
+            units = nature.units(db)
+        }
+        // Residual
+        let nature = match residual_nature_kind {
+            ResidualNatureKind::Flow => {
+                residual_nature.ref_type = NATREF_DISCIPLINE_FLOW;
+                residual_nature.index = ndx;
+                discipline.flow(db)
+            }
+            ResidualNatureKind::Potential => {
+                residual_nature.ref_type = NATREF_DISCIPLINE_POTENTIAL;
+                residual_nature.index = ndx;
+                discipline.potential(db)
+            }
+            _ => None,
+        };
+        if let Some(nature) = nature {
+            residual_units = nature.units(db);
+        }
+    }
+    (name, units, residual_units, is_flow, unknown_nature, residual_nature)
 }
