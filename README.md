@@ -78,9 +78,9 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 During installation select "Customize installation" and set profile to "complete". 
 
-Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8). Unpack them (this creates directory `llvm-project-llvmorg-18.1.8`) and create a build directory and decide where you want to install LLVM. Type 
-```bash
-cmake -S path_to_souces/llvm -B path_to_build_dir -DCMAKE_INSTALL_PREFIX=LLVM_install_directory -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
+Build LLVM and Clang. Download [LLVM 21.1.6 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-21.1.6). Unpack them (this creates directory `llvm-project-llvmorg-21.1.6`) and create a build directory and decide where you want to install LLVM. Type 
+```
+cmake -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
 
 Enter the build directory and type
@@ -91,8 +91,8 @@ make install
 
 Set up the environment by adding the following to `.bashrc`
 ```bash
-export LLVM_SYS_181_PREFIX=LLVM_install_directory
-export PATH=LLVM_install_directory/bin:$PATH
+export LLVM_SYS_210_PREFIX=<LLVM install directory>
+export PATH=<LLVM install directory>/bin:$PATH
 ```
 
 Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
@@ -104,7 +104,7 @@ During installation select "Customize installation" and set profile to "complete
 
 Install Visual Studio 2022 Community Edition. Make sure you install CMake Tools that come with VS2022 (also installs Ninja). 
 
-Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8) sources (get the .zip file). Unpack the sources (this creates directory `llvm-project-llvmorg-18.1.8`). Create a build directory and decide where you want to install LLVM. 
+Build LLVM and Clang. Download [LLVM 21.1.6 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-21.1.6) sources (get the .zip file). Unpack the sources (this creates directory `llvm-project-llvmorg-21.1.6`). Create a build directory and decide where you want to install LLVM. 
 
 Start Visual Studio x64 native command prompt. Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
 ```bash
@@ -116,16 +116,24 @@ ninja
 ninja install 
 ```
 
-Add the LLVM binary directory (`LLVM_install_directory\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `LLVM_install_directory`.
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_210_PREFIX` environmental variable to `<LLVM install directory>`.
 
 Restart command prompt. Now you are good to go.
 
 ## Setting up the dependencies under macOS
 
-Install Homebrew if not already installed, then install LLVM 18:
+Install Homebrew if not already installed, then install LLVM 21:
 ```bash
-brew install llvm@18
+brew install llvm
 ```
+
+Set up the environment by adding the following to `~/.zshrc` (or `~/.bashrc` if using bash):
+```bash
+export LLVM_SYS_210_PREFIX=$(brew --prefix llvm)
+export PATH="$(brew --prefix llvm)/bin:$PATH"
+```
+
+Make sure the shell configuration is read again (either restart your terminal or run `source ~/.zshrc`).
 
 Install Rust if not already installed:
 ```bash
@@ -154,7 +162,7 @@ On macOS, you can use the xtask command which automatically detects LLVM 18 via 
 cargo xtask cargo-build --release
 ```
 
-This will auto-configure LLVM 18 paths and build the release version.
+This will configure LLVM 21 paths and build the release version.
 
 ### Manual Build
 
@@ -186,7 +194,7 @@ On macOS, you can use the xtask command which automatically detects LLVM 18 via 
 cargo xtask cargo-test --release
 ```
 
-This will auto-configure LLVM 18 paths and run all tests.
+This will configure LLVM 21 paths and run all tests including integration tests.
 
 ## Manual Testing
 
@@ -212,7 +220,7 @@ Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM
 RUN_DEV_TESTS=1 cargo test --release --test integration
 ```
 
-On macOS with LLVM 18, all integration tests should pass.
+On macOS with LLVM 21, all integration tests should pass.
 
 ## Updating Expected Test Results
 
@@ -230,7 +238,7 @@ Kudos to Pascal Kuthe for the great work he did.
 
 Geoffrey Coram and Dietmar Warning are authors of several bugfixes included in OpenVAF-reloaded. 
 
-Kreijstal ported OpenVAF to LLVM18. 
+Kreijstal ported OpenVAF to LLVM 18. 
 
 Rob Taylor contributed CI improvements and MACOS support. 
 
