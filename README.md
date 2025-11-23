@@ -114,12 +114,47 @@ ninja
 ninja install 
 ```
 
-Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `<LLVM install directory>`. 
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `<LLVM install directory>`.
 
-Restart command prompt. Now you are good to go. 
+Restart command prompt. Now you are good to go.
+
+## Setting up the dependencies under macOS
+
+Install Homebrew if not already installed, then install LLVM 18:
+```bash
+brew install llvm@18
+```
+
+Set up the environment by adding the following to `~/.zshrc` (or `~/.bashrc` if using bash):
+```bash
+export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
+export PATH="$(brew --prefix llvm@18)/bin:$PATH"
+```
+
+Make sure the shell configuration is read again (either restart your terminal or run `source ~/.zshrc`).
+
+Install Rust if not already installed:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+During installation select "Customize installation" and set profile to "complete".
+
+Now you are good to go.
 
 
 ## Building
+
+### Quick Build (macOS only)
+
+On macOS, you can use the convenience script which automatically sets up the environment:
+```bash
+./build-macos.sh
+```
+
+This will configure LLVM 18 paths and build the release version.
+
+### Manual Build
 
 To build the release version (`target/release/openvaf-r`), type
 ```
@@ -140,7 +175,20 @@ The debug configuration disables rayon running the .osdi file build process in p
 
 # Running tests with cargo
 
-Pascal has set up a test suite for OpenVAF. To run the tests on the debug version of the binary type
+Pascal has set up a test suite for OpenVAF.
+
+## Quick Test (macOS only)
+
+On macOS, you can use the convenience script which automatically sets up the environment:
+```bash
+./test-macos.sh
+```
+
+This will configure LLVM 18 paths and run all tests including integration tests.
+
+## Manual Testing
+
+To run the tests on the debug version of the binary type
 
     cargo test
 
@@ -148,11 +196,21 @@ To run the tests on the release version type
 
     cargo test --release
 
-By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g. 
+By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g.
 
-    RUN_SLOW_TESTS=1 cargo test 
+    RUN_SLOW_TESTS=1 cargo test
 
-Your changes may fail some tests although they are correct. Consider the case you changed the MIR generator. The expected test results assume MIR is generated the way Pascal did it. If you are sure your changes are correct you can update the expected values (stored in `openvaf/test_data` as files ending with .snap). To do this set the `UPDATE_EXPECT` variable 1, e.g. 
+## Integration Tests
+
+Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM, etc.) and verify the generated OSDI libraries. These tests are disabled by default but can be enabled with:
+
+    RUN_DEV_TESTS=1 cargo test --release --test integration
+
+On macOS with LLVM 18, all integration tests should pass.
+
+## Updating Expected Test Results
+
+Your changes may fail some tests although they are correct. Consider the case you changed the MIR generator. The expected test results assume MIR is generated the way Pascal did it. If you are sure your changes are correct you can update the expected values (stored in `openvaf/test_data` as files ending with .snap). To do this set the `UPDATE_EXPECT` variable 1, e.g.
 
     UPDATE_EXPECT=1 cargo test
 
