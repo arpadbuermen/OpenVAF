@@ -108,10 +108,10 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
         // assert!(!val.contains(&b'\0'));
         // val.push(b'\0');
         let val = unsafe {
-            llvm_sys::core::LLVMConstStringInContext(
+            llvm_sys::core::LLVMConstStringInContext2(
                 NonNull::from(self.llcx).as_ptr(),
                 val.as_ptr() as *const c_char,
-                val.len() as c_uint,
+                val.len(),
                 0,
             )
         };
