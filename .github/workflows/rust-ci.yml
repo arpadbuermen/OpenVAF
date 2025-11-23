@@ -68,6 +68,20 @@ jobs:
         echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
 
+    - name: "Cache cargo"
+      id: cache-cargo
+      uses: "actions/cache@v4"
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        save-always: true
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
+
     - name: Install LLVM 18 and Windows cross-compilation tools
       run: |
         wget https://apt.llvm.org/llvm.sh
@@ -160,6 +174,20 @@ jobs:
         # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> $GITHUB_ENV
 
+    - name: "Cache cargo"
+      id: cache-cargo
+      uses: "actions/cache@v4"
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        save-always: true
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
+
     - name: Run cargo
       shell: msys2 {0}
       run: cargo build --release
@@ -206,6 +234,20 @@ jobs:
       run: |
         # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=$(which sccache)" >> $GITHUB_ENV
+
+    - name: "Cache cargo"
+      id: cache-cargo
+      uses: "actions/cache@v4"
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        save-always: true
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
     
     - name: Build
       run: cargo build --release
