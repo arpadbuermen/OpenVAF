@@ -111,6 +111,9 @@ jobs:
     - name: Run tests
       run: cargo test --release
 
+    - name: Run integration tests
+      run: cargo test --release --test integration
+
   msys2-build-test:
     strategy:
       fail-fast: false
@@ -212,4 +215,7 @@ jobs:
 
     - name: Run tests
       run: cargo test --release
+
+    - name: Run integration tests
+      run: cargo test --release --test integration
 
