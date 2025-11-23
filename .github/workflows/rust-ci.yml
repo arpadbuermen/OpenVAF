@@ -132,7 +132,7 @@ jobs:
         echo '[net]' > .cargo/config.toml
         echo 'git-fetch-with-cli = true' >> .cargo/config.toml
     - name: Cache sccache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/sccache
         key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
@@ -160,11 +160,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: arm64
-            macos: 13
-          - arch: x86_64
-            macos: 13
-    runs-on: macos-${{ matrix.macos }}
+          # Intel
+          - image: macos-15-intel
+          - image: macos-14-large
+          # ARM64
+          - image: macos-15
+          - image: macos-14
+
+    runs-on: ${{ matrix.image }}
+    needs: [format, machete]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
