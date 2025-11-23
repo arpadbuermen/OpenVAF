@@ -89,7 +89,7 @@ fn linker_with_args<'a>(
 
     // When using ld64.lld on macOS, we need to add the SDK sysroot
     if flavor == LinkerFlavor::Ld64 && target.options.is_like_osx {
-        if let Ok(llvm_prefix) = env::var("LLVM_SYS_181_PREFIX") {
+        if let Ok(llvm_prefix) = env::var("LLVM_SYS_210_PREFIX") {
             let llvm_lld = PathBuf::from(llvm_prefix).join("bin/ld64.lld");
             if llvm_lld.exists() {
                 // Detect SDK path using xcrun
@@ -169,7 +169,7 @@ fn get_linker<'a>(
                     "gcc".into()
                 } else if flavor == LinkerFlavor::Ld64 {
                     // For macOS, prefer LLVM's ld64.lld if available
-                    if let Ok(llvm_prefix) = env::var("LLVM_SYS_181_PREFIX") {
+                    if let Ok(llvm_prefix) = env::var("LLVM_SYS_210_PREFIX") {
                         let llvm_lld = PathBuf::from(llvm_prefix).join("bin/ld64.lld");
                         if llvm_lld.exists() {
                             return llvm_lld;
