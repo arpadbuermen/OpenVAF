@@ -1,5 +1,5 @@
-use std::intrinsics::transmute;
 use std::iter::{self, once};
+use std::mem::transmute;
 use std::ops::Deref;
 use std::sync::Arc;
 use std::{fs, io};

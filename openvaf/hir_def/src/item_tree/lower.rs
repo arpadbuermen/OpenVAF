@@ -209,7 +209,7 @@ impl Ctx {
                             attr.val().and_then(|e| e.as_literal())
                         {
                             let a = attr.val().unwrap();
-                            let b = a.as_literal();
+                            let _b = a.as_literal();
                             let s = lit.unescaped_value();
                             evaluated = Some(ConstExprValue::String(s.clone()));
                             units = Some((s, id.into()));

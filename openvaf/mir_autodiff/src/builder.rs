@@ -425,7 +425,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
             .to_owned()
     }
 
-    fn ins(&mut self) -> InsertBuilder<&mut DerivativeBuilder<'a, 'u>> {
+    fn ins(&mut self) -> InsertBuilder<'_, &mut DerivativeBuilder<'a, 'u>> {
         InsertBuilder::new(self)
     }
 

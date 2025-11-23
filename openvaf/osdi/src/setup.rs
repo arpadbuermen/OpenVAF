@@ -15,6 +15,7 @@ use sim_back::SimUnknownKind;
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
 use crate::inst_data::OsdiInstanceParam;
 
+#[allow(dead_code)]
 struct VoidAbortCallback;
 
 impl<'ll> InlineCallbackBuilder<'ll> for VoidAbortCallback {

@@ -58,6 +58,7 @@ static mut FUNCTIONS: [PyMethodDef; 4] = unsafe {
 
 #[allow(clippy::missing_safety_doc)]
 #[allow(non_snake_case)]
+#[allow(static_mut_refs)]
 #[no_mangle]
 #[cold]
 pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {

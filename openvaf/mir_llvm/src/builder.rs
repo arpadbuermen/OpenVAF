@@ -3,10 +3,7 @@ use std::slice;
 
 use arrayvec::ArrayVec;
 use libc::c_uint;
-use llvm_sys::core::{
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMGetReturnType,
-    LLVMGetTypeKind, LLVMTypeOf,
-};
+use llvm_sys::core::LLVMBuildExtractValue;
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef,
     F_ZERO, ZERO,

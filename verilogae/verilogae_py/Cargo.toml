@@ -10,6 +10,9 @@ doctest = false
 crate-type = ["cdylib"]
 name = "verilogae_py"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(Py_3_8)', 'cfg(Py_3_10)'] }
+
 [dependencies]
 pyo3-ffi = { version = "0.19", features = [
   "extension-module",
