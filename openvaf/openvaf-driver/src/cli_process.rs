@@ -5,14 +5,15 @@ use anyhow::{bail, Context, Result};
 use camino::Utf8PathBuf;
 use clap::ArgMatches;
 use openvaf::{
-    builtin_lints, get_target_names, host_triple, AbsPathBuf, LLVMCodeGenOptLevel, LintLevel,
+    builtin_lints, get_target_names, host_triple, AbsPathBuf, CompilationOpts, LLVMCodeGenOptLevel,
+    LintLevel,
 };
 use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 
 use crate::cli_def::{
-    ALLOW, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPIR, DUMPMIR, DUMPUNOPTIR,
-    DUMPUNOPTMIR, INCLUDE, INPUT, LINTS, OPT_LVL, OUTPUT, SUPPORTED_TARGETS, TARGET, TARGET_CPU,
-    WARN,
+    ALLOW, ALLOW_ANALOG_IN_COND, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPIR,
+    DUMPMIR, DUMPUNOPTIR, DUMPUNOPTMIR, INCLUDE, INPUT, LINTS, OPT_LVL, OUTPUT, SUPPORTED_TARGETS,
+    TARGET, TARGET_CPU, WARN,
 };
 use crate::{CompilationDestination, Opts};
 
@@ -122,6 +123,9 @@ pub fn matches_to_opts(matches: ArgMatches) -> Result<Opts> {
         dump_ir: matches.get_flag(DUMPIR),
         dump_unopt_ir: matches.get_flag(DUMPUNOPTIR),
         dry_run: matches.get_flag(DRYRUN),
+        compilation_opts: CompilationOpts {
+            allow_analog_in_cond: matches.get_flag(ALLOW_ANALOG_IN_COND),
+        },
     })
 }
 

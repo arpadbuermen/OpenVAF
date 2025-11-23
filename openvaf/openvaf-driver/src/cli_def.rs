@@ -39,6 +39,7 @@ pub fn main_command() -> Command {
             interface(),
             expand(),
             dump_json(),
+            allow_analog_in_cond(),
             input(),
         ])
         .subcommand_required(false)
@@ -68,6 +69,7 @@ pub const DUMP_JSON: &str = "dump-json";
 pub const ALLOW: &str = "allow";
 pub const WARN: &str = "warn";
 pub const DENY: &str = "deny";
+pub const ALLOW_ANALOG_IN_COND: &str = "allow-analog-in-cond";
 
 fn interface() -> Arg {
     Arg::new(INTERFACE)
@@ -301,6 +303,18 @@ directives (`include) resolved is emitted to stdout.",
 
 fn dump_json() -> Arg {
     flag(DUMP_JSON, "dump-json").help("Abort after lowering and serialize MIR as json.")
+}
+
+fn allow_analog_in_cond() -> Arg {
+    flag(ALLOW_ANALOG_IN_COND, ALLOW_ANALOG_IN_COND)
+        .help("Allow analog operators in signal-dependent conditionals.")
+        .long_help(
+            "Allow analog operators (like limexp, ddt, idt) in signal-dependent conditional bodies.
+
+This is non-standard behavior but required by some commercial foundry models (e.g., GF130 PDK).
+
+By default, OpenVAF enforces strict Verilog-A semantics which only allow analog operators in unconditional code.",
+        )
 }
 
 fn def_arg() -> Arg {

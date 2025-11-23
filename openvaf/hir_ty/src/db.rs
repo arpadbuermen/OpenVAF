@@ -44,6 +44,9 @@ pub trait HirTyDB: HirDefDB + Upcast<dyn HirDefDB> {
 
     #[salsa::input]
     fn known_limit_functions(&self) -> Option<Arc<[LimitSignature]>>;
+
+    #[salsa::input]
+    fn allow_analog_in_cond(&self) -> bool;
 }
 
 fn nature_attr_ty(db: &dyn HirTyDB, id: NatureAttrId) -> Option<Type> {
