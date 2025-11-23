@@ -192,7 +192,7 @@ jobs:
     - name: Install dependencies with Homebrew
       uses: tecolicom/actions-use-homebrew-tools@v1
       with:
-        tools: pkg-config mingw-w64 sccache llvm@18
+        tools: pkg-config sccache llvm@18
         cache: yes
 
     - name: Set LLVM environment variables
