@@ -120,6 +120,7 @@ impl BodyValidationDiagnostic {
             non_const_dominator: Box::default(),
             non_trivial_branches: HashSet::default(),
             trivial_probes: HashMap::default(),
+            allow_analog_in_cond: db.allow_analog_in_cond(),
         };
 
         for stmt in &*body.entry_stmts {
@@ -160,8 +161,12 @@ impl BodyCtx {
         matches!(self, Self::AnalogBlock | Self::Conditional)
     }
 
-    fn allow_analog_operator(self) -> bool {
-        matches!(self, Self::AnalogBlock)
+    fn allow_analog_operator(self, allow_in_cond: bool) -> bool {
+        match self {
+            Self::AnalogBlock => true,
+            Self::Conditional if allow_in_cond => true,
+            _ => false,
+        }
     }
 
     fn allow_analysis_fun(self) -> bool {
@@ -195,6 +200,7 @@ struct BodyValidator<'a> {
     non_const_dominator: Box<[ExprId]>,
     non_trivial_branches: HashSet<BranchWrite>,
     trivial_probes: HashMap<BranchWrite, Vec<(StmtId, ExprId)>>,
+    allow_analog_in_cond: bool,
 }
 
 impl BodyValidator<'_> {
@@ -574,7 +580,7 @@ impl ExprValidator<'_, '_> {
                         non_const_dominator: sel.parent.non_const_dominator.clone(),
                     },
                     expr,
-                    self.parent.ctx.allow_analog_operator(),
+                    self.parent.ctx.allow_analog_operator(self.parent.allow_analog_in_cond),
                 )
             }
 
