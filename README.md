@@ -125,20 +125,20 @@ Install Homebrew if not already installed, then install LLVM 18:
 brew install llvm@18
 ```
 
-Set up the environment by adding the following to `~/.zshrc` (or `~/.bashrc` if using bash):
-```bash
-export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
-export PATH="$(brew --prefix llvm@18)/bin:$PATH"
-```
-
-Make sure the shell configuration is read again (either restart your terminal or run `source ~/.zshrc`).
-
 Install Rust if not already installed:
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 During installation select "Customize installation" and set profile to "complete".
+
+**Option 1: Use xtask (recommended)** - No additional setup needed. The `cargo xtask cargo-build` command automatically detects LLVM via `HOMEBREW_PREFIX`.
+
+**Option 2: Manual environment setup** - set the following before building:
+```bash
+export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
+export PATH="$(brew --prefix llvm@18)/bin:$PATH"
+```
 
 Now you are good to go.
 
@@ -147,12 +147,12 @@ Now you are good to go.
 
 ### Quick Build (macOS only)
 
-On macOS, you can use the convenience script which automatically sets up the environment:
+On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
 ```bash
-./build-macos.sh
+cargo xtask cargo-build --release
 ```
 
-This will configure LLVM 18 paths and build the release version.
+This will auto-configure LLVM 18 paths and build the release version.
 
 ### Manual Build
 
@@ -179,12 +179,12 @@ Pascal has set up a test suite for OpenVAF.
 
 ## Quick Test (macOS only)
 
-On macOS, you can use the convenience script which automatically sets up the environment:
+On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
 ```bash
-./test-macos.sh
+cargo xtask cargo-test --release
 ```
 
-This will configure LLVM 18 paths and run all tests including integration tests.
+This will auto-configure LLVM 18 paths and run all tests.
 
 ## Manual Testing
 
