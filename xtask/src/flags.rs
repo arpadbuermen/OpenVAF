@@ -3,6 +3,22 @@ xflags::xflags! {
 
     /// Run custom build command.
     cmd xtask {
+        /// Build OpenVAF with automatic LLVM detection on macOS
+        cmd cargo-build {
+            /// Build in release mode
+            optional --release
+            /// Additional arguments to pass to cargo build
+            repeated args: String
+        }
+
+        /// Run tests with automatic LLVM detection on macOS
+        cmd cargo-test {
+            /// Run tests in release mode
+            optional --release
+            /// Additional arguments to pass to cargo test
+            repeated args: String
+        }
+
         cmd verilogae{
             cmd build{
                 optional --force
@@ -34,8 +50,24 @@ pub struct Xtask {
 
 #[derive(Debug)]
 pub enum XtaskCmd {
+    CargoBuild(CargoBuild),
+    CargoTest(CargoTest),
     Verilogae(Verilogae),
     GenMsvcrt(GenMsvcrt),
+}
+
+#[derive(Debug)]
+pub struct CargoBuild {
+    pub args: Vec<String>,
+
+    pub release: bool,
+}
+
+#[derive(Debug)]
+pub struct CargoTest {
+    pub args: Vec<String>,
+
+    pub release: bool,
 }
 
 #[derive(Debug)]
