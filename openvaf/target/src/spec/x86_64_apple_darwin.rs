@@ -10,6 +10,10 @@ pub fn target() -> Target {
         vec![
             "-arch".to_string(),
             "x86_64".to_string(),
+            "-platform_version".to_string(),
+            "macos".to_string(),
+            "10.15".to_string(),
+            "10.15".to_string(),
             "-undefined".to_string(),
             "dynamic_lookup".to_string(),
         ],
