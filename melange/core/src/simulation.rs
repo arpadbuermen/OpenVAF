@@ -91,13 +91,13 @@ impl Circuit {
         eval_ctx: ExprEvalCtxRef,
         arena: &Arena,
         config: SimConfig,
-    ) -> Result<Simulation> {
+    ) -> Result<Simulation<'_>> {
         let mut res = self.setup_simulation(config)?;
         res.prepare_solver(eval_ctx, arena)?;
         Ok(res)
     }
 
-    pub fn setup_simulation(&self, config: SimConfig) -> Result<Simulation> {
+    pub fn setup_simulation(&self, config: SimConfig) -> Result<Simulation<'_>> {
         let model_data: Box<TiSlice<_, _>> = self
             .models()
             .map(|model| {
