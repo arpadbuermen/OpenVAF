@@ -22,8 +22,8 @@ fn main() {
     let osdi_dir = stdx::project_root().join("openvaf").join("osdi");
     let src_file = osdi_dir.join("stdlib.c");
 
-    // Use clang from LLVM_SYS_181_PREFIX if available
-    let clang_path = tracked_env_var_os("LLVM_SYS_181_PREFIX")
+    // Use clang from LLVM_SYS_210_PREFIX if available
+    let clang_path = tracked_env_var_os("LLVM_SYS_210_PREFIX")
         .map(|prefix| Path::new(&prefix).join("bin/clang"))
         .and_then(|path| path.exists().then_some(path))
         .map(|path| path.display().to_string())
