@@ -82,7 +82,7 @@ impl Builder<'_> {
                     }
                     changed = true;
                 } else if let Some(node) = candidate.as_node() {
-                    self.topology.small_signal_vals.remove(&node);
+                    self.topology.small_signal_vals.shift_remove(&node);
                 }
                 set == FlatSet::Bottom
             });

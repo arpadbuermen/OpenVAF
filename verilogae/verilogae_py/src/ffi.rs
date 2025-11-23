@@ -9,14 +9,6 @@ pub unsafe fn PyDict_GET_SIZE(op: *mut PyObject) -> Py_ssize_t {
     (*op.cast::<PyDictObject>()).ma_used
 }
 
-// #[cfg(Py_3_8)]
-// const PY_TPFLAGS_HAVE_VECTORCALL: c_ulonglong = pyo3_ffi::Py_TPFLAGS_HAVE_VECTORCALL;
-// #[cfg(not(Py_3_8))]
-// const Py_TPFLAGS_HAVE_VECTORCALL: c_ulonglong = 0;
-
-#[cfg(Py_3_10)]
-const PY_TPFLAGS_IMMUTABLETYPE: c_ulong = pyo3_ffi::Py_TPFLAGS_IMMUTABLETYPE;
-#[cfg(not(Py_3_10))]
 const PY_TPFLAGS_IMMUTABLETYPE: c_ulong = 0;
 
 const TY_FLAGS: c_ulong = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | PY_TPFLAGS_IMMUTABLETYPE;

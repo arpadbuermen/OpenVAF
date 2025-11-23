@@ -465,7 +465,7 @@ impl GVN {
     fn simplify_ctx<'a>(
         &'a mut self,
         func: &'a mut Function,
-    ) -> SimplifyCtx<f64, impl Fn(Value, &Function) -> Value + 'a> {
+    ) -> SimplifyCtx<'a, f64, impl Fn(Value, &Function) -> Value + 'a> {
         SimplifyCtx::new(func, |val, func| self.class_map.get_lead_val(val, func))
     }
 
