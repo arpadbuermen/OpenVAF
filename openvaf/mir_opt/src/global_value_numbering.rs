@@ -1,15 +1,15 @@
 use std::cmp::Ordering;
-use std::hash::{BuildHasher, Hash, Hasher};
+use std::hash::{BuildHasher, BuildHasherDefault, Hash, Hasher};
 use std::mem::{swap, ManuallyDrop};
 use std::ops::{Index, IndexMut};
 
-use ahash::RandomState;
 use bitset::{BitSet, HybridBitSet};
 use hashbrown::raw::RawTable;
 use mir::{
     Block, DominatorTree, FuncRef, Function, Inst, InstructionData, Opcode, Value, ValueDef,
     ValueList,
 };
+use rustc_hash::FxHasher;
 use stdx::packed_option::PackedOption;
 use stdx::{impl_idx_from, impl_idx_math};
 use typed_index_collections::TiVec;
@@ -188,7 +188,7 @@ impl GVNExpression {
         }
     }
 
-    fn hash(&self, state: &RandomState, func: &Function) -> u64 {
+    fn hash(&self, state: &BuildHasherDefault<FxHasher>, func: &Function) -> u64 {
         let mut hasher = state.build_hasher();
         self.opcode.hash(&mut hasher);
         match self.opcode {
@@ -354,7 +354,7 @@ struct ClassMap {
     inst_class: TiVec<Inst, PackedOption<ClassId>>,
     expr_class: RawTable<ClassId>,
     classes: TiVec<ClassId, EquivalenceClass>,
-    state: RandomState,
+    state: BuildHasherDefault<FxHasher>,
 }
 
 impl ClassMap {
