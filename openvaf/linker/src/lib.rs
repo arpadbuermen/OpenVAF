@@ -1,7 +1,3 @@
-use anyhow::{bail, Context, Result};
-use camino::{Utf8Path, Utf8PathBuf};
-use cc::windows_registry;
-
 use std::ffi::{OsStr, OsString};
 use std::fs::{remove_file, File};
 use std::io::Write;
@@ -9,6 +5,10 @@ use std::mem::take;
 use std::path::{Path, PathBuf};
 use std::process::{Output, Stdio};
 use std::{ascii, env, io};
+
+use anyhow::{bail, Context, Result};
+use camino::{Utf8Path, Utf8PathBuf};
+use cc::windows_registry;
 use target::spec::{LinkerFlavor, Target};
 
 pub fn link(
@@ -141,15 +141,21 @@ fn get_linker<'a>(
             cmd.env("PATH", env::join_paths(new_path).unwrap());
             Box::new(MsvcLinker { cmd }) as Box<dyn Linker>
         }
-        LinkerFlavor::Ld => {
-            Box::new(LdLinker { cmd: Command::new(path.unwrap_or_else(|| "ld".into())), target })
-                as Box<dyn Linker>
-        }
-        LinkerFlavor::Ld64 => {
-            Box::new(LdLinker { cmd: Command::new(path.unwrap_or_else(|| "ld".into())), target })
-                as Box<dyn Linker>
+        LinkerFlavor::Ld | LinkerFlavor::Ld64 => {
+            let path = path.unwrap_or_else(|| {
+                if is_msys2_environment() {
+                    "gcc".into()
+                } else {
+                    "ld".into()
+                }
+            });
+            Box::new(LdLinker { cmd: Command::new(path), target }) as Box<dyn Linker>
         }
     }
+}
+
+fn is_msys2_environment() -> bool {
+    env::var("MSYSTEM").is_ok()
 }
 
 fn exec_linker(mut cmd: std::process::Command, _out_filename: &Utf8Path) -> io::Result<Output> {

@@ -2,7 +2,7 @@
 use std::iter::repeat;
 
 use bitset::BitSet;
-use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE};
+use mir::{Block, ControlFlowGraph, Function, InstructionData, /* Value,*/ ValueDef, FALSE, TRUE,};
 
 #[cfg(test)]
 mod tests;
@@ -446,33 +446,32 @@ impl<'a> SimplifyCfg<'a> {
             return;
         }
 
-        // Do not merge first block because constants that are input to Phi nodes 
-        // originate from this block. 
-        // The problem is that constants are assumed to originate from the first block. 
-        // This is OK as long as the first block is left untouched. If one tries to merge 
-        // it with its successor the only block that dominates all others is no longer 
-        // there so constants have no place where one could attach them. Consequently 
-        // they drop out from Phi instructions and all hell breaks loose. 
+        // Do not merge first block because constants that are input to Phi nodes
+        // originate from this block.
+        // The problem is that constants are assumed to originate from the first block.
+        // This is OK as long as the first block is left untouched. If one tries to merge
+        // it with its successor the only block that dominates all others is no longer
+        // there so constants have no place where one could attach them. Consequently
+        // they drop out from Phi instructions and all hell breaks loose.
         if self.func.layout.prev_block(src).is_none() {
             return;
         }
 
         // check that the src block only contains phi and a terminator
         let mut insts = self.func.layout.block_insts(src);
-        // Remove last instruction (trerminator) from iterator 
+        // Remove last instruction (terminator) from iterator
         insts.next_back();
         for inst in insts.clone() {
             // If an instruction that is not a PhiNode is found in src block, stop, cannot merge
             if !matches!(self.func.dfg.insts[inst], InstructionData::PhiNode(_)) {
-                // Found 
+                // Found
                 return;
             }
-            
-            // Loop through all instructions that use the values produced by inst 
+            // Loop through all instructions that use the values produced by inst
             for use_ in self.func.dfg.inst_uses(inst) {
                 // Get the instruction where this value is used
                 let inst = self.func.dfg.use_to_operand(use_).0;
-                // check that all uses of values prduced by src block 
+                // check that all uses of values prduced by src block
                 // are phi nodes (otherwise we produce invalid code in loops
                 // where we dominate a block with multiple predecessor
                 if self.func.layout.inst_block(inst).is_none() {
@@ -635,7 +634,7 @@ impl<'a> SimplifyCfg<'a> {
         // Do not remove last block in layout
         if (self.cfg[bb].predecessors.is_empty() || self.cfg.self_loop(bb))
             && Some(bb) != self.func.layout.entry_block()
-            && self.func.layout.last_block()!=Some(bb)
+            && self.func.layout.last_block() != Some(bb)
         {
             // remove phi phi_edges
             for succ in self.cfg.succ_iter(bb) {
@@ -653,14 +652,17 @@ impl<'a> SimplifyCfg<'a> {
             return;
         }
 
-        // Blocks with Branch terminator that lead into an empty block with an Exit terminator. 
+        // Blocks with Branch terminator that lead into an empty block with an Exit terminator.
         // The branch terminator is replaced with a Jump to the non-exit block
         // If both destinations are empty exit blocks, jump to else block
         if let Some(terminator) = self.func.layout.block_insts(bb).last() {
-            if let InstructionData::Branch { then_dst, else_dst, ..} = self.func.dfg.insts[terminator] {
+            if let InstructionData::Branch { then_dst, else_dst, .. } =
+                self.func.dfg.insts[terminator]
+            {
                 if self.is_empty_exit_bb(then_dst) {
                     // Replace Branch with jump to else_dst
-                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: else_dst };
+                    self.func.dfg.insts[terminator] =
+                        InstructionData::Jump { destination: else_dst };
 
                     // Recompute cfg for block
                     self.cfg.recompute_block(self.func, bb);
@@ -668,7 +670,8 @@ impl<'a> SimplifyCfg<'a> {
                     return;
                 } else if self.is_empty_exit_bb(else_dst) {
                     // Replace branch with jump to then_dst
-                    self.func.dfg.insts[terminator] = InstructionData::Jump { destination: then_dst };
+                    self.func.dfg.insts[terminator] =
+                        InstructionData::Jump { destination: then_dst };
 
                     // Recompute cfg for block
                     self.cfg.recompute_block(self.func, bb);
@@ -677,7 +680,6 @@ impl<'a> SimplifyCfg<'a> {
                 }
             }
         }
-            
 
         self.const_fold_terminator(bb);
         if self.vals_changed.remove(bb) {
@@ -729,4 +731,3 @@ impl<I: Iterator<Item = Value> + Clone> PartialEq for ResolvedPhi<I> {
 }
 impl<I: Iterator<Item = Value> + Clone> Eq for ResolvedPhi<I> {}
 */
-

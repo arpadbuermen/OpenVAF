@@ -49,6 +49,16 @@ pub const LOG_LVL_ERR: u32 = 4;
 pub const LOG_LVL_FATAL: u32 = 5;
 pub const LOG_FMT_ERR: u32 = 16;
 pub const INIT_ERR_OUT_OF_BOUNDS: u32 = 1;
+pub const ATTR_TYPE_STR: u32 = 0;
+pub const ATTR_TYPE_INT: u32 = 1;
+pub const ATTR_TYPE_REAL: u32 = 2;
+pub const NATREF_NONE: u32 = 0;
+pub const NATREF_NATURE: u32 = 1;
+pub const NATREF_DISCIPLINE_FLOW: u32 = 2;
+pub const NATREF_DISCIPLINE_POTENTIAL: u32 = 3;
+pub const DOMAIN_NOT_GIVEN: u32 = 0;
+pub const DOMAIN_DISCRETE: u32 = 1;
+pub const DOMAIN_CONTINUOUS: u32 = 2;
 
 #[repr(C)]
 pub struct OsdiLimFunction {
@@ -124,6 +134,11 @@ pub struct OsdiNoiseSource {
     pub nodes: OsdiNodePair,
 }
 #[repr(C)]
+pub struct OsdiNatureRef {
+    pub ref_type: u32,
+    pub index: u32,
+}
+#[repr(C)]
 #[non_exhaustive]
 pub struct OsdiDescriptor {
     pub name: *mut c_char,
@@ -173,6 +188,8 @@ pub struct OsdiDescriptor {
     pub inputs: *mut OsdiNodePair,
     pub load_jacobian_with_offset_resist: fn(*mut c_void, *mut c_void, usize),
     pub load_jacobian_with_offset_react: fn(*mut c_void, *mut c_void, usize),
+    pub unknown_nature: *mut OsdiNatureRef,
+    pub residual_nature: *mut OsdiNatureRef,
 }
 impl OsdiDescriptor {
     pub fn access(
@@ -301,4 +318,37 @@ impl OsdiDescriptor {
     ) {
         (self.load_jacobian_with_offset_react)(inst, model, offset)
     }
+}
+#[repr(C)]
+pub struct OsdiNature {
+    pub name: *mut c_char,
+    pub parent_type: u32,
+    pub parent: u32,
+    pub ddt: u32,
+    pub idt: u32,
+    pub attr_start: u32,
+    pub num_attr: u32,
+}
+#[repr(C)]
+pub struct OsdiDiscipline {
+    pub name: *mut c_char,
+    pub flow: u32,
+    pub potential: u32,
+    pub domain: u32,
+    pub attr_start: u32,
+    pub num_flow_attr: u32,
+    pub num_potential_attr: u32,
+    pub num_user_attr: u32,
+}
+#[repr(C)]
+pub union OsdiAttributeValue {
+    pub string: *mut c_char,
+    pub integer: i32,
+    pub real: f64,
+}
+#[repr(C)]
+pub struct OsdiAttribute {
+    pub name: *mut c_char,
+    pub value_type: u32,
+    pub value: OsdiAttributeValue,
 }

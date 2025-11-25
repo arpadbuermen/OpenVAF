@@ -5,6 +5,8 @@ mod traits;
 
 use std::marker::PhantomData;
 
+use ordered_float::OrderedFloat;
+
 pub use self::expr_ext::{ArrayExprKind, BinaryOp, LiteralKind, UnaryOp};
 pub use self::generated::nodes::*;
 pub use self::generated::tokens::*;
@@ -16,6 +18,13 @@ use crate::syntax_node::{
     RevSyntaxNodeChildren, SyntaxElementChildren, SyntaxNode, SyntaxNodeChildren, SyntaxToken,
 };
 use crate::SyntaxKind;
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum ConstExprValue {
+    Int(i32),
+    Float(OrderedFloat<f64>),
+    String(String),
+}
 
 /// The main trait to go from untyped `SyntaxNode`  to a typed ast. The
 /// conversion itself has zero runtime cost: ast and syntax nodes have exactly
@@ -126,11 +135,10 @@ impl<N: AstToken> Iterator for AstChildTokens<N> {
 }
 
 pub(crate) mod support {
-    use crate::ast::RevAstChildren;
-
     use super::{
         AstChildTokens, AstChildren, AstNode, AstToken, SyntaxKind, SyntaxNode, SyntaxToken,
     };
+    use crate::ast::RevAstChildren;
 
     pub(crate) fn child<N: AstNode>(parent: &SyntaxNode) -> Option<N> {
         parent.children().find_map(N::cast)

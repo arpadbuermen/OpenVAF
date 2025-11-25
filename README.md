@@ -49,6 +49,8 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - --dump-unopt-mir, --dump-mir, --dump-unopt-ir, and --dump-ir options for dumpring the (unoptimized) MIR and LLVM IR. 
 - Support for $fatal, $finish, and $stop. 
 - Loops no longer crash the compiler. 
+- Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
+- Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
 
 
 # What about binaries? 
@@ -70,38 +72,15 @@ Packages named `openvaf-reloaded-llvm18-osdi_0.4*` come from the `llvm18` branch
 
 ## Setting up the dependencies under Debian Bookworm
 
-Everything was tested under Debian 13. Under Debian 12 a part of the OpenVAF suite fails to build (VerilogAE). 
-
-Get [LLVM 15 built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-unknown-linux-gnu-FULL.tar.zst) 
-(do not use the Debian-supplied version). You can also build your own LLVM and Clang 15.0.7 from 
-[sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7).  
-
-Unpack Pascal's binaries in `/opt` as root (creates directory `/opt/LLVM`). You will need zstd for that. 
-```
-cd /opt
-zstd -d -c --long=31 <path/to/archive.tar.zst> | tar -xf -
-```
-Install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
+Everything was tested under Debian 13. First, install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 During installation select "Customize installation" and set profile to "complete". 
 
-Set LLVM_CONFIG, add LLVM to PATH, and set up the working environment for Rust.
-Add these lines at the end of `.bashrc`
+Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8). Unpack them (this creates directory `llvm-project-llvmorg-18.1.8`) and create a build directory and decide where you want to install LLVM. Type 
 ```
-. "$HOME/.cargo/env"
-export LLVM_CONFIG=/opt/LLVM/bin/llvm-config
-export PATH=/opt/LLVM/bin:$PATH
-```
-
-Restart shell. You're good to go. 
-
-### But I want to build my own LLVM...
-
-Sure, no problem. Download the sources and unpack them. Then create a build directory and decide where you want to install LLVM. Type 
-```
-cmake -S <path to souces> -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
+cmake -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
 
 Enter the build directory and type
@@ -112,40 +91,32 @@ make install
 
 Set up the environment by adding the following to `.bashrc`
 ```
-export LLVM_CONFIG=<install directory>/bin/llvm-config
-export PATH=<install directory>/bin:$PATH
+export LLVM_SYS_181_PREFIX=<LLVM install directory>
+export PATH=<LLVM install directory>/bin:$PATH
 ```
+
+Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
 
 ## Setting up the dependencies under Windows
 
 Download [rustup](https://win.rustup.rs), run it to install Rust. 
 During installation select "Customize installation" and set profile to "complete". 
 
-Install Visual Studio 2019 Community Edition (tested with version 16.11.33) 
-Make sure you install CMake Tools that come with VS2019 (also installs Ninja). 
+Install Visual Studio 2022 Community Edition. Make sure you install CMake Tools that come with VS2022 (also installs Ninja). 
 
-Build LLVM and Clang, download [LLVM 15.0.7](https://github.com/llvm/llvm-project/releases/tag/llvmorg-15.0.7) sources (get the .zip file)
+Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8) sources (get the .zip file). Unpack the sources (this creates directory `llvm-project-llvmorg-18.1.8`). Create a build directory and decide where you want to install LLVM. 
 
-Unpack the sources. This creates directory `llvm-project-llvmorg-15.0.7`. Create a directory named `build`. 
-
-Start Visual Studio x64 native command prompt. 
-Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
-Replace `e:\llvm` with the path where you want your LLVM and Clang binaries and libraries to be installed. 
+Start Visual Studio x64 native command prompt. Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
 ```
-cmake -G Ninja -S llvm-project-llvmorg-15.0.7\llvm -B build -DCMAKE_INSTALL_PREFIX=e:\LLVM -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang"
+cmake -G Ninja -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
-Run Ninja (build and install)
+Enter build directory and run Ninja (build and install)
 ```
-ninja -C build
-ninja -C build install 
+ninja 
+ninja install 
 ```
-Now you have your own LLVM and Clang. Hope it did not take too many Snickers :). 
 
-The LLVM and Clang version [built by Pascal](https://openva.fra1.cdn.digitaloceanspaces.com/llvm-15.0.7-x86_64-pc-windows-msvc-FULL.tar.zst) did not work for me (the openvaf binary failed to link due to undefined symbols). 
-
-Add LLVM to the PATH (in the above example that would be `e:\llvm\bin`). 
-Set the `LLVM_CONFIG` environmental variable if you have multiple LLVM installations
-(for the above example that would be `e:\llvm\bin\llvm-config.exe`). 
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `<LLVM install directory>`. 
 
 Restart command prompt. Now you are good to go. 
 

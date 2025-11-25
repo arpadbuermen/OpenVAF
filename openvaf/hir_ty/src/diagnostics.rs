@@ -8,7 +8,6 @@ use basedb::lints::builtin::non_standard_code;
 use basedb::lints::{Lint, LintSrc};
 use basedb::{BaseDB, FileId};
 use hir_def::body::BodySourceMap;
-
 use hir_def::{ExprId, FunctionId, Lookup, Type};
 use stdx::iter::zip;
 use stdx::pretty::List;

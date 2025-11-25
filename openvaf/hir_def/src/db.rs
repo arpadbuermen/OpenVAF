@@ -8,6 +8,7 @@ use crate::data::{
     AliasParamData, BranchData, DisciplineData, FunctionData, ModuleData, NatureData, NodeData,
     ParamData, VarData,
 };
+use crate::item_tree::ndatable::NDATable;
 use crate::item_tree::ItemTree;
 use crate::nameres::{DefMap, ScopeOrigin};
 use crate::{
@@ -49,6 +50,9 @@ pub trait InternDB: BaseDB {
 
 #[salsa::query_group(HirDefDatabase)]
 pub trait HirDefDB: InternDB + Upcast<dyn BaseDB> {
+    #[salsa::invoke(NDATable::nda_table_query)]
+    fn nda_table(&self, root_file: FileId) -> Arc<NDATable>;
+
     #[salsa::invoke(ItemTree::file_item_tree_query)]
     fn item_tree(&self, root_file: FileId) -> Arc<ItemTree>;
 

@@ -1,25 +1,38 @@
+use core::ptr::NonNull;
 use std::iter::once;
 
 use hir::{CompilationDB, ParamSysFun, Type};
+use hir_def::db::HirDefDB;
+use hir_def::ndatable::NDATable;
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
-use llvm::{LLVMABISizeOfType, LLVMOffsetOfElement, TargetData};
+use llvm_sys::core::{
+    LLVMConstArray2, LLVMConstInt, LLVMConstPtrToInt, LLVMGetArrayLength2, LLVMGetDataLayoutStr,
+    LLVMGetElementType, LLVMGetUndef,
+};
+use llvm_sys::prelude::LLVMValueRef;
+use llvm_sys::target::{
+    LLVMABISizeOfType, LLVMByteOrder, LLVMByteOrdering, LLVMCreateTargetData, LLVMOffsetOfElement,
+    LLVMTargetDataRef,
+};
+use llvm_sys::LLVMValue;
 use mir::{ValueDef, F_ZERO};
 use mir_llvm::CodegenCx;
-use sim_back::dae::MatrixEntry;
+use sim_back::dae::{MatrixEntry, ResidualNatureKind};
 use sim_back::SimUnknownKind;
 use smol_str::SmolStr;
 
 use crate::compilation_unit::{OsdiCompilationUnit, OsdiModule};
 use crate::inst_data::{
-    OsdiInstanceParam, COLLAPSED, JACOBIAN_PTR_REACT, JACOBIAN_PTR_RESIST, NODE_MAPPING, STATE_IDX
+    OsdiInstanceParam, COLLAPSED, JACOBIAN_PTR_REACT, JACOBIAN_PTR_RESIST, NODE_MAPPING, STATE_IDX,
 };
 use crate::load::JacobianLoadType;
 use crate::metadata::osdi_0_4::{
-    OsdiDescriptor, OsdiJacobianEntry, OsdiNode, OsdiNodePair, OsdiNoiseSource, OsdiParamOpvar,
-    OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST, JACOBIAN_ENTRY_RESIST,
-    JACOBIAN_ENTRY_RESIST_CONST, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT,
-    PARA_TY_REAL, PARA_TY_STR,
+    OsdiDescriptor, OsdiJacobianEntry, OsdiNatureRef, OsdiNode, OsdiNodePair, OsdiNoiseSource,
+    OsdiParamOpvar, OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST,
+    JACOBIAN_ENTRY_RESIST, JACOBIAN_ENTRY_RESIST_CONST, NATREF_DISCIPLINE_FLOW,
+    NATREF_DISCIPLINE_POTENTIAL, NATREF_NONE, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR,
+    PARA_TY_INT, PARA_TY_REAL, PARA_TY_STR,
 };
 use crate::ty_len;
 
@@ -33,13 +46,77 @@ pub struct OsdiLimFunction {
 }
 
 impl OsdiLimFunction {
-    pub fn to_ll_val<'ll>(self, ctx: &CodegenCx<'_, 'll>, tys: &'ll OsdiTys) -> &'ll llvm::Value {
+    pub fn to_ll_val<'ll>(
+        self,
+        ctx: &CodegenCx<'_, 'll>,
+        tys: &'ll OsdiTys,
+    ) -> &'ll llvm_sys::LLVMValue {
         osdi_0_4::OsdiLimFunction {
             name: ctx.literals.resolve(&self.name).to_owned(),
             num_args: self.num_args,
             func_ptr: ctx.const_null_ptr(),
         }
         .to_ll_val(ctx, tys)
+    }
+}
+
+impl osdi_0_4::OsdiAttributeValue {
+    pub fn to_ll_val<'ll>(
+        &self,
+        ctx: &CodegenCx<'_, 'll>,
+        tys: &'ll OsdiTys,
+    ) -> &'ll llvm_sys::LLVMValue {
+        // Union storage type (array of integers)
+        let ty = tys.osdi_attribute_value;
+        unsafe {
+            // TODO: handle endianness. Currently works for little endian (PC, x86 & arm64 MACS).
+            // Array elements are i64 or larger. When lowering integers/pointers/doubles that are
+            // smaller than the array element this is wrong on big endian.
+            // Check target (it must be little endian)
+            let data_layout = LLVMGetDataLayoutStr(NonNull::from(ctx.llmod).as_ptr());
+            let target_data = LLVMCreateTargetData(data_layout);
+            let order = LLVMByteOrder(target_data);
+            if order != LLVMByteOrdering::LLVMLittleEndian {
+                panic!("Can handle little endian only.")
+            }
+            // Raw pointers
+            let raw_ty = NonNull::from(ty).as_ptr();
+            // Get array length
+            let len = LLVMGetArrayLength2(raw_ty);
+            // Get array member size in bytes
+            let elem_ty = LLVMGetElementType(raw_ty);
+            // Element size is >= entry size
+            // Initializer array with undef values
+            let mut elems = vec![LLVMGetUndef(elem_ty); len as usize];
+            match self {
+                osdi_0_4::OsdiAttributeValue::String(s) => {
+                    // Constant global string
+                    let llval = ctx.const_str_uninterned(s);
+                    let valref = llval as *const LLVMValue as LLVMValueRef;
+                    // Cast to array entry type
+                    let ptr_as_int = LLVMConstPtrToInt(valref, elem_ty);
+                    // Fill initializer array
+                    elems[0] = ptr_as_int;
+                }
+                osdi_0_4::OsdiAttributeValue::Real(f) => {
+                    // Real number
+                    let ipat = f.to_bits();
+                    // Create array entry
+                    let entry = LLVMConstInt(elem_ty, ipat, 0);
+                    // Fill initializer array
+                    elems[0] = entry;
+                }
+                osdi_0_4::OsdiAttributeValue::Integer(i) => {
+                    // Integer (i32)
+                    let entry = LLVMConstInt(elem_ty, *i as i64 as u64, 0);
+                    // Fill initializer array
+                    elems[0] = entry;
+                }
+                _ => panic!("Unknown attribute value union member type."),
+            }
+            // Construct array
+            &*LLVMConstArray2(elem_ty, elems.as_mut_ptr(), len)
+        }
     }
 }
 
@@ -135,14 +212,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         inst_params.chain(model_params).chain(opvars).collect()
     }
 
-    pub fn nodes(&self, target_data: &TargetData, db: &CompilationDB) -> Vec<OsdiNode> {
+    pub fn nodes(&self, target_data: &LLVMTargetDataRef, db: &CompilationDB) -> Vec<OsdiNode> {
         let OsdiCompilationUnit { inst_data, module, .. } = self;
         module
             .dae_system
             .unknowns
             .iter_enumerated()
             .map(|(id, unknown)| {
-                let (name, units, is_flow) = sim_unknown_info(*unknown, db);
+                let residual_nature_kind = module.dae_system.residual[id].nature_kind;
+                let (name, units, residual_units, is_flow, _, _) =
+                    sim_unknown_info(*unknown, residual_nature_kind, db);
                 let resist_residual_off =
                     inst_data.residual_off(id, false, target_data).unwrap_or(u32::MAX);
                 let react_residual_off =
@@ -155,7 +234,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 OsdiNode {
                     name,
                     units,
-                    residual_units: String::new(),
+                    residual_units,
                     resist_residual_off,
                     react_residual_off,
                     is_flow,
@@ -181,10 +260,15 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
     }
 
-    pub fn jacobian_entries(&self, target_data: &TargetData) -> Vec<OsdiJacobianEntry> {
+    pub fn jacobian_entries(&self, target_data: &LLVMTargetDataRef) -> Vec<OsdiJacobianEntry> {
         let OsdiCompilationUnit { inst_data, module, .. } = self;
-        let mut jacobian_ptr_react_offset =
-            unsafe { LLVMOffsetOfElement(target_data, inst_data.ty, JACOBIAN_PTR_REACT) } as u32;
+        let mut jacobian_ptr_react_offset = unsafe {
+            LLVMOffsetOfElement(
+                *target_data,
+                NonNull::from(inst_data.ty).as_ptr(),
+                JACOBIAN_PTR_REACT,
+            )
+        } as u32;
 
         module
             .dae_system
@@ -232,39 +316,66 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     }
 
     pub fn inputs(&self) -> Vec<OsdiNodePair> {
-        self.module.dae_system.model_inputs.iter().map(|(node1, node2)| {
-            OsdiNodePair {
-                node_1: (*node1).into(), 
-                node_2: (*node2).into(), 
-            }
-        })
-        .collect()
+        self.module
+            .dae_system
+            .model_inputs
+            .iter()
+            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1).into(), node_2: (*node2).into() })
+            .collect()
+    }
+
+    pub fn unknown_residual_natures(
+        &self,
+        db: &CompilationDB,
+    ) -> (Vec<OsdiNatureRef>, Vec<OsdiNatureRef>) {
+        let mut uvec = Vec::new();
+        let mut rvec = Vec::new();
+        for (idx, &unknown) in self.module.dae_system.unknowns.iter_enumerated() {
+            let residual_nature_kind = self.module.dae_system.residual[idx].nature_kind;
+            let (_, _, _, _, unknown_natref, residual_natref) =
+                sim_unknown_info(unknown, residual_nature_kind, db);
+            uvec.push(unknown_natref);
+            rvec.push(residual_natref);
+        }
+        (uvec, rvec)
     }
 
     pub fn descriptor(
         &self,
-        target_data: &llvm::TargetData,
+        target_data: &llvm_sys::target::LLVMTargetDataRef,
         db: &CompilationDB,
     ) -> OsdiDescriptor<'ll> {
         let collapsible = self.collapsible();
         let inputs = self.inputs();
         let OsdiCompilationUnit { ref inst_data, ref model_data, module, cx, .. } = *self;
-        
+
         unsafe {
-            let node_mapping_offset =
-                LLVMOffsetOfElement(target_data, inst_data.ty, NODE_MAPPING) as u32;
-            let jacobian_ptr_resist_offset =
-                LLVMOffsetOfElement(target_data, inst_data.ty, JACOBIAN_PTR_RESIST) as u32;
+            let node_mapping_offset = LLVMOffsetOfElement(
+                *target_data,
+                NonNull::from(inst_data.ty).as_ptr(),
+                NODE_MAPPING,
+            ) as u32;
+            let jacobian_ptr_resist_offset = LLVMOffsetOfElement(
+                *target_data,
+                NonNull::from(inst_data.ty).as_ptr(),
+                JACOBIAN_PTR_RESIST,
+            ) as u32;
 
-            let collapsed_offset = LLVMOffsetOfElement(target_data, inst_data.ty, COLLAPSED) as u32;
+            let collapsed_offset =
+                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), COLLAPSED)
+                    as u32;
             let bound_step_offset = inst_data.bound_step_elem().map_or(u32::MAX, |elem| {
-                LLVMOffsetOfElement(target_data, inst_data.ty, elem) as u32
+                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), elem) as u32
             });
-            
-            let state_idx_off = LLVMOffsetOfElement(target_data, inst_data.ty, STATE_IDX) as u32;
 
-            let instance_size = LLVMABISizeOfType(target_data, inst_data.ty) as u32;
-            let model_size = LLVMABISizeOfType(target_data, model_data.ty) as u32;
+            let state_idx_off =
+                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), STATE_IDX)
+                    as u32;
+
+            let instance_size =
+                LLVMABISizeOfType(*target_data, NonNull::from(inst_data.ty).as_ptr()) as u32;
+            let model_size =
+                LLVMABISizeOfType(*target_data, NonNull::from(model_data.ty).as_ptr()) as u32;
 
             let noise_sources: Vec<_> = module
                 .dae_system
@@ -278,6 +389,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 })
                 .collect();
 
+            let (uvec, rvec) = self.unknown_residual_natures(db);
             OsdiDescriptor {
                 name: module.info.module.name(db),
                 num_nodes: module.dae_system.unknowns.len() as u32,
@@ -319,16 +431,19 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 num_states: self.module.intern.lim_state.len() as u32,
                 load_limit_rhs_resist: self.load_lim_rhs(false),
                 load_limit_rhs_react: self.load_lim_rhs(true),
-                given_flag_model: self.given_flag_model(), 
-                given_flag_instance: self.given_flag_instance(), 
-                num_resistive_jacobian_entries: module.dae_system.num_resistive, 
-                num_reactive_jacobian_entries: module.dae_system.num_reactive, 
+                given_flag_model: self.given_flag_model(),
+                given_flag_instance: self.given_flag_instance(),
+                num_resistive_jacobian_entries: module.dae_system.num_resistive,
+                num_reactive_jacobian_entries: module.dae_system.num_reactive,
                 write_jacobian_array_resist: self.write_jacobian_array(JacobianLoadType::Resist),
                 write_jacobian_array_react: self.write_jacobian_array(JacobianLoadType::React),
-                num_inputs: inputs.len() as u32, 
-                inputs: inputs, 
-                load_jacobian_with_offset_resist: self.load_jacobian(JacobianLoadType::Resist, true),
+                num_inputs: inputs.len() as u32,
+                inputs,
+                load_jacobian_with_offset_resist: self
+                    .load_jacobian(JacobianLoadType::Resist, true),
                 load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
+                unknown_nature: uvec,
+                residual_nature: rvec,
             }
         }
     }
@@ -336,18 +451,27 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
 impl OsdiModule<'_> {
     pub fn intern_node_strs(&self, intern: &mut Rodeo, db: &CompilationDB) {
-        for &unknown in self.dae_system.unknowns.iter() {
-            let (name, units, _) = sim_unknown_info(unknown, db);
+        for (idx, &unknown) in self.dae_system.unknowns.iter_enumerated() {
+            let residual_nature_kind = self.dae_system.residual[idx].nature_kind;
+            let (name, units, residual_units, _, _, _) =
+                sim_unknown_info(unknown, residual_nature_kind, db);
             intern.get_or_intern(&name);
             intern.get_or_intern(&units);
+            intern.get_or_intern(&residual_units);
         }
     }
 }
 
-fn sim_unknown_info(unknown: SimUnknownKind, db: &CompilationDB) -> (String, String, bool) {
+fn sim_unknown_info(
+    unknown: SimUnknownKind,
+    residual_nature_kind: ResidualNatureKind,
+    db: &CompilationDB,
+) -> (String, String, String, bool, OsdiNatureRef, OsdiNatureRef) {
     let name;
     let discipline;
     let is_flow;
+    let mut unknown_nature = OsdiNatureRef { ref_type: NATREF_NONE, index: u32::MAX };
+    let mut residual_nature = OsdiNatureRef { ref_type: NATREF_NONE, index: u32::MAX };
 
     match unknown {
         SimUnknownKind::KirchoffLaw(node) => {
@@ -382,18 +506,47 @@ fn sim_unknown_info(unknown: SimUnknownKind, db: &CompilationDB) -> (String, Str
         }
     };
 
-    // its valid to have disciplines without pot/flow nature but then we can't
-    // have branches for those so its ok to unwrap here
-    let units = discipline
-        .map(|discipline| {
-            let nature = if is_flow {
-                discipline.flow(db).unwrap()
-            } else {
-                discipline.potential(db).unwrap()
-            };
-            nature.units(db)
-        })
-        .unwrap_or_default();
+    // Get discipline index
+    let cu = db.compilation_unit();
+    let nda_table = db.nda_table(cu.root_file());
 
-    (name, units, is_flow)
+    // Get units
+    let mut units = String::default();
+    let mut residual_units = String::default();
+    if let Some(discipline) = discipline {
+        // Discipline index
+        let ndx = nda_table.discipline_name_map.get(&discipline.name(db)).unwrap().into_raw();
+
+        // Unknown
+        let nature = if is_flow {
+            unknown_nature.ref_type = NATREF_DISCIPLINE_FLOW;
+            unknown_nature.index = ndx;
+            discipline.flow(db)
+        } else {
+            unknown_nature.ref_type = NATREF_DISCIPLINE_POTENTIAL;
+            unknown_nature.index = ndx;
+            discipline.potential(db)
+        };
+        if let Some(nature) = nature {
+            units = nature.units(db)
+        }
+        // Residual
+        let nature = match residual_nature_kind {
+            ResidualNatureKind::Flow => {
+                residual_nature.ref_type = NATREF_DISCIPLINE_FLOW;
+                residual_nature.index = ndx;
+                discipline.flow(db)
+            }
+            ResidualNatureKind::Potential => {
+                residual_nature.ref_type = NATREF_DISCIPLINE_POTENTIAL;
+                residual_nature.index = ndx;
+                discipline.potential(db)
+            }
+            _ => None,
+        };
+        if let Some(nature) = nature {
+            residual_units = nature.units(db);
+        }
+    }
+    (name, units, residual_units, is_flow, unknown_nature, residual_nature)
 }

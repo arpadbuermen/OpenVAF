@@ -13,32 +13,26 @@ use std::sync::Arc;
 
 use basedb::diagnostics::sink::Buffer;
 use basedb::diagnostics::ConsoleSink;
-use basedb::BaseDB;
-use basedb::FileId;
+pub use basedb::diagnostics::DiagnosticSink;
+use basedb::{BaseDB, FileId};
+pub use hir_def::body::{ConstraintValue, ParamConstraint};
 use hir_def::db::HirDefDB;
+pub use hir_def::expr::CaseCond;
+pub use hir_def::nameres::diagnostics::PathResolveError;
 use hir_def::nameres::{DefMap, LocalScopeId, ScopeDefItem};
-use hir_def::DefWithBodyId;
-use hir_def::DisciplineId;
-use hir_def::LocalFunctionArgId;
-use hir_def::NatureAttrId;
-use hir_def::NatureId;
 use hir_def::{
-    AliasParamId, BlockId, BlockLoc, BranchId, FunctionId, Lookup, ModuleId, ModuleLoc, NodeId,
-    ParamId, VarId,
+    AliasParamId, BlockId, BlockLoc, BranchId, DefWithBodyId, DisciplineId, FunctionId,
+    LocalFunctionArgId, Lookup, ModuleId, ModuleLoc, NatureAttrId, NatureId, NodeId, ParamId,
+    VarId,
 };
+pub use hir_def::{BuiltIn, Case, Literal, ParamSysFun, Path, Type};
+pub use hir_ty::builtin;
 use hir_ty::db::HirTyDB as HirDatabase;
 use hir_ty::inference;
+pub use rec_declarations::RecDeclarations;
 use salsa::InternKey;
 use smol_str::SmolStr;
 use syntax::ast;
-
-pub use basedb::diagnostics::DiagnosticSink;
-pub use hir_def::body::{ConstraintValue, ParamConstraint};
-pub use hir_def::expr::CaseCond;
-pub use hir_def::nameres::diagnostics::PathResolveError;
-pub use hir_def::{BuiltIn, Case, Literal, ParamSysFun, Path, Type};
-pub use hir_ty::builtin;
-pub use rec_declarations::RecDeclarations;
 pub use syntax::name::Name;
 
 pub use crate::attributes::AstCache;
@@ -77,6 +71,7 @@ impl CompilationUnit {
         db.file_path(self.root_file).name().unwrap_or_else(|| String::from("~.va"))
     }
 
+    // Lowering AST -> HIR for module body
     pub fn diagnostics(self, db: &CompilationDB, sink: &mut impl DiagnosticSink) {
         diagnostics::collect(db, self.root_file, sink)
     }

@@ -1,4 +1,6 @@
+pub use basedb::diagnostics::*;
 use basedb::AstIdMap;
+pub use basedb::{BaseDB, FileId};
 use hir_def::db::HirDefDB;
 use hir_def::nameres::diagnostics::DefDiagnosticWrapped;
 use hir_def::nameres::{DefMap, LocalScopeId, ScopeDefItem, ScopeOrigin};
@@ -11,15 +13,13 @@ use hir_ty::validation::{
 use syntax::sourcemap::SourceMap;
 use syntax::{Parse, SourceFile};
 
-pub use basedb::diagnostics::*;
-pub use basedb::{BaseDB, FileId};
-
 use crate::{CompilationDB, HirDatabase};
 
 pub(crate) fn collect(db: &CompilationDB, root_file: FileId, sink: &mut impl DiagnosticSink) {
     sink.add_diagnostics(&*db.preprocess(root_file).diagnostics, root_file, db);
     sink.add_diagnostics(db.parse(root_file).errors(), root_file, db);
 
+    // Collect root tree items (natures, ...) AST -> HIR
     let def_map = db.def_map(root_file);
     let ast_id_map = db.ast_id_map(root_file);
     let parse = db.parse(root_file);
@@ -40,6 +40,7 @@ pub(crate) fn collect(db: &CompilationDB, root_file: FileId, sink: &mut impl Dia
         sink.add_diagnostic(&diag, root_file, db);
     }
 
+    // AST -> HIR lowering of modules
     collect_def_map(db, &def_map, root_file, &parse, &sm, &ast_id_map, sink);
     let root_scope = def_map.root();
     for child in def_map[root_scope].children.values() {

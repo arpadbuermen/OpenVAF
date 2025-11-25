@@ -5,6 +5,19 @@ use stdx::impl_display;
 use super::Stmt;
 use crate::ast::{self, support, AstChildren, AstNode, AstToken};
 use crate::{SyntaxToken, T};
+use ast::ConstExprValue;
+
+use std::borrow::Cow;
+
+impl ast::ConstExprValue {
+    pub fn as_real(&self) -> Option<f64> {
+        match self {
+            &ConstExprValue::Int(v) => return Some(v.into()),
+            &ConstExprValue::Float(v) => return Some(v.into()),
+            _ => return None,
+        }
+    }
+}
 
 impl ast::Expr {
     pub fn as_literal(&self) -> Option<LiteralKind> {
@@ -19,6 +32,54 @@ impl ast::Expr {
             Some(lit.unescaped_value())
         } else {
             None
+        }
+    }
+
+    // Returns constant expression value (for computing attribute values)
+    // Takes into account unary +/-, handles scalar real/integer/string
+    // This evaluation is performed at AST level, not HIR level
+    pub fn as_constexprval(&self) -> Option<ConstExprValue> {
+        // Must use Cow because .expr() returns Option<Expr> while
+        // self is &Expr and cannot be converted into Option<Expr>
+        let (val, negate) = if let ast::Expr::PrefixExpr(pfxe) = self {
+            match pfxe.op_kind() {
+                // -, skip to argument
+                Some(UnaryOp::Neg) => (pfxe.expr().map(Cow::Owned), true),
+                // +, skip to argument
+                Some(UnaryOp::Identity) => (pfxe.expr().map(Cow::Owned), false),
+                // Everything else cannot be evaluated
+                _ => return None,
+            }
+        } else {
+            // Not unary Op
+            (Some(Cow::Borrowed(self)), false)
+        };
+
+        // If we have no expression, give up
+        if val.is_none() {
+            return None;
+        }
+
+        // Get value, negate if required
+        match &*val.unwrap() {
+            ast::Expr::Literal(lit) => match lit.kind() {
+                LiteralKind::String(lit) => Some(ConstExprValue::String(lit.unescaped_value())), // Some(lit.unescaped_value()),
+                LiteralKind::StdRealNumber(f) => Some(ConstExprValue::Float(if negate {
+                    (-f.value()).into()
+                } else {
+                    f.value().into()
+                })),
+                LiteralKind::SiRealNumber(f) => Some(ConstExprValue::Float(if negate {
+                    (-f.value()).into()
+                } else {
+                    f.value().into()
+                })),
+                LiteralKind::IntNumber(i) => {
+                    Some(ConstExprValue::Int(if negate { -i.value() } else { i.value() }))
+                }
+                _ => None,
+            },
+            _ => None,
         }
     }
 }

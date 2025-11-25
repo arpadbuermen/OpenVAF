@@ -108,8 +108,8 @@ impl Layout {
     }
 
     /// Insert `block` as the last block in the layout.
-    /// This defines its prev and next pointers and 
-    /// updates the first_block and last_block pointers of the layout. 
+    /// This defines its prev and next pointers and
+    /// updates the first_block and last_block pointers of the layout.
     pub fn append_block(&mut self, block: Block) {
         debug_assert!(
             !self.is_block_inserted(block),
@@ -176,7 +176,7 @@ impl Layout {
             curr = n.next.expand();
             *n = InstNode::default();
         }
-        
+
         self.blocks[block].first_inst = None.into();
         self.blocks[block].last_inst = None.into();
     }

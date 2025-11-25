@@ -1,8 +1,9 @@
-use crate::{add_preamble, ensure_file_contents, project_root, reformat, to_upper_snake_case};
 use indexmap::IndexSet;
 use quote::{format_ident, quote};
 use stdx::iter::multiunzip;
 use stdx::SKIP_HOST_TESTS;
+
+use crate::{add_preamble, ensure_file_contents, project_root, reformat, to_upper_snake_case};
 
 const ANALOG_OPERATORS: [&str; 17] = [
     "absdelay",

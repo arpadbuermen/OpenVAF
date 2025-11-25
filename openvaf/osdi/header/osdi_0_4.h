@@ -63,6 +63,18 @@
 
 #define INIT_ERR_OUT_OF_BOUNDS 1
 
+#define ATTR_TYPE_STR 0
+#define ATTR_TYPE_INT 1
+#define ATTR_TYPE_REAL 2
+
+#define NATREF_NONE 0
+#define NATREF_NATURE 1
+#define NATREF_DISCIPLINE_FLOW 2
+#define NATREF_DISCIPLINE_POTENTIAL 3
+
+#define DOMAIN_NOT_GIVEN 0 
+#define DOMAIN_DISCRETE 1
+#define DOMAIN_CONTINUOUS 2
 
 
 typedef struct OsdiLimFunction {
@@ -138,6 +150,11 @@ typedef struct OsdiNoiseSource {
   OsdiNodePair nodes;
 }OsdiNoiseSource;
 
+typedef struct OsdiNatureRef {
+  uint32_t ref_type; 
+  uint32_t index; 
+}OsdiNatureRef;
+
 typedef struct OsdiDescriptor {
   char *name;
 
@@ -202,7 +219,40 @@ typedef struct OsdiDescriptor {
   OsdiNodePair* inputs;
   void (*load_jacobian_with_offset_resist)(void *inst, void* model, size_t offset);
   void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
+  OsdiNatureRef* unknown_nature;
+  OsdiNatureRef* residual_nature;
 }OsdiDescriptor;
 
+typedef struct OsdiNature {
+  char *name;
+  uint32_t parent_type;
+  uint32_t parent;
+  uint32_t ddt;
+  uint32_t idt;
+  uint32_t attr_start;
+  uint32_t num_attr;
+}OsdiNature;
 
+typedef struct OsdiDiscipline {
+  char *name;
+  uint32_t flow;
+  uint32_t potential;
+  uint32_t domain;
+  uint32_t attr_start;
+  uint32_t num_flow_attr;
+  uint32_t num_potential_attr;
+  uint32_t num_user_attr;
+}OsdiDiscipline;
+
+typedef union OsdiAttributeValue {
+  char* string;
+  int32_t integer;
+  double real;
+}OsdiAttributeValue;
+
+typedef struct OsdiAttribute {
+  char *name;
+  uint32_t value_type;
+  OsdiAttributeValue value;
+}OsdiAttribute;
 

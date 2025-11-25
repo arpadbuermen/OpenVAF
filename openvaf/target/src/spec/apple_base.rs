@@ -1,6 +1,5 @@
-use crate::spec::TargetOptions;
-
 use super::LinkerFlavor;
+use crate::spec::TargetOptions;
 
 pub fn opts() -> TargetOptions {
     TargetOptions {

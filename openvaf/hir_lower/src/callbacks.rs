@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use hir::{Node, Parameter};
 use lasso::Spur;
 use mir::{FunctionSignature, Param};
@@ -5,8 +7,6 @@ use stdx::Ieee64;
 
 use crate::fmt::{DisplayKind, FmtArg};
 use crate::LimitState;
-
-use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum ParamInfoKind {
@@ -19,19 +19,19 @@ pub enum ParamInfoKind {
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum RetFlag {
-    Abort, 
-    Finish, 
-    Stop, 
-    Limited, 
+    Abort,
+    Finish,
+    Stop,
+    Limited,
 }
 
 impl std::fmt::Display for RetFlag {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let txt = match self {
-            Self::Abort => "abort", 
-            Self::Finish => "finish", 
-            Self::Stop => "stop", 
-            Self::Limited => "limited", 
+            Self::Abort => "abort",
+            Self::Finish => "finish",
+            Self::Stop => "stop",
+            Self::Limited => "limited",
         };
         write!(f, "{}", txt)
     }
@@ -55,7 +55,7 @@ pub enum CallBackKind {
     WhiteNoise { name: Spur, idx: u32 },
     FlickerNoise { name: Spur, idx: u32 },
     NoiseTable(Box<NoiseTable>),
-    SetRetFlag(RetFlag), 
+    SetRetFlag(RetFlag),
 }
 
 impl CallBackKind {

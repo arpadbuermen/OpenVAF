@@ -11,12 +11,15 @@
 //! surface syntax.
 
 mod lower;
+pub mod ndatable;
 mod pretty;
 
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::Index;
 use std::sync::Arc;
+
+use ordered_float::OrderedFloat;
 
 use ahash::AHashMap;
 use arena::{Arena, Idx, IdxRange};
@@ -25,6 +28,7 @@ use stdx::impl_from_typed;
 use syntax::ast::{self, BlockStmt, NameRef};
 use syntax::name::Name;
 use syntax::AstNode;
+use syntax::ConstExprValue;
 use typed_index_collections::TiVec;
 
 use crate::db::HirDefDB;
@@ -36,7 +40,7 @@ use crate::{
 #[derive(Debug, Eq, PartialEq)]
 pub struct ItemTree {
     pub top_level: Box<[RootItem]>,
-    pub(crate) data: ItemTreeData,
+    pub data: ItemTreeData,
     pub(crate) blocks: AHashMap<AstId<BlockStmt>, Block>,
 }
 
@@ -91,7 +95,7 @@ impl ItemTree {
 }
 
 #[derive(Default, Debug, Eq, PartialEq)]
-pub(crate) struct ItemTreeData {
+pub struct ItemTreeData {
     pub modules: Arena<Module>,
     pub disciplines: Arena<Discipline>,
     pub natures: Arena<Nature>,
@@ -321,7 +325,7 @@ pub struct Nature {
     pub access: Option<(Name, LocalNatureAttrId)>,
     pub ddt_nature: Option<(NatureRef, LocalNatureAttrId)>,
     pub idt_nature: Option<(NatureRef, LocalNatureAttrId)>,
-    pub abstol: Option<LocalNatureAttrId>,
+    pub abstol: Option<(OrderedFloat<f64>, LocalNatureAttrId)>,
     pub units: Option<(String, LocalNatureAttrId)>,
     pub attrs: IdxRange<NatureAttr>,
     pub ast_id: AstId<ast::NatureDecl>,
@@ -331,6 +335,7 @@ pub struct Nature {
 pub struct NatureAttr {
     pub name: Name,
     pub ast_id: AstId<ast::NatureAttr>,
+    pub value: Option<ConstExprValue>,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash, Copy)]
@@ -345,6 +350,7 @@ pub struct DisciplineAttr {
     pub name: Name,
     pub kind: DisciplineAttrKind,
     pub ast_id: AstId<ast::DisciplineAttr>,
+    pub value: Option<ConstExprValue>,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]

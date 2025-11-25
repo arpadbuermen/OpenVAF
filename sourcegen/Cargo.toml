@@ -14,6 +14,8 @@ doctest = false
 [badges]
 maintenance = { status = "actively-developed" }
 
+[dependencies]
+heck = "0.5"
 
 [dev-dependencies]
 xshell = "0.2.3"

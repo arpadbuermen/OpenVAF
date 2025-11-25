@@ -3,10 +3,12 @@ mod builtin;
 mod data;
 pub mod db;
 pub mod expr;
-mod item_tree;
+pub mod item_tree;
 pub mod nameres;
 mod path;
 mod types;
+
+pub use crate::item_tree::ndatable;
 
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
