@@ -40,7 +40,8 @@ impl<'a> Context<'a> {
                 PlaceKind::Contribute { .. }
                 | PlaceKind::ImplicitResidual { .. }
                 | PlaceKind::CollapseImplicitEquation(_)
-                | PlaceKind::IsVoltageSrc(_) => true,
+                | PlaceKind::IsVoltageSrc(_) 
+                | PlaceKind::BoundStep => true,
                 PlaceKind::Var(var) => module.op_vars.contains_key(&var),
                 _ => false,
             },
