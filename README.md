@@ -65,8 +65,6 @@ The version name is generated with `git --describe`. The OpenVAF-reloaded that p
 
 If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch and produces models with the OSDI 0.3 API. If the binary is named `openvaf-r` it comes from the `master` branch and produces models with the OSDI 0.4 API. 
 
-Packages named `openvaf-reloaded-llvm18-osdi_0.4*` come from the `llvm18` branch. They are linked against LLVM18. The LLVM18 version of OpenVAF produces slightly faster models. If you experience problems with these binaries, let me know. Packages named `openvaf-reloaded-osdi_0.4*` are the conservative choice. They come from the `master` branch and are linked against LLVM15.
-
 
 # Building OpenVAF-reloaded
 
