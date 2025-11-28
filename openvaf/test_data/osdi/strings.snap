@@ -6,11 +6,7 @@ param "dummy2"
 units = "none", desc = "Dummy", flags = ParameterFlags(PARA_TY_STR)
 
 2 terminals
-node "A" units = "V", runits = ""
-residual 64 4294967295 4294967295 4294967295
-node "C" units = "V", runits = ""
-residual 72 4294967295 4294967295 4294967295
+node "A" units = "V", runits = "A"
+node "C" units = "V", runits = "A"
 0 states
 has bound_step false
-instance size 80
-model size 32
