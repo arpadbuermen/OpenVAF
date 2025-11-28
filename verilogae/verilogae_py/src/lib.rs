@@ -18,36 +18,24 @@ use crate::load::{load_info_py, load_py, load_vfs};
 use crate::model::{VAE_FUNCTION_TY, VAE_MODEL_TY, VAE_PARAM_TY};
 use crate::typeref::init_typerefs;
 
-#[cfg(Py_3_8)]
-const FUN_FLAG: c_int = METH_FASTCALL;
-#[cfg(not(Py_3_8))]
 const FUN_FLAG: c_int = METH_VARARGS;
 
 static mut FUNCTIONS: [PyMethodDef; 4] = unsafe {
     [
     PyMethodDef {
             ml_name: "load\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_py},
-            #[cfg(not(Py_3_8))]
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_py},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
             ml_doc: "loads a Verilog-A model by either loading it from the object cache or compiling it\0".as_ptr() as *const c_char,
     },
     PyMethodDef {
             ml_name: "load_info\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_info_py},
-            #[cfg(not(Py_3_8))]
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_info_py},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
             ml_doc: "loads information about Verilog-A model by either loading it from the object cache or compiling it\nThis function does not compile retrieved functions.\nThis allows for much faster compile times.\nModelsCompiled with this function lack the `functions` attribute.\0".as_ptr() as *const c_char,
     },
     PyMethodDef {
             ml_name: "export_vfs\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_vfs},
-            #[cfg(not(Py_3_8))]
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_vfs},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
             ml_doc: "runs the preprocessor on a Verilog-A file and exports a dict with all files.\nThe result of this functions can be passed to other functions `vfs` argument\0".as_ptr() as *const c_char,
@@ -58,6 +46,7 @@ static mut FUNCTIONS: [PyMethodDef; 4] = unsafe {
 
 #[allow(clippy::missing_safety_doc)]
 #[allow(non_snake_case)]
+#[allow(static_mut_refs)]
 #[no_mangle]
 #[cold]
 pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {

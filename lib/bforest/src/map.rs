@@ -370,7 +370,7 @@ where
     ///
     /// If the cursor reaches the end, return `None` and leave the cursor at the off-the-end
     /// position.
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::should_implement_trait))]
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<(K, V)> {
         self.path.next(self.pool)
     }

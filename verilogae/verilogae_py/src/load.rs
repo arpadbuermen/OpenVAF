@@ -32,53 +32,6 @@ macro_rules! handle_opt {
     };
 }
 
-#[cfg(Py_3_8)]
-macro_rules! parse_args {
-    ($fun: literal, $args: ident, $nargs: ident, $kwnames: ident, $path: ident, $opts: ident) => {
-        let num_args = pyo3_ffi::PyVectorcall_NARGS($nargs as usize);
-        if unlikely(num_args == 0) {
-            return raise_type_exception(concat!(
-                $fun,
-                "() missing 1 required positional argument: 'path'"
-            ));
-        }
-
-        if unlikely(num_args != 1) {
-            return raise_type_exception(concat!(
-                $fun,
-                "() found unexpected positional argument (expected 1)"
-            ));
-        }
-
-        let $path = match OsStr::new_path(*$args) {
-            Some(Some(path)) => path,
-            Some(None) => {
-                return raise_type_exception(concat!(
-                    $fun,
-                    "() positional argument 'path' must be a pathlib Path or str"
-                ))
-            }
-            None => return ptr::null_mut(),
-        };
-
-        let mut $opts = Opts::default();
-
-        if !$kwnames.is_null() {
-            let len = PyTuple_GET_SIZE($kwnames).saturating_sub(1);
-            for i in 0..=len {
-                let arg = PyTuple_GET_ITEM($kwnames, i as Py_ssize_t);
-                if !handle_opt!($fun, $opts, arg, *$args.offset(num_args + i)) {
-                    return raise_type_exception(concat!(
-                        $fun,
-                        "() got an unexpected keyword argument"
-                    ));
-                }
-            }
-        }
-    };
-}
-
-#[cfg(not(Py_3_8))]
 macro_rules! parse_args {
     ($fun: literal, $args: ident, $kwargs: ident, $path: ident, $opts: ident) => {
         let path = PyTuple_GET_ITEM($args, 0);
@@ -117,7 +70,6 @@ macro_rules! parse_args {
             let mut arg: *mut PyObject = std::ptr::null_mut();
             let mut val: *mut PyObject = std::ptr::null_mut();
             for _i in 0..=len {
-                // _PyDict_Next($kwargs, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
                 PyDict_Next($kwargs, &mut pos, &mut arg, &mut val);
                 if !handle_opt!($fun, $opts, arg, val) {
                     if arg.is_null() {
@@ -158,7 +110,6 @@ fn raise_runtime_runtime_exception(msg: &str) -> *mut PyObject {
     std::ptr::null_mut()
 }
 
-#[cfg(not(Py_3_8))]
 #[no_mangle]
 pub unsafe extern "C" fn load_py(
     _self: *mut PyObject,
@@ -175,25 +126,6 @@ pub unsafe extern "C" fn load_py(
     VaeModel::new(model, true)
 }
 
-#[cfg(Py_3_8)]
-#[no_mangle]
-pub unsafe extern "C" fn load_py(
-    _self: *mut PyObject,
-    args: *const *mut PyObject,
-    nargs: Py_ssize_t,
-    kwnames: *mut PyObject,
-) -> *mut PyObject {
-    parse_args!("load", args, nargs, kwnames, path, opts);
-    let model = verilogae_load(path.data, true, opts.to_ffi());
-
-    if model.is_null() {
-        return raise_runtime_runtime_exception("load() compilation failed");
-    }
-
-    VaeModel::new(model, true)
-}
-
-#[cfg(not(Py_3_8))]
 #[no_mangle]
 pub unsafe extern "C" fn load_info_py(
     _self: *mut PyObject,
@@ -210,25 +142,6 @@ pub unsafe extern "C" fn load_info_py(
     VaeModel::new(model, false)
 }
 
-#[cfg(Py_3_8)]
-#[no_mangle]
-pub unsafe extern "C" fn load_info_py(
-    _self: *mut PyObject,
-    args: *const *mut PyObject,
-    nargs: Py_ssize_t,
-    kwnames: *mut PyObject,
-) -> *mut PyObject {
-    parse_args!("load_info", args, nargs, kwnames, path, opts);
-    let model = verilogae_load(path.data, false, opts.to_ffi());
-
-    if model.is_null() {
-        return raise_runtime_runtime_exception("load_info() compilation failed");
-    }
-
-    VaeModel::new(model, false)
-}
-
-#[cfg(not(Py_3_8))]
 #[no_mangle]
 pub unsafe extern "C" fn load_vfs(
     _self: *mut PyObject,
@@ -236,22 +149,6 @@ pub unsafe extern "C" fn load_vfs(
     kwds: *mut PyObject,
 ) -> *mut PyObject {
     parse_args!("load_vfs", args, kwds, path, opts);
-    let vfs = VfsExport::new(path.data, &opts);
-    match vfs {
-        Some(vfs) => vfs_to_py(vfs),
-        None => raise_runtime_runtime_exception("load_vfs() failed to create vfs"),
-    }
-}
-
-#[cfg(Py_3_8)]
-#[no_mangle]
-pub unsafe extern "C" fn load_vfs(
-    _self: *mut PyObject,
-    args: *const *mut PyObject,
-    nargs: Py_ssize_t,
-    kwnames: *mut PyObject,
-) -> *mut PyObject {
-    parse_args!("load_vfs", args, nargs, kwnames, path, opts);
     let vfs = VfsExport::new(path.data.read(), &opts);
     match vfs {
         Some(vfs) => vfs_to_py(vfs),
@@ -285,7 +182,6 @@ unsafe fn py_to_vfs(fun: &str, obj: *mut PyObject) -> Option<Vfs> {
     let mut vfs = Vec::with_capacity(len as usize);
 
     for _i in 0..=len {
-        // _PyDict_Next(obj, &mut pos, &mut arg, &mut val, std::ptr::null_mut());
         PyDict_Next(obj, &mut pos, &mut arg, &mut val);
         let mut path_size = 0;
         let path = PyUnicode_AsUTF8AndSize(arg, &mut path_size);
