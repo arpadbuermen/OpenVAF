@@ -79,8 +79,8 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-cargo-
+        key: ${{ runner.os }}-${{runner.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{runner.arch}}-cargo-
 
     - name: Install LLVM 18 and Windows cross-compilation tools
       run: |
@@ -163,9 +163,9 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/sccache
-        key: ${{ runner.os }}-sccache-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-${{runner.arch}}-sccache-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-sccache-
+          ${{ runner.os }}-${{runner.arch}}-sccache-
 
     - name: Locate and configure sccache
       shell: msys2 {0}
@@ -185,8 +185,8 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-cargo-
+        key: ${{ runner.os }}-${{runner.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{runner.arch}}-cargo-
 
     - name: Run cargo
       shell: msys2 {0}
@@ -246,8 +246,8 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-cargo-
+        key: ${{ runner.os }}-${{runner.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{runner.arch}}}-cargo-
     
     - name: Build
       run: cargo build --release
