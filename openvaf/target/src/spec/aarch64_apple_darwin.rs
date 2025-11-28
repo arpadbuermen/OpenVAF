@@ -18,6 +18,12 @@ pub fn target() -> Target {
         ],
     );
 
+    // Link against libSystem which provides dyld_stub_binder
+    base.post_link_args.insert(
+        LinkerFlavor::Ld64,
+        vec!["-lSystem".to_string()],
+    );
+
     Target {
         llvm_target: "arm64-apple-macosx11.0.0".to_owned(),
         pointer_width: 64,
