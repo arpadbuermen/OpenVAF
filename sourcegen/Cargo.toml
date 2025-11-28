@@ -11,6 +11,9 @@ readme="../README.md"
 [lib]
 doctest = false
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(cross_compile)'] }
+
 [badges]
 maintenance = { status = "actively-developed" }
 

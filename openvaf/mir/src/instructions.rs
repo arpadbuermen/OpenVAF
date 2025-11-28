@@ -83,7 +83,7 @@ impl InstructionData {
     /// # Note
     ///
     /// It is up to the caller to ensure that uses are updates as appropriate
-    pub fn arguments_mut<'a>(&'a mut self, pool: &'a mut ValueListPool) -> &mut [Value] {
+    pub fn arguments_mut<'a>(&'a mut self, pool: &'a mut ValueListPool) -> &'a mut [Value] {
         match self {
             InstructionData::Unary { arg, .. } | InstructionData::Branch { cond: arg, .. } => {
                 core::slice::from_mut(arg)
@@ -100,7 +100,7 @@ impl InstructionData {
 
     /// Get mutable references to the value arguments to this
     /// instruction.
-    pub fn arguments<'a>(&'a self, pool: &'a ValueListPool) -> &[Value] {
+    pub fn arguments<'a>(&'a self, pool: &'a ValueListPool) -> &'a [Value] {
         match self {
             InstructionData::Unary { arg, .. } | InstructionData::Branch { cond: arg, .. } => {
                 core::slice::from_ref(arg)
