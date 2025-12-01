@@ -120,7 +120,15 @@ fn module_items(p: &mut Parser) {
                 net_decl::<true>(p, m);
             }
             IDENT => {
-                net_decl::<false>(p, m);
+                // Distinguish between net declaration and module instantiation:
+                // Net declaration: `discipline name, name2;` - IDENT followed by IDENT, comma, or semicolon
+                // Module instantiation: `module_name #(params) inst_name (ports);` or `module_name inst_name (ports);`
+                // Key distinction: module inst has IDENT followed by #( or IDENT followed by IDENT then (
+                if p.nth(1) == POUND || (p.nth(1) == IDENT && p.nth(2) == L_PAREN) {
+                    module_inst(p, m);
+                } else {
+                    net_decl::<false>(p, m);
+                }
             }
             PARAMETER_KW | LOCALPARAM_KW => {
                 parameter_decl(p, m);
@@ -231,4 +239,90 @@ fn branch_decl(p: &mut Parser, m: Marker) {
     decl_list(p, T![;], decl_name, MODULE_ITEM_OR_ATTR_RECOVERY);
     p.eat(T![;]);
     m.complete(p, BRANCH_DECL);
+}
+
+/// Parse module instantiation: `module_name #(.param(value), ...) instance_name (port1, port2, ...);`
+/// Example: `resistor #(.r(rwire)) r1 (d, de0);`
+fn module_inst(p: &mut Parser, m: Marker) {
+    // Module name (the type being instantiated)
+    name_ref_r(p, TokenSet::new(&[POUND, IDENT]));
+
+    // Optional parameter assignments: #(.param(value), ...)
+    if p.at(POUND) {
+        param_assignments(p);
+    }
+
+    // Instance name
+    name_r(p, TokenSet::new(&[T!['('], T![;]]));
+
+    // Port connections: (port1, port2, ...) or (.port(connection), ...)
+    if p.at(T!['(']) {
+        port_connections(p);
+    } else {
+        p.error(p.unexpected_token_msg(T!['(']));
+    }
+
+    p.eat(T![;]);
+    m.complete(p, MODULE_INST);
+}
+
+/// Parse parameter assignments: #(.param(value), ...)
+fn param_assignments(p: &mut Parser) {
+    let m = p.start();
+    p.bump(POUND);
+    p.expect(T!['(']);
+
+    if !p.at(T![')']) {
+        param_assignment(p);
+        while p.eat(T![,]) {
+            param_assignment(p);
+        }
+    }
+
+    p.expect(T![')']);
+    m.complete(p, PARAM_ASSIGNMENTS);
+}
+
+/// Parse a single parameter assignment: .param(value)
+fn param_assignment(p: &mut Parser) {
+    let m = p.start();
+    p.expect(T![.]);
+    name_r(p, TokenSet::new(&[T!['(']]));
+    p.expect(T!['(']);
+    expr(p);
+    p.expect(T![')']);
+    m.complete(p, PARAM_ASSIGNMENT);
+}
+
+/// Parse port connections: (expr, expr, ...) or (.port(expr), ...)
+fn port_connections(p: &mut Parser) {
+    let m = p.start();
+    p.bump(T!['(']);
+
+    if !p.at(T![')']) {
+        port_connection(p);
+        while p.eat(T![,]) {
+            port_connection(p);
+        }
+    }
+
+    p.expect(T![')']);
+    m.complete(p, PORT_CONNECTIONS);
+}
+
+/// Parse a single port connection: either positional (expr) or named (.port(expr))
+fn port_connection(p: &mut Parser) {
+    let m = p.start();
+    if p.at(T![.]) {
+        // Named port connection: .port(expr)
+        p.bump(T![.]);
+        name_r(p, TokenSet::new(&[T!['(']]));
+        p.expect(T!['(']);
+        expr(p);
+        p.expect(T![')']);
+    } else {
+        // Positional port connection: just an expression (usually a name)
+        expr(p);
+    }
+    m.complete(p, PORT_CONNECTION);
 }

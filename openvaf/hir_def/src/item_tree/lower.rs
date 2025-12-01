@@ -11,8 +11,8 @@ use typed_index_collections::TiVec;
 
 use super::{
     Block, Branch, BranchKind, Discipline, DisciplineAttr, DisciplineAttrKind, Domain, Function,
-    FunctionArg, FunctionItem, ItemTree, ItemTreeId, Module, ModuleItem, Nature, NatureAttr,
-    NatureRef, NatureRefKind, Net, Node, Param, Port, RootItem, Var,
+    FunctionArg, FunctionItem, ItemTree, ItemTreeId, Module, ModuleInstItem, ModuleItem, Nature,
+    NatureAttr, NatureRef, NatureRefKind, Net, Node, Param, Port, RootItem, Var,
 };
 // use tracing::trace;
 use crate::db::HirDefDB;
@@ -300,6 +300,7 @@ impl Ctx {
                 }
                 ast::ModuleItem::BranchDecl(branch) => self.lower_branch(branch, dst),
                 ast::ModuleItem::AliasParam(alias) => self.lower_alias_param(alias, dst),
+                ast::ModuleItem::ModuleInst(inst) => self.lower_module_inst(inst, dst),
             };
         }
     }
@@ -609,5 +610,60 @@ impl Ctx {
             let param = self.tree.data.alias_parameters.push_and_get_key(param);
             dst.push(param.into())
         }
+    }
+
+    fn lower_module_inst(&mut self, inst: ast::ModuleInst, dst: &mut Vec<ModuleItem>) {
+        let inst_name = match inst.inst_name() {
+            Some(name) => name.as_name(),
+            None => return,
+        };
+        let module_name = match inst.module_name() {
+            Some(name) => name.as_name(),
+            None => return,
+        };
+
+        // Extract parameter assignments: .param(value) -> (param_name, value_expr_as_name)
+        let param_assignments = inst
+            .param_assignments()
+            .map(|pas| {
+                pas.param_assignments()
+                    .filter_map(|pa| {
+                        let param_name = pa.param()?.as_name();
+                        // Try to extract the value as a simple name/identifier
+                        // For complex expressions, we just skip for now
+                        let value_name = pa.value().and_then(|e| e.as_ident())?;
+                        Some((param_name, value_name))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        // Extract port connections - for positional connections, extract the node name
+        let port_connections = inst
+            .port_connections()
+            .map(|pcs| {
+                pcs.port_connections()
+                    .filter_map(|pc| {
+                        // For named connections: .port(expr) - use the connection expr
+                        // For positional connections: just expr - use the expr
+                        let expr =
+                            if pc.dot_token().is_some() { pc.connection() } else { pc.expr() };
+                        expr.and_then(|e| e.as_ident())
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let ast_id = self.source_ast_id_map.ast_id(&inst);
+
+        let module_inst = ModuleInstItem {
+            name: inst_name,
+            module_name,
+            param_assignments,
+            port_connections,
+            ast_id,
+        };
+        let id = self.tree.data.module_insts.push_and_get_key(module_inst);
+        dst.push(id.into());
     }
 }
