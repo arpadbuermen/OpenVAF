@@ -117,7 +117,9 @@ impl<'a> Context<'a> {
                 if matches!(kind, PlaceKind::Var(var) if self.module.op_vars.contains_key(var))
                     || matches!(kind, PlaceKind::CollapseImplicitEquation(_) | PlaceKind::BoundStep)
                 {
-                    self.output_values.insert(val.unwrap_unchecked());
+                    if let Some(val) = val.expand() {
+                        self.output_values.insert(val);
+                    }
                 }
             }
         }
