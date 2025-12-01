@@ -73,6 +73,7 @@ impl ItemTree {
             ports,
             branches,
             functions,
+            module_insts,
         } = &mut self.data;
         modules.shrink_to_fit();
         disciplines.shrink_to_fit();
@@ -87,6 +88,7 @@ impl ItemTree {
         functions.shrink_to_fit();
         nature_attrs.shrink_to_fit();
         discipline_attrs.shrink_to_fit();
+        module_insts.shrink_to_fit();
     }
 
     pub fn block_scope(&self, block: AstId<BlockStmt>) -> &Block {
@@ -109,6 +111,7 @@ pub struct ItemTreeData {
     pub ports: Arena<Port>,
     pub branches: Arena<Branch>,
     pub functions: Arena<Function>,
+    pub module_insts: Arena<ModuleInstItem>,
 }
 
 /// Trait implemented by all item nodes in the item tree.
@@ -230,6 +233,7 @@ item_tree_nodes! {
     Function in functions -> ast::Function,
     NatureAttr in nature_attrs -> ast::NatureAttr,
     DisciplineAttr in discipline_attrs -> ast::DisciplineAttr,
+    ModuleInstItem in module_insts -> ast::ModuleInst,
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -250,6 +254,7 @@ pub enum ModuleItem {
     Branch(ItemTreeId<Branch>),
     Node(LocalNodeId),
     Function(ItemTreeId<Function>),
+    ModuleInst(ItemTreeId<ModuleInstItem>),
 }
 
 impl_from_typed! (
@@ -259,7 +264,8 @@ impl_from_typed! (
     Variable(ItemTreeId<Var>),
     Branch(ItemTreeId<Branch>),
     Node(LocalNodeId),
-    Function(ItemTreeId<Function>) for ModuleItem
+    Function(ItemTreeId<Function>),
+    ModuleInst(ItemTreeId<ModuleInstItem>) for ModuleItem
 );
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -417,6 +423,22 @@ impl_from_typed! (
     Variable(ItemTreeId<Var>),
     FunctionArg(LocalFunctionArgId) for FunctionItem
 );
+
+/// A module instantiation (hierarchical instance)
+/// Example: `resistor #(.r(rwire)) r1 (d, de0);`
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct ModuleInstItem {
+    /// Instance name (e.g., "r1")
+    pub name: Name,
+    /// Module type being instantiated (e.g., "resistor")
+    pub module_name: Name,
+    /// Parameter overrides (e.g., [("r", "rwire")])
+    pub param_assignments: Vec<(Name, Name)>,
+    /// Port connections (node names in order)
+    pub port_connections: Vec<Name>,
+    /// AST node reference
+    pub ast_id: AstId<ast::ModuleInst>,
+}
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct FunctionArg {
