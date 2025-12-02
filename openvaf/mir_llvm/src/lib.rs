@@ -1,3 +1,13 @@
+// Re-export the correct llvm-sys version based on feature flags
+#[cfg(feature = "llvm18")]
+extern crate llvm_sys_181 as llvm_sys;
+#[cfg(feature = "llvm19")]
+extern crate llvm_sys_191 as llvm_sys;
+#[cfg(feature = "llvm20")]
+extern crate llvm_sys_201 as llvm_sys;
+#[cfg(feature = "llvm21")]
+extern crate llvm_sys_211 as llvm_sys;
+
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display, Formatter};
