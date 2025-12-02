@@ -180,7 +180,13 @@ jobs:
         sudo apt-get install -y build-essential
 
     - name: Build
-      run: cargo build --release ${{ matrix.cargo_features }}
+      run: |
+        # Build specific packages to avoid workspace feature unification issues
+        # that cause multiple llvm-sys versions to be compiled
+        cargo build --release --package openvaf-driver ${{ matrix.cargo_features }}
+        cargo build --release --package openvaf ${{ matrix.cargo_features }}
+        cargo build --release --package osdi ${{ matrix.cargo_features }}
+        cargo build --release --package mir_llvm ${{ matrix.cargo_features }}
 
     - name: Show sccache stats
       if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
@@ -191,10 +197,15 @@ jobs:
     #   run: cargo clippy -- -D warnings
 
     - name: Run tests
-      run: cargo test --release ${{ matrix.cargo_features }}
+      run: |
+        # Run tests for specific packages to avoid workspace feature unification issues
+        cargo test --release --package openvaf-driver ${{ matrix.cargo_features }}
+        cargo test --release --package openvaf ${{ matrix.cargo_features }}
+        cargo test --release --package osdi ${{ matrix.cargo_features }}
+        cargo test --release --package mir_llvm ${{ matrix.cargo_features }}
 
     - name: Run integration tests
-      run: cargo test --release --test integration ${{ matrix.cargo_features }}
+      run: cargo test --release --package openvaf-driver --test integration ${{ matrix.cargo_features }}
 
   msys2-build-test:
     strategy:
