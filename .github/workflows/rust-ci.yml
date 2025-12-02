@@ -72,7 +72,6 @@ jobs:
         # apt.llvm.org supports versions 11-21
         # Generate JSON matrix
         MATRIX='{"include":['
-        FIRST=true
 
         # LLVM 18.1 - Ubuntu Noble system package
         MATRIX="${MATRIX}{\"llvm_version\":\"18\",\"llvm_env_var\":\"LLVM_SYS_181_PREFIX\",\"cargo_features\":\"--no-default-features --features llvm18\"}"
@@ -158,12 +157,22 @@ jobs:
 
     - name: Set LLVM environment variables
       run: |
-	{
-          echo "${{ matrix.llvm_env_var }}=/usr/lib/llvm-${{ matrix.llvm_version }}"
+        # See https://gitlab.com/taricorp/llvm-sys.rs/#llvm-compatibility for details
+        # Set LLVM prefix for llvm-sys crate
+        echo "${{ matrix.llvm_env_var }}=/usr/lib/llvm-${{ matrix.llvm_version }}" >> "$GITHUB_ENV"
+
+        # llvm-sys needs llvm-config to be findable - create symlink in the LLVM bin dir
+        sudo mkdir -p /usr/lib/llvm-${{ matrix.llvm_version }}/bin
+        sudo ln -sf /usr/bin/llvm-config-${{ matrix.llvm_version }} /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config
+
+        {
           echo "CLANG_PATH=/usr/lib/llvm-${{ matrix.llvm_version }}/bin/clang"
           echo "PATH=/usr/lib/llvm-${{ matrix.llvm_version }}/bin:$PATH"
           echo "RUST_BACKTRACE=1"
         } >> "$GITHUB_ENV"
+
+        # Verify llvm-config is accessible
+        /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config --version
 
     - name: Install build dependencies
       run: |
@@ -283,8 +292,8 @@ jobs:
 
     - name: Set LLVM environment variables
       run: |
-        echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
-	{
+        echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+        {
           echo "LLVM_SYS_211_PREFIX=$(brew --prefix llvm)"
           echo "RUST_BACKTRACE=1"
           echo "RUN_DEV_TESTS=1"
