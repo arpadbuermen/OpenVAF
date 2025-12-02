@@ -1,0 +1,2 @@
+analog I(a, mid, )<+V(a, mid, ) / rval;
+analog I(mid, b, )<+ddt(cval * V(mid, b, ), );

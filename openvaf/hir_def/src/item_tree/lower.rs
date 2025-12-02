@@ -6,7 +6,7 @@ use arena::IdxRange;
 use basedb::{AstId, AstIdMap, FileId};
 use syntax::ast::{self, ParamRef, PathSegmentKind};
 use syntax::name::{kw, AsIdent, AsName};
-use syntax::{match_ast, AstNode, ConstExprValue, WalkEvent};
+use syntax::{match_ast, AstNode, AstPtr, ConstExprValue, WalkEvent};
 use typed_index_collections::TiVec;
 
 use super::{
@@ -622,17 +622,17 @@ impl Ctx {
             None => return,
         };
 
-        // Extract parameter assignments: .param(value) -> (param_name, value_expr_as_name)
+        // Extract parameter assignments: .param(value) -> (param_name, value_expr_ptr)
+        // Store AstPtr to the expression so we can resolve it during body lowering
         let param_assignments = inst
             .param_assignments()
             .map(|pas| {
                 pas.param_assignments()
                     .filter_map(|pa| {
                         let param_name = pa.param()?.as_name();
-                        // Try to extract the value as a simple name/identifier
-                        // For complex expressions, we just skip for now
-                        let value_name = pa.value().and_then(|e| e.as_ident())?;
-                        Some((param_name, value_name))
+                        let value_expr = pa.value()?;
+                        let expr_ptr = AstPtr::new(&value_expr);
+                        Some((param_name, expr_ptr))
                     })
                     .collect()
             })

@@ -383,3 +383,36 @@ pub fn insert_module_builtin_scope(
     dst.insert(sysfun::hflip, ParamSysFun::hflip.into());
     dst.insert(sysfun::vflip, ParamSysFun::vflip.into());
 }
+
+/// Built-in primitive modules that can be instantiated
+/// These are transformed into equivalent contribution statements during lowering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum BuiltInPrimitive {
+    /// resistor #(.r(R)) name (hi, lo) -> I(hi,lo) <+ V(hi,lo) / R
+    Resistor,
+    /// capacitor #(.c(C)) name (hi, lo) -> I(hi,lo) <+ ddt(C * V(hi,lo))
+    Capacitor,
+    /// inductor #(.l(L)) name (hi, lo) -> V(hi,lo) <+ ddt(L * I(hi,lo))
+    Inductor,
+}
+
+impl BuiltInPrimitive {
+    /// Try to parse a primitive name from a string
+    pub fn from_name(name: &str) -> Option<Self> {
+        match name {
+            "resistor" => Some(Self::Resistor),
+            "capacitor" => Some(Self::Capacitor),
+            "inductor" => Some(Self::Inductor),
+            _ => None,
+        }
+    }
+
+    /// Get the expected parameter name for this primitive
+    pub fn param_name(&self) -> &'static str {
+        match self {
+            Self::Resistor => "r",
+            Self::Capacitor => "c",
+            Self::Inductor => "l",
+        }
+    }
+}
