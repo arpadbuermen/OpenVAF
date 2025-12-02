@@ -12,8 +12,12 @@ The project is a fork of Pascal Kuthe's original OpenVAF compiler, maintained by
 
 ### Prerequisites
 - **Rust toolchain**: Install with profile "complete"
-- **LLVM 18.1.8**: Must be built from source
-- **Environment variable**: Set `LLVM_SYS_181_PREFIX` to LLVM installation directory
+- **LLVM**: Supports versions 18, 19, 20, 21 (default: 21)
+- **Environment variable**: Set `LLVM_SYS_XXX_PREFIX` based on version:
+  - LLVM 18.1: `LLVM_SYS_181_PREFIX`
+  - LLVM 19.1: `LLVM_SYS_191_PREFIX`
+  - LLVM 20.1: `LLVM_SYS_201_PREFIX`
+  - LLVM 21.1: `LLVM_SYS_211_PREFIX` (default)
 
 ### Building the Compiler
 ```bash
@@ -170,8 +174,17 @@ The descriptor structure is backward-compatible with OSDI 0.3 when cast appropri
 ## Important Notes
 
 - The project uses workspace resolver version 2
-- LLVM version is pinned to 18.1.8 (`llvm-sys = "181.1.1"`)
+- Multi-LLVM support: Use `--features llvm18/llvm19/llvm20/llvm21` (default: llvm21)
 - Custom salsa fork: `git = 'https://github.com/pascalkuthe/salsa'`
 - Rust edition: 2021, minimum version varies by crate
 - Release builds use `lto = "off"` and `incremental = true` for faster iteration
 - Optimized profile (`opt`) available with full LTO for production builds
+
+### Building with different LLVM versions
+```bash
+# Build with LLVM 18 (Ubuntu Noble system package)
+cargo build --release --no-default-features --features llvm18
+
+# Build with LLVM 21 (default)
+cargo build --release
+```
