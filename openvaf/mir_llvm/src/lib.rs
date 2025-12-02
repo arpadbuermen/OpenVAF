@@ -92,7 +92,8 @@ impl Drop for LLVMString {
 }
 
 use llvm_sys::core::{LLVMGetDiagInfoDescription, LLVMGetDiagInfoSeverity};
-use llvm_sys::target_machine::{LLVMCodeGenOptLevel, LLVMGetHostCPUFeatures, LLVMGetHostCPUName};
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
+use llvm_sys::target_machine::{LLVMGetHostCPUFeatures, LLVMGetHostCPUName};
 use target::spec::Target;
 
 mod builder;
@@ -108,6 +109,7 @@ mod tests;
 pub use builder::{Builder, BuilderVal, MemLoc};
 pub use callbacks::{BuiltCallbackFun, CallbackFun, InlineCallbackBuilder};
 pub use context::CodegenCx;
+
 pub struct LLVMBackend<'t> {
     target: &'t Target,
     target_cpu: String,
