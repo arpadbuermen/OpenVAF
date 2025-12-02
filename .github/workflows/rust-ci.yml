@@ -46,57 +46,21 @@ jobs:
     - name: Run cargo machete
       run: cargo machete
 
-  # Detect available LLVM versions from GitHub releases
-  detect-llvm-versions:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - name: Query LLVM releases and generate matrix
-      id: set-matrix
-      run: |
-        # Query LLVM GitHub releases for available major versions
-        # We support LLVM 18, 19, 20, 21
-        SUPPORTED_VERSIONS="18 19 20 21"
-
-        # Check which versions are available via apt.llvm.org
-        AVAILABLE_VERSIONS=""
-        for ver in $SUPPORTED_VERSIONS; do
-          # Check if the version is available (apt.llvm.org hosts versions 11+)
-          if curl -s --head "https://apt.llvm.org/llvm.sh" | head -1 | grep -q "200"; then
-            AVAILABLE_VERSIONS="$AVAILABLE_VERSIONS $ver"
-          fi
-        done
-
-        # For now, use a static list of versions we know work
-        # apt.llvm.org supports versions 11-21
-        # Generate JSON matrix
-        MATRIX='{"include":['
-        FIRST=true
-
-        # LLVM 18.1 - Ubuntu Noble system package
-        MATRIX="${MATRIX}{\"llvm_version\":\"18\",\"llvm_env_var\":\"LLVM_SYS_181_PREFIX\",\"cargo_features\":\"--no-default-features --features llvm18\"}"
-
-        # LLVM 19.1
-        MATRIX="${MATRIX},{\"llvm_version\":\"19\",\"llvm_env_var\":\"LLVM_SYS_191_PREFIX\",\"cargo_features\":\"--no-default-features --features llvm19\"}"
-
-        # LLVM 20.1
-        MATRIX="${MATRIX},{\"llvm_version\":\"20\",\"llvm_env_var\":\"LLVM_SYS_201_PREFIX\",\"cargo_features\":\"--no-default-features --features llvm20\"}"
-
-        # LLVM 21.1
-        MATRIX="${MATRIX},{\"llvm_version\":\"21\",\"llvm_env_var\":\"LLVM_SYS_211_PREFIX\",\"cargo_features\":\"--no-default-features --features llvm21\"}"
-
-        MATRIX="${MATRIX}]}"
-
-        echo "Generated matrix: $MATRIX"
-        echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-
   ubuntu-build-test:
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.detect-llvm-versions.outputs.matrix) }}
+      matrix:
+        include:
+          # LLVM 18 - Ubuntu Noble system package
+          - llvm_version: "18"
+            llvm_env_var: "LLVM_SYS_181_PREFIX"
+            cargo_features: "--no-default-features --features llvm18"
+          # LLVM 21 - Latest from apt.llvm.org
+          - llvm_version: "21"
+            llvm_env_var: "LLVM_SYS_211_PREFIX"
+            cargo_features: "--no-default-features --features llvm21"
     runs-on: ubuntu-latest
-    needs: [format, machete, detect-llvm-versions]
+    needs: [format, machete]
     steps:
     - uses: actions/checkout@v4
 
