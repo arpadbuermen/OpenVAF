@@ -94,9 +94,18 @@ jobs:
   ubuntu-build-test:
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.detect-llvm-versions.outputs.matrix) }}
+      matrix:
+        include:
+          # LLVM 18 - Ubuntu Noble system package
+          - llvm_version: "18"
+            llvm_env_var: "LLVM_SYS_181_PREFIX"
+            cargo_features: "--no-default-features --features llvm18"
+          # LLVM 21 - Latest from apt.llvm.org
+          - llvm_version: "21"
+            llvm_env_var: "LLVM_SYS_211_PREFIX"
+            cargo_features: "--no-default-features --features llvm21"
     runs-on: ubuntu-latest
-    needs: [format, machete, detect-llvm-versions]
+    needs: [format, machete]
     steps:
     - uses: actions/checkout@v4
 
