@@ -13,8 +13,12 @@ doctest = false
 
 [dependencies]
 
-verilogae = { version = "1.0.0", path = "../verilogae", optional = true }
+verilogae = { version = "1.0.0", path = "../verilogae", optional = true, default-features = false }
 
 [features]
-default = ["static"]
+default = ["static", "llvm21"]
 static = ["verilogae"]
+llvm18 = ["verilogae?/llvm18"]
+llvm19 = ["verilogae?/llvm19"]
+llvm20 = ["verilogae?/llvm20"]
+llvm21 = ["verilogae?/llvm21"]
