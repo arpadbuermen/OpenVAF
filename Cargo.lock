@@ -823,6 +823,7 @@ dependencies = [
  "indexmap 2.10.0",
  "lasso",
  "list_pool",
+ "smallvec",
  "stdx",
  "typed-index-collections",
  "typed_indexmap",

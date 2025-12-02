@@ -20,6 +20,7 @@ bitset = {version = "0.0.0", path = "../../lib/bitset" }
 typed_indexmap = { version = "0.0.0", path = "../../lib/typed_indexmap" }
 dot = "0.1.4"
 indexmap = "2.0"
+smallvec = {version = "1.10", features = ["const_new","union"]}
 
 [dev-dependencies]
 expect-test = "1.4"
