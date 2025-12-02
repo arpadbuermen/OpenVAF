@@ -23,6 +23,7 @@ mod pretty;
 /// The body of an item
 #[derive(Debug, Eq, PartialEq, Default)]
 pub struct Body {
+    pub id: Option<DefWithBodyId>, // Need this for source location access via db
     pub exprs: Arena<Expr>,
     pub stmt_scopes: ArenaMap<Stmt, ScopeId>,
     pub stmts: Arena<Stmt>,
@@ -49,11 +50,16 @@ impl BodySourceMap {
 }
 
 impl Body {
+    pub fn get_id(&self) -> DefWithBodyId {
+        self.id.unwrap()
+    }
+
     pub fn body_with_sourcemap_query(
         db: &dyn HirDefDB,
         id: DefWithBodyId,
     ) -> (Arc<Body>, Arc<BodySourceMap>) {
         let mut body = Body::default();
+        body.id = Some(id);
         let mut source_map = BodySourceMap::default();
 
         let root_file = id.file(db);

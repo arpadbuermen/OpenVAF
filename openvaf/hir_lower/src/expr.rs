@@ -22,10 +22,36 @@ use crate::{
     RetFlag,
 };
 
+use syntax::AstNode;
+use hir::CompilationDB;
+use basedb::BaseDB;
+use hir_def::db::HirDefDB;
+use preprocessor::sourcemap::SourceContext;
+
+
 impl BodyLoweringCtx<'_, '_, '_> {
     pub fn lower_expr(&mut self, expr: ExprId) -> Value {
         let old_loc = self.ctx.get_srcloc();
         self.ctx.set_srcloc(mir::SourceLoc::new(u32::from(expr) as i32 + 1));
+
+         
+        // Attempt at extracting file name and line number from MIR. 
+        let id = self.body.get().get_id();
+        let cu = self.ctx.db.compilation_unit();
+        let root_file = cu.root_file();
+        let parse = self.ctx.db.parse(root_file);
+        let root= &parse.syntax_node();
+        let bsm = self.ctx.db.body_source_map(id);
+        let astptr = bsm.expr_map_back.get(expr).unwrap().as_ref().unwrap();
+        let node = astptr.to_node(root);
+        let txtrange = node.syntax().text_range();
+        let sm = (self.ctx.db as &dyn BaseDB).sourcemap(root_file);
+        let fs = parse.to_file_span(txtrange, &sm);
+        let fpath = (self.ctx.db as &dyn BaseDB).file_path(fs.file);
+        let a = fpath.as_path().unwrap().display().to_string();
+
+        println!("{} {:?}", a, txtrange); 
+        
 
         let mut res = match self.body.get_expr(expr) {
             Expr::Read(Ref::Variable(var)) => self.ctx.read_variable(var),

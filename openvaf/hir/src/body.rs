@@ -40,6 +40,10 @@ impl<'a> BodyRef<'a> {
         &self.body.entry_stmts
     }
 
+    pub fn get(&self) -> &'a hir_def::body::Body {
+        self.body
+    }
+
     /// Returns the type that was inferred for this expression
     pub fn expr_type(&self, expr: ExprId) -> Type {
         self.infere.expr_types[expr].to_value().unwrap()
