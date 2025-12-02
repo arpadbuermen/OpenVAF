@@ -148,18 +148,14 @@ impl<'a> Context<'a> {
                 self.op_dependent_vals.push(val)
             }
         }
-        loop {
-            // Repeat taint propagation until no new command in a loop body is marked as op dependent
-            propagate_direct_taint(
-                &self.func,
-                dom_frontiers,
-                self.op_dependent_vals.iter().copied(),
-                &mut self.op_dependent_insts,
-            );
-            if !self.loop_op_dependence() {
-                break;
-            }
-        }
+        
+        // Propagate taint
+        propagate_direct_taint(
+            &self.func,
+            dom_frontiers,
+            self.op_dependent_vals.iter().copied(),
+            &mut self.op_dependent_insts,
+        );
     }
 
     pub fn refresh_op_dependent_insts(&mut self) {
@@ -167,8 +163,13 @@ impl<'a> Context<'a> {
         self.op_dependent_vals.clear();
         self.op_dependent_insts.clear();
         self.op_dependent_insts.ensure(dfg.num_insts());
+        // Go through all callbacks and their uses
         for (cb, uses) in self.intern.callback_uses.iter_mut_enumerated() {
+            // Ff callback is op dependent
             if self.intern.callbacks[cb].op_dependent() {
+                // Remove uses that appear in instructions that are not inserted into the layout. 
+                // Add to op dependent instructions. 
+                // Add the results of these instructions to op dependent values. 
                 uses.retain(|&inst| {
                     if self.func.layout.inst_block(inst).is_none() {
                         return false;
@@ -181,79 +182,21 @@ impl<'a> Context<'a> {
                 })
             }
         }
+        // Go through parameters, if the corresponding value is not dead and is op dependent
+        // (i.e. current, voltage, abstime, ...) add it to op dependent values. 
         for (param, &val) in self.intern.params.iter() {
             if !dfg.value_dead(val) && param.op_dependent() {
                 self.op_dependent_vals.push(val)
             }
         }
-        loop {
-            // Repeat taint propagation until no new command in a loop body is marked as op dependent
-            propagate_taint(
-                &self.func,
-                &self.dom_tree,
-                &self.cfg,
-                self.op_dependent_vals.iter().copied(),
-                &mut self.op_dependent_insts,
-            );
-            if !self.loop_op_dependence() {
-                break;
-            }
-        }
-    }
-
-    pub fn is_loop_op_dependent(&self, blk1: Option<Block>, blk2: Option<Block>) -> bool {
-        // Traverse blocks
-        let mut blk = blk1;
-        while blk.is_some() && blk!=blk2 {
-            // Traverse block instructions
-            let mut bb_cursor = self.func.layout.block_inst_cursor(blk.unwrap());
-            while let Some(inst) = bb_cursor.next(&self.func.layout) {
-                // Is it op dependent
-                if self.op_dependent_insts.contains(inst) {
-                    return true;
-                }
-            }
-            blk = self.func.layout.next_block(blk.unwrap());
-        }
-        return false;
-    }
-
-    pub fn make_loop_op_dependent(&mut self, blk1: Option<Block>, blk2: Option<Block>) -> bool {
-        let func = &self.func;
-        // Traverse blocks
-        let mut blk = blk1;
-        let mut changed = false;
-        while blk.is_some() && blk!=blk2 {
-            // Traverse block instructions
-            let mut bb_cursor = self.func.layout.block_inst_cursor(blk.unwrap());
-            while let Some(inst) = bb_cursor.next(&self.func.layout) {
-                // Mark instruction op dependent
-                changed = changed || self.op_dependent_insts.insert(inst);
-            }
-            blk = func.layout.next_block(blk.unwrap());
-        }
-        return changed;
-    }
-
-    pub fn loop_op_dependence(&mut self) -> bool {
-        // Traverse blocks in the module MIR
-        // Look for a block that contains a branch instruction that is labelled as loop
-        let mut blocks = self.func.layout.blocks_cursor();
-        let mut changed = false;
-        while let Some(bb) = blocks.next(&self.func.layout) {
-            // Traverse instructions
-            let mut bb_cursor = self.func.layout.block_inst_cursor(bb);
-            while let Some(inst) = bb_cursor.next(&self.func.layout) {
-                match self.func.dfg.insts[inst] {
-                    InstructionData::Branch { else_dst: else_block, loop_entry: is_loop, .. } => {
-                        if is_loop && self.is_loop_op_dependent(bb.into(), else_block.into()) {
-                            changed = changed || self.make_loop_op_dependent(bb.into(), else_block.into());
-                        }
-                    }, 
-                    _ => ()
-                }
-            }
-        }
-        return changed;
+        
+        // Propagate taint
+        propagate_taint(
+            &self.func,
+            &self.dom_tree,
+            &self.cfg,
+            self.op_dependent_vals.iter().copied(),
+            &mut self.op_dependent_insts,
+        );
     }
 }
