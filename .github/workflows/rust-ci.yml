@@ -161,9 +161,9 @@ jobs:
         # Set LLVM prefix for llvm-sys crate
         echo "${{ matrix.llvm_env_var }}=/usr/lib/llvm-${{ matrix.llvm_version }}" >> "$GITHUB_ENV"
 
-        # llvm-sys needs llvm-config to be findable - create symlink in the LLVM bin dir
+        # llvm-sys needs llvm-config to be findable - create symlink in the LLVM bin dir if not already present
         sudo mkdir -p /usr/lib/llvm-${{ matrix.llvm_version }}/bin
-        sudo ln -sf /usr/bin/llvm-config-${{ matrix.llvm_version }} /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config
+        sudo ln -sf /usr/bin/llvm-config-${{ matrix.llvm_version }} /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config || true
 
         {
           echo "CLANG_PATH=/usr/lib/llvm-${{ matrix.llvm_version }}/bin/clang"
