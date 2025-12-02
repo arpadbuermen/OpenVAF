@@ -70,7 +70,7 @@ If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch an
 
 # Building OpenVAF-reloaded
 
-## Setting up the dependencies under Debian Bookworm
+## LLVM Version Support
 
 Everything was tested under Debian 13. First, install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
 ```bash
@@ -78,22 +78,68 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 During installation select "Customize installation" and set profile to "complete". 
 
-Build LLVM and Clang. Download [LLVM 21.1.6 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-21.1.6). Unpack them (this creates directory `llvm-project-llvmorg-21.1.6`) and create a build directory and decide where you want to install LLVM. Type 
+OpenVAF-reloaded supports multiple LLVM versions from 18 to 21. You can choose which version to use at build time via Cargo features:
+
+| Feature | LLVM Version | Environment Variable | llvm-sys crate |
+|---------|--------------|----------------------|----------------|
+| `llvm18` | LLVM 18.1.x | `LLVM_SYS_181_PREFIX` | 181.2.0 |
+| `llvm19` | LLVM 19.1.x | `LLVM_SYS_191_PREFIX` | 191.0.0 |
+| `llvm20` | LLVM 20.1.x | `LLVM_SYS_201_PREFIX` | 201.0.1 |
+| `llvm21` (default) | LLVM 21.1.x | `LLVM_SYS_211_PREFIX` | 211.0.0 |
+
+**Ubuntu Noble (24.04)** ships with LLVM 18 as a system package, making it a convenient choice for those platforms.
+
+**Note:** The llvm-sys crate version follows the pattern `MAJORminor.patch`, where MAJOR is the LLVM major version and minor is the minor version (e.g., 181 = LLVM 18.1, 211 = LLVM 21.1).
+
+## Setting up the dependencies under Debian/Ubuntu
+
+### Using LLVM 18 (recommended for Ubuntu Noble)
+
+On Ubuntu Noble (24.04) or similar, LLVM 18 is available from system packages:
+```bash
+sudo apt-get install llvm-18 llvm-18-dev libclang-18-dev clang-18
+```
+
+Set up the environment:
+```bash
+export LLVM_SYS_181_PREFIX=/usr/lib/llvm-18
+export PATH=/usr/lib/llvm-18/bin:$PATH
+```
+
+### Using LLVM 21
+
+For LLVM 21 on Ubuntu/Debian, use the official LLVM apt repository:
+```bash
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+sudo ./llvm.sh 21
+sudo apt-get install llvm-21 llvm-21-dev libclang-21-dev
+```
+
+Set up the environment:
+```bash
+export LLVM_SYS_211_PREFIX=/usr/lib/llvm-21
+export PATH=/usr/lib/llvm-21/bin:$PATH
+```
+
+### Building LLVM from source (alternative)
+
+If you need to build LLVM from source, download [LLVM 21.1.6 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-21.1.6) (or 18.1.8 for LLVM 18). Unpack them and create a build directory:
 ```
 cmake -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
 
-Enter the build directory and type
-```bash
-make -j number_of_processors_to_use
+Enter the build directory and type:
+```
+make -j <number of processors to use>
 make install
 ```
 
-Set up the environment by adding the following to `.bashrc`
-```bash
-export LLVM_SYS_210_PREFIX=<LLVM install directory>
-export PATH=<LLVM install directory>/bin:$PATH
+Install Rust if not already installed:
 ```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+During installation select "Customize installation" and set profile to "complete".
 
 Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
 
@@ -116,24 +162,29 @@ ninja
 ninja install 
 ```
 
-Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_210_PREFIX` environmental variable to `<LLVM install directory>`.
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_211_PREFIX` environmental variable to `<LLVM install directory>`.
 
 Restart command prompt. Now you are good to go.
 
 ## Setting up the dependencies under macOS
 
-Install Homebrew if not already installed, then install LLVM 21:
+Install Homebrew if not already installed.
+
+### Using LLVM 18
 ```bash
-brew install llvm
+brew install llvm@18
+export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
+export PATH="$(brew --prefix llvm@18)/bin:$PATH"
 ```
 
-Set up the environment by adding the following to `~/.zshrc` (or `~/.bashrc` if using bash):
+### Using LLVM 21 (latest)
 ```bash
-export LLVM_SYS_210_PREFIX=$(brew --prefix llvm)
+brew install llvm
+export LLVM_SYS_211_PREFIX=$(brew --prefix llvm)
 export PATH="$(brew --prefix llvm)/bin:$PATH"
 ```
 
-Make sure the shell configuration is read again (either restart your terminal or run `source ~/.zshrc`).
+Add the appropriate export commands to `~/.zshrc` (or `~/.bashrc`) to make them permanent.
 
 Install Rust if not already installed:
 ```bash
@@ -141,14 +192,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 During installation select "Customize installation" and set profile to "complete".
-
-**Option 1: Use xtask (recommended)** - No additional setup needed. The `cargo xtask cargo-build` command automatically detects LLVM via `HOMEBREW_PREFIX`.
-
-**Option 2: Manual environment setup** - set the following before building:
-```bash
-export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
-export PATH="$(brew --prefix llvm@18)/bin:$PATH"
-```
 
 Now you are good to go.
 
