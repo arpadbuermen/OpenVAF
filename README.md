@@ -156,7 +156,7 @@ ninja
 ninja install 
 ```
 
-Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_211_PREFIX` environmental variable to `<LLVM install directory>`.
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the appropriate `LLVM_SYS_*_PREFIX` environment variable (e.g., `LLVM_SYS_211_PREFIX` for LLVM 21, `LLVM_SYS_181_PREFIX` for LLVM 18) to `<LLVM install directory>`.
 
 Restart command prompt. Now you are good to go.
 
@@ -187,6 +187,10 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 During installation select "Customize installation" and set profile to "complete".
 
+**Option 1: Use xtask (recommended)** - No additional setup needed. The `cargo xtask cargo-build` command automatically detects LLVM via `HOMEBREW_PREFIX`.
+
+**Option 2: Manual environment setup** - set the appropriate LLVM environment variables as shown above.
+
 Now you are good to go.
 
 
@@ -199,7 +203,7 @@ On macOS, you can use the xtask command which automatically detects LLVM 18 via 
 cargo xtask cargo-build --release
 ```
 
-This will configure LLVM 21 paths and build the release version.
+This will auto-detect LLVM paths and build the release version.
 
 ### Manual Build
 
@@ -231,7 +235,7 @@ On macOS, you can use the xtask command which automatically detects LLVM 18 via 
 cargo xtask cargo-test --release
 ```
 
-This will configure LLVM 21 paths and run all tests including integration tests.
+This will auto-detect LLVM paths and run all tests.
 
 ## Manual Testing
 
@@ -253,7 +257,7 @@ Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM
 
     RUN_DEV_TESTS=1 cargo test --release --test integration
 
-On macOS with LLVM 21, all integration tests should pass.
+On macOS with LLVM 18 or newer, all integration tests should pass.
 
 ## Updating Expected Test Results
 
