@@ -827,6 +827,7 @@ dependencies = [
  "lasso",
  "list_pool",
  "rustc-hash 2.1.1",
+ "smallvec",
  "stdx",
  "typed-index-collections",
  "typed_indexmap",
