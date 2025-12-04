@@ -3,7 +3,6 @@ use std::iter::once;
 
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_def::db::HirDefDB;
-use hir_def::ndatable::NDATable;
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
 use llvm_sys::core::{
@@ -112,7 +111,6 @@ impl osdi_0_4::OsdiAttributeValue {
                     // Fill initializer array
                     elems[0] = entry;
                 }
-                _ => panic!("Unknown attribute value union member type."),
             }
             // Construct array
             &*LLVMConstArray2(elem_ty, elems.as_mut_ptr(), len)

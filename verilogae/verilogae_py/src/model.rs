@@ -520,16 +520,6 @@ static mut VAE_FUNCTION_MEMBERS: [PyMemberDef; 6] = [
 const EVAL_DOC: &str = "\0";
 
 static mut VAE_FUNCTION_METHODS: [PyMethodDef; 2] = [
-    // #[cfg(Py_3_8)]
-    // PyMethodDef {
-    //     ml_name: "eval\0".as_ptr() as *const c_char,
-    //     ml_meth: unsafe {
-    //         transmute::<_PyCFunctionFastWithKeywords, Option<PyCFunction>>(VaeFun::eval)
-    //     },
-    //     ml_flags: METH_FASTCALL | METH_KEYWORDS,
-    //     ml_doc: EVAL_DOC.as_ptr() as *const c_char,
-    // },
-    // #[cfg(not(Py_3_8))]
     PyMethodDef {
         ml_name: "eval\0".as_ptr() as *const c_char,
         ml_meth: PyMethodDefPointer { PyCFunctionWithKeywords: VaeFun::eval },
@@ -871,7 +861,6 @@ impl VaeFun {
         take(&mut self_.ffi_str_data);
     }
 
-    // #[cfg(not(Py_3_8))]
     unsafe extern "C" fn eval(
         self_: *mut PyObject,
         args: *mut PyObject,

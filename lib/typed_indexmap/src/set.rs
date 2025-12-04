@@ -99,7 +99,7 @@ where
 }
 
 impl<K: From<usize>, V> TiSet<K, V> {
-    pub fn iter_enumerated(&self) -> Iter<K, V> {
+    pub fn iter_enumerated(&self) -> Iter<'_, K, V> {
         self.iter().enumerate().map(|(index, val)| (index.into(), val))
     }
 }

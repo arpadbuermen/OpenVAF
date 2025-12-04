@@ -86,7 +86,7 @@ impl DataFlowGraph {
     }
 
     /// Returns an object that displays `inst`.
-    pub fn display_inst(&self, inst: Inst) -> DisplayInst {
+    pub fn display_inst(&self, inst: Inst) -> DisplayInst<'_> {
         DisplayInst(self, inst)
     }
 
@@ -379,7 +379,7 @@ impl DataFlowGraph {
     //     self.insts.operands_mut(inst)
     // }
 
-    pub fn replace(&mut self, inst: Inst) -> ReplaceBuilder {
+    pub fn replace(&mut self, inst: Inst) -> ReplaceBuilder<'_> {
         ReplaceBuilder::new(self, inst)
     }
 }
