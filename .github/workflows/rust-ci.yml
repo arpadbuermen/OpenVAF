@@ -6,6 +6,7 @@ on:
       - master
       - main
       - llvm18
+      - branches/macos-patches-v3
   pull_request:
     branches:
       - '**'
