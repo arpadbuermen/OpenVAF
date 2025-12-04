@@ -4,6 +4,7 @@ version = "23.5.0"
 authors = ["DSPOM"]
 edition = "2021"
 license = "GPL-3.0"
+readme = "README.md"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("nightly"))'] }
