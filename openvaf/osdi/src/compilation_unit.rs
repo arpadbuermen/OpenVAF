@@ -449,10 +449,6 @@ fn print_callback<'ll>(
                 FmtArgKind::Other => args.push(&*val),
             }
         }
-        args.extend(
-            (1..(2 + arg_tys.len()))
-                .map(|arg| &*LLVMGetParam(NonNull::from(fun).as_ptr(), arg as u32)),
-        );
         let (fun_ty, fun) = cx.intrinsic("snprintf").unwrap();
         // Convert Vec<&LLVMValue> to Vec<*mut LLVMValue>
         let mut raw_args: Vec<*mut LLVMValue> =
