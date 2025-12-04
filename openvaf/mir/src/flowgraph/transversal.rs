@@ -120,8 +120,8 @@ impl<'lt> Iterator for Postorder<'lt> {
 }
 */
 
-// Pascal's Postorder was wrong. Did not work for loops. 
-// This one passses all tests, except for HiSIMHV (has loops that we are trying to fix). 
+// Pascal's Postorder was wrong. Did not work for loops.
+// This one passses all tests, except for HiSIMHV (has loops that we are trying to fix).
 // TODO: rewrite this without using recursion
 pub struct Postorder<'a> {
     cfg: &'a ControlFlowGraph,
@@ -136,7 +136,7 @@ impl<'a> Postorder<'a> {
             cfg,
             visited: BitSet::new_empty(cfg.data.len()),
             result: SmallVec::new(),
-            index: 0, 
+            index: 0,
         };
 
         po.dfs(root);
