@@ -154,7 +154,7 @@ impl ModelInfo {
             bail!("compiation failed");
         }
 
-        let module = match cu.modules(db).get(0) {
+        let module = match cu.modules(db).first() {
             Some(&module) => module,
             None => {
                 let msg = if let Some(name) = name {
@@ -426,7 +426,11 @@ impl ModelInfo {
         })
     }
 
-    pub(crate) fn intern_model(&self, db: &CompilationDB, literals: &mut Rodeo) -> InternedModel {
+    pub(crate) fn intern_model(
+        &self,
+        db: &CompilationDB,
+        literals: &mut Rodeo,
+    ) -> InternedModel<'_> {
         let params = self
             .params
             .values()

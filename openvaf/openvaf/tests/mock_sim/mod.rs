@@ -247,7 +247,7 @@ impl OsdiInstance {
             flags: flags.bits(),
         };
         let flags = self.descriptor.eval(
-            b"foo\0".as_ptr() as *mut c_void,
+            c"foo".as_ptr() as *mut c_void,
             self.data,
             model.data,
             &mut sim_info,

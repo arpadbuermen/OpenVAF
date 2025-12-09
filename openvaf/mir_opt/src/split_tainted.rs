@@ -25,15 +25,12 @@ pub fn loop_block_map(
         let mut tail: Option<Block> = None;
         while let Some(inst) = bb_cursor.next(&func.layout) {
             // Is it a branch
-            match func.dfg.insts[inst] {
-                InstructionData::Branch { else_dst, loop_entry, .. } => {
-                    if loop_entry {
-                        head = bb.into();
-                        tail = else_dst.into();
-                        loop_blocks_map.insert(bb, Vec::new());
-                    }
+            if let InstructionData::Branch { else_dst, loop_entry, .. } = func.dfg.insts[inst] {
+                if loop_entry {
+                    head = bb.into();
+                    tail = else_dst.into();
+                    loop_blocks_map.insert(bb, Vec::new());
                 }
-                _ => (),
             }
             // Did we reach end of the loop
             if Some(bb) == tail {
@@ -54,7 +51,7 @@ pub fn loop_block_map(
             }
         }
     }
-    return (loop_blocks_map, header_map);
+    (loop_blocks_map, header_map)
 }
 
 pub fn propagate_taint(
@@ -158,7 +155,7 @@ impl TaintSolver<'_> {
         let mut tainted_loops: HashSet<Block> = HashSet::new();
 
         // While there are instructions in the queue
-        while self.inst_queue.len() > 0 {
+        while !self.inst_queue.is_empty() {
             // Propagate taint from tainted instructions onward
             while let Some(inst) = self.inst_queue.pop() {
                 match self.func.dfg.insts[inst] {
@@ -205,7 +202,7 @@ impl TaintSolver<'_> {
                     if let Some(bb) = self.func.layout.inst_block(inst) {
                         return header_map.get(&bb).cloned();
                     }
-                    return None;
+                    None
                 })
                 .collect();
             // Taint all loops

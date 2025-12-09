@@ -31,11 +31,11 @@ fn main() {
 
     sh.change_dir(osdi_dir);
     for file in sh.read_dir("header").unwrap() {
-        if file.extension().map_or(true, |ext| ext != "h")
+        if file.extension().is_none_or(|ext| ext != "h")
             || !file
                 .file_stem()
                 .and_then(|name| name.to_str())
-                .map_or(false, |name| name.starts_with("osdi_"))
+                .is_some_and(|name| name.starts_with("osdi_"))
         {
             continue;
         }
@@ -48,7 +48,7 @@ fn main() {
         for target in get_targets() {
             let target_name = &target.llvm_target;
             let out_file =
-                Path::new(&out_dir).join(&format!("stdlib_{version_str}_{target_name}.bc"));
+                Path::new(&out_dir).join(format!("stdlib_{version_str}_{target_name}.bc"));
             if no_gen {
                 sh.write_file(out_file, []).expect("failed to write dummy file");
             } else {

@@ -103,7 +103,7 @@ type max_align_t = u128;
 const MAX_ALIGN: usize = align_of::<max_align_t>();
 
 fn aligned_size(size: usize) -> usize {
-    (size + (MAX_ALIGN - 1)) / MAX_ALIGN
+    size.div_ceil(MAX_ALIGN)
 }
 
 fn max_align_layout(size: usize) -> Layout {
@@ -159,7 +159,7 @@ impl OsdiModel {
 
         let mut res = OsdiInitInfo { flags: 0, num_errors: 0, errors: ptr::null_mut() };
         self.descriptor.setup_model(
-            b"foo\0".as_ptr() as *mut c_void,
+            c"foo".as_ptr() as *mut c_void,
             self.data,
             &mut sim_params,
             &mut res,
@@ -297,7 +297,7 @@ impl OsdiInstance {
 
         let mut res = OsdiInitInfo { flags: 0, num_errors: 0, errors: ptr::null_mut() };
         self.descriptor.setup_instance(
-            b"foo\0".as_ptr() as *mut c_void,
+            c"foo".as_ptr() as *mut c_void,
             self.data,
             model.data,
             temp,

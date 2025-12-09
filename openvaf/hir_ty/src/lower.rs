@@ -166,11 +166,11 @@ impl DisciplineTy {
     }
 
     pub fn access(&self, nature: NatureId, db: &dyn HirTyDB) -> Option<DisciplineAccess> {
-        if self.flow.map_or(false, |flow| NatureTy::compatible(db, flow, nature)) {
+        if self.flow.is_some_and(|flow| NatureTy::compatible(db, flow, nature)) {
             Some(DisciplineAccess::Flow)
         } else if self
             .potential
-            .map_or(false, |potential| NatureTy::compatible(db, potential, nature))
+            .is_some_and(|potential| NatureTy::compatible(db, potential, nature))
         {
             Some(DisciplineAccess::Potential)
         } else {

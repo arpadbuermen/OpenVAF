@@ -425,7 +425,7 @@ fn split_pos(len: usize, ins: usize) -> usize {
     if ins <= len / 2 {
         len / 2
     } else {
-        (len + 1) / 2
+        len.div_ceil(2)
     }
 }
 

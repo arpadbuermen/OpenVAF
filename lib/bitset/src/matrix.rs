@@ -1,7 +1,7 @@
+use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 use std::mem::take;
-use std::{fmt, iter};
 
 use stdx::iter::zip;
 use stdx::vec::{SliceExntesions, VecExtensions};
@@ -73,7 +73,7 @@ impl<
         BitMatrix {
             num_rows,
             num_columns,
-            words: iter::repeat(row.words()).take(num_rows).flatten().copied().collect(),
+            words: std::iter::repeat_n(row.words(), num_rows).flatten().copied().collect(),
             marker: PhantomData,
         }
     }
@@ -408,7 +408,7 @@ where
     /// `row` reach `column`?
     #[inline]
     pub fn contains(&self, row: R, column: C) -> bool {
-        self.row(row).map_or(false, |r| r.contains(column))
+        self.row(row).is_some_and(|r| r.contains(column))
     }
 
     /// Union a row, `from`, into the `into` row.
@@ -537,7 +537,6 @@ where
 
     /// Adds the bits from row `read` to the bits from row `write`, and
     /// returns `true` if anything changed.
-
     pub fn union_rows(&mut self, read: R, write: R) -> bool {
         if read == write || self.matrix.row(read).is_none() {
             return false;

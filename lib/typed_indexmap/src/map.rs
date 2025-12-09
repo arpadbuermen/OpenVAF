@@ -108,7 +108,7 @@ impl<I: From<usize>, K, V> TiMap<I, K, V> {
         self.iter().enumerate().map(|(index, val)| (index.into(), val))
     }
 
-    pub fn keys(&self) -> impl Iterator<Item = I> + ExactSizeIterator {
+    pub fn keys(&self) -> impl ExactSizeIterator<Item = I> {
         (0..self.len()).map(|i| i.into())
     }
 }
@@ -124,9 +124,9 @@ where
     I: From<usize> + Into<usize>,
     K: Eq + Hash,
 {
-    pub fn index<Q: ?Sized>(&self, key: &Q) -> Option<I>
+    pub fn index<Q>(&self, key: &Q) -> Option<I>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         self.raw.get_index_of(key).map(I::from)
     }
@@ -135,9 +135,9 @@ where
         self.raw.get_index_of(key).unwrap().into()
     }
 
-    pub fn index_and_val<Q: ?Sized>(&self, key: &Q) -> Option<(I, &V)>
+    pub fn index_and_val<Q>(&self, key: &Q) -> Option<(I, &V)>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         self.raw.get_full(key).map(|(index, _, val)| (index.into(), val))
     }

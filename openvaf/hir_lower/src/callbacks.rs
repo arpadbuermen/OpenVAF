@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use hir::{Node, Parameter};
 use lasso::Spur;
 use mir::{FunctionSignature, Param};

@@ -56,7 +56,7 @@ pub fn new_codegen<'a, 'll>(
     for fun in function_iter(llmod.llmod()) {
         unsafe {
             // LLVMPurgeAttrs(fun);
-            if LLVMIsDeclaration(fun) != 0 as i32 {
+            if LLVMIsDeclaration(fun) != 0_i32 {
                 continue;
             }
 

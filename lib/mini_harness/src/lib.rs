@@ -256,7 +256,7 @@ impl Arguments {
     }
 
     fn pretty(&self) -> bool {
-        self.format.map_or(true, |it| it == Format::Pretty)
+        self.format.is_none_or(|it| it == Format::Pretty)
     }
 }
 
@@ -366,7 +366,6 @@ impl Display for TestSummary {
 ///     Test::new("data_test::hardcoded", &|| data_test(Path::new("hardcoded_file")))
 /// ];
 /// ```
-
 #[macro_export]
 macro_rules! harness {
     ($($tests: expr),*) => {

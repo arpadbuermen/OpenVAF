@@ -18,39 +18,27 @@ use crate::load::{load_info_py, load_py, load_vfs};
 use crate::model::{VAE_FUNCTION_TY, VAE_MODEL_TY, VAE_PARAM_TY};
 use crate::typeref::init_typerefs;
 
-#[cfg(Py_3_8)]
-const FUN_FLAG: c_int = METH_FASTCALL;
-#[cfg(not(Py_3_8))]
 const FUN_FLAG: c_int = METH_VARARGS;
 
 static mut FUNCTIONS: [PyMethodDef; 4] = unsafe {
     [
     PyMethodDef {
-            ml_name: "load\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_py},
-            #[cfg(not(Py_3_8))]
+            ml_name: c"load".as_ptr(),
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_py},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
-            ml_doc: "loads a Verilog-A model by either loading it from the object cache or compiling it\0".as_ptr() as *const c_char,
+            ml_doc: c"loads a Verilog-A model by either loading it from the object cache or compiling it".as_ptr(),
     },
     PyMethodDef {
-            ml_name: "load_info\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_info_py},
-            #[cfg(not(Py_3_8))]
+            ml_name: c"load_info".as_ptr(),
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_info_py},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
-            ml_doc: "loads information about Verilog-A model by either loading it from the object cache or compiling it\nThis function does not compile retrieved functions.\nThis allows for much faster compile times.\nModelsCompiled with this function lack the `functions` attribute.\0".as_ptr() as *const c_char,
+            ml_doc: c"loads information about Verilog-A model by either loading it from the object cache or compiling it\nThis function does not compile retrieved functions.\nThis allows for much faster compile times.\nModelsCompiled with this function lack the `functions` attribute.".as_ptr(),
     },
     PyMethodDef {
-            ml_name: "export_vfs\0".as_ptr() as *const c_char,
-            #[cfg(Py_3_8)]
-            ml_meth: PyMethodDefPointer{_PyCFunctionFastWithKeywords: load_vfs},
-            #[cfg(not(Py_3_8))]
+            ml_name: c"export_vfs".as_ptr(),
             ml_meth: PyMethodDefPointer{PyCFunctionWithKeywords: load_vfs},
             ml_flags: FUN_FLAG | METH_KEYWORDS,
-            ml_doc: "runs the preprocessor on a Verilog-A file and exports a dict with all files.\nThe result of this functions can be passed to other functions `vfs` argument\0".as_ptr() as *const c_char,
+            ml_doc: c"runs the preprocessor on a Verilog-A file and exports a dict with all files.\nThe result of this functions can be passed to other functions `vfs` argument".as_ptr(),
     },
     zero!(PyMethodDef)
 ]
@@ -58,12 +46,13 @@ static mut FUNCTIONS: [PyMethodDef; 4] = unsafe {
 
 #[allow(clippy::missing_safety_doc)]
 #[allow(non_snake_case)]
+#[allow(static_mut_refs)]
 #[no_mangle]
 #[cold]
 pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {
     let init = PyModuleDef {
         m_base: PyModuleDef_HEAD_INIT,
-        m_name: "verilogae\0".as_ptr() as *const c_char,
+        m_name: c"verilogae".as_ptr(),
         m_doc: std::ptr::null(),
         m_size: 0,
         m_methods: FUNCTIONS.as_mut_ptr(),
@@ -90,22 +79,18 @@ pub unsafe extern "C" fn PyInit_verilogae() -> *mut PyObject {
     let version = env!("CARGO_PKG_VERSION");
     PyModule_AddObject(
         mptr,
-        "__version__\0".as_ptr() as *const c_char,
+        c"__version__".as_ptr(),
         PyUnicode_FromStringAndSize(version.as_ptr() as *const c_char, version.len() as isize),
     );
 
-    let all = ["__all__\0", "__version__\0", "load\0", "load_info\0", "export_vfs\0"];
+    let all = [c"__all__", c"__version__", c"load", c"load_info", c"export_vfs"];
 
     let pyall = PyTuple_New(all.len() as isize);
     for (i, obj) in all.iter().enumerate() {
-        PyTuple_SET_ITEM(
-            pyall,
-            i as isize,
-            PyUnicode_InternFromString(obj.as_ptr() as *const c_char),
-        )
+        PyTuple_SET_ITEM(pyall, i as isize, PyUnicode_InternFromString(obj.as_ptr()))
     }
 
-    PyModule_AddObject(mptr, "__all__\0".as_ptr() as *const c_char, pyall);
+    PyModule_AddObject(mptr, c"__all__".as_ptr(), pyall);
 
     mptr
 }

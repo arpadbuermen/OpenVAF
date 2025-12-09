@@ -38,9 +38,8 @@ impl Function {
         let mut inst_map: IndexSet<Inst, BuildHasherDefault<FxHasher>> = IndexSet::default();
         let bb_map: IndexSet<Block, BuildHasherDefault<FxHasher>> = cfg
             .reverse_postorder(self)
-            .map(|bb| {
+            .inspect(|&bb| {
                 inst_map.extend(self.layout.block_insts(bb));
-                bb
             })
             .collect();
         let mut val_map: IndexSet<Value, BuildHasherDefault<FxHasher>> = IndexSet::default();
