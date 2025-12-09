@@ -19,7 +19,6 @@
 //! The entity references all implement the `Display` trait in a way that matches the textual IR
 //! format.
 
-use core::u32;
 use std::fmt;
 
 use stdx::{impl_debug_display, impl_idx_from};

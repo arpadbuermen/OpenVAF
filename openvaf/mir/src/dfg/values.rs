@@ -306,7 +306,7 @@ impl DfgValues {
     }
 
     /// Get an iterator over all values.
-    pub fn iter(&self) -> impl Iterator<Item = Value> + ExactSizeIterator {
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = Value> {
         self.defs.keys()
     }
 
@@ -473,7 +473,7 @@ impl DataFlowGraph {
                 }
             }
 
-            if let Some(first) = stack.get(0) {
+            if let Some(first) = stack.first() {
                 self.replace_uses(*first, val);
                 for it in stack[1..].iter().copied() {
                     let dst = unsafe { self.values.defs.get_unchecked_mut(it) };

@@ -9,9 +9,7 @@ use llvm_sys::core::{
 };
 use llvm_sys::LLVMIntPredicate::{LLVMIntNE, LLVMIntULT};
 use log::info;
-use mir_llvm::{
-    Builder, BuilderVal, BuiltCallbackFun, CallbackFun, InlineCallbackBuilder, MemLoc, UNNAMED,
-};
+use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, MemLoc, UNNAMED};
 use sim_back::SimUnknownKind;
 use typed_index_collections::TiVec;
 

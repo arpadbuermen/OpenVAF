@@ -161,8 +161,8 @@ impl<'a> Builder<'a> {
         for (_, &kind, _) in self.intern.live_params(&self.cursor.func.dfg) {
             match kind {
                 ParamKind::Voltage { hi, lo } => {
-                    let mut ih = std::u32::MAX;
-                    let mut il = std::u32::MAX;
+                    let mut ih = u32::MAX;
+                    let mut il = u32::MAX;
                     let uh = SimUnknownKind::KirchoffLaw(hi);
                     if let Some(uh) = self.system.unknowns.index(&uh) {
                         ih = u32::from(uh);
@@ -173,7 +173,7 @@ impl<'a> Builder<'a> {
                             il = u32::from(ul);
                         }
                     }
-                    if ih != std::u32::MAX && il != std::u32::MAX {
+                    if ih != u32::MAX && il != u32::MAX {
                         self.system.model_inputs.push((ih, il));
                     }
                 }
@@ -185,7 +185,7 @@ impl<'a> Builder<'a> {
                         _ => {
                             let u = SimUnknownKind::Current(cur_kind);
                             if let Some(u) = self.system.unknowns.index(&u) {
-                                self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                                self.system.model_inputs.push((u32::from(u), u32::MAX));
                             }
                         }
                     }
@@ -193,7 +193,7 @@ impl<'a> Builder<'a> {
                 ParamKind::ImplicitUnknown(ieq_kind) => {
                     let u = SimUnknownKind::Implicit(ieq_kind);
                     if let Some(u) = self.system.unknowns.index(&u) {
-                        self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                        self.system.model_inputs.push((u32::from(u), u32::MAX));
                     }
                 }
                 _ => {}
@@ -207,11 +207,11 @@ impl<'a> Builder<'a> {
         let mut nreact: u32 = 0;
         for key in self.system.jacobian.keys() {
             if self.system.jacobian[key].resist != F_ZERO {
-                nres = nres + 1;
+                nres += 1;
             }
 
             if self.system.jacobian[key].react != F_ZERO {
-                nreact = nreact + 1;
+                nreact += 1;
             }
         }
         (nres, nreact)

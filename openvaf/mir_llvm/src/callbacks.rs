@@ -6,12 +6,12 @@ pub trait InlineCallbackBuilder<'ll> {
     fn build_inline(
         &self,
         builder: &Builder<'_, '_, 'll>,
-        state: &Box<[&'ll llvm_sys::LLVMValue]>,
+        state: &[&'ll llvm_sys::LLVMValue],
     ) -> &'ll llvm_sys::LLVMValue;
     fn return_type(
         &self,
         builder: &Builder<'_, '_, 'll>,
-        state: &Box<[&'ll llvm_sys::LLVMValue]>,
+        state: &[&'ll llvm_sys::LLVMValue],
     ) -> &'ll llvm_sys::LLVMType;
 }
 
@@ -110,7 +110,7 @@ impl<'ll> CodegenCx<'_, 'll> {
     }
 
     pub fn local_callback_name(&self) -> String {
-        let name = self.generate_local_symbol_name("cb");
-        name
+        
+        self.generate_local_symbol_name("cb")
     }
 }

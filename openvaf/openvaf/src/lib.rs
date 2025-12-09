@@ -229,29 +229,29 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     if opts.dump_mir || opts.dump_unopt_mir {
         let cu = db.compilation_unit();
         println!("Compilation unit: {}", cu.name(&db));
-        println!("");
+        println!();
 
         println!("Literals:");
         for (k, v) in literals.iter() {
             println!("  {:?} -> '{}'", k, v);
         }
-        println!("");
+        println!();
 
         for (module, cmodule) in modules.iter().zip(compiled_modules.iter()) {
-            print_module("  ", &db, &module, &cmodule.dae_system, &cmodule.init);
-            println!("");
+            print_module("  ", &db, module, &cmodule.dae_system, &cmodule.init);
+            println!();
 
             println!("Model setup HIR interner of {}", module.module.name(&db));
             print_intern("  ", &db, &cmodule.model_param_intern);
-            println!("");
+            println!();
 
             println!("Instance setup HIR interner of {}", module.module.name(&db));
             print_intern("  ", &db, &cmodule.init.intern);
-            println!("");
+            println!();
 
             println!("Evaluation HIR interner of {}", module.module.name(&db));
             print_intern("  ", &db, &cmodule.intern);
-            println!("");
+            println!();
         }
     }
 

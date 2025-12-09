@@ -9,12 +9,12 @@ pub fn opts() -> TargetOptions {
     // Add MSVC-specific linker arguments like `/NOLOGO` and `msvcrt.lib`
     base.pre_link_args
         .entry(LinkerFlavor::Msvc)
-        .or_insert_with(Vec::new)
+        .or_default()
         .push("/NOLOGO".to_string());
 
     base.post_link_args
         .entry(LinkerFlavor::Msvc)
-        .or_insert_with(Vec::new)
+        .or_default()
         .push("msvcrt.lib".to_string());
 
     base

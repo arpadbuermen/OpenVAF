@@ -11,10 +11,10 @@ use std::borrow::Cow;
 
 impl ast::ConstExprValue {
     pub fn as_real(&self) -> Option<f64> {
-        match self {
-            &ConstExprValue::Int(v) => return Some(v.into()),
-            &ConstExprValue::Float(v) => return Some(v.into()),
-            _ => return None,
+        match *self {
+            ConstExprValue::Int(v) => Some(v.into()),
+            ConstExprValue::Float(v) => Some(v.into()),
+            _ => None,
         }
     }
 }
@@ -56,9 +56,7 @@ impl ast::Expr {
         };
 
         // If we have no expression, give up
-        if val.is_none() {
-            return None;
-        }
+        val.as_ref()?;
 
         // Get value, negate if required
         match &*val.unwrap() {

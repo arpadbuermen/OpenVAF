@@ -145,20 +145,20 @@ impl OsdiTyBuilder<'_, '_, '_> {
         let ctx = self.ctx;
         unsafe {
             let align = [llvm_sys::target::LLVMABIAlignmentOfType(
-                self.target_data.clone(),
+                self.target_data,
                 core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
             )]
             .into_iter()
             .max()
             .unwrap();
             let mut size = [llvm_sys::target::LLVMABISizeOfType(
-                self.target_data.clone(),
+                self.target_data,
                 core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
             )]
             .into_iter()
             .max()
             .unwrap() as u32;
-            size = (size + align - 1) / align;
+            size = size.div_ceil(align);
             let elem = ctx.ty_aint(align * 8);
             let ty = ctx.ty_array(elem, size);
             self.osdi_init_error_payload = Some(ty);
@@ -638,15 +638,15 @@ impl OsdiTyBuilder<'_, '_, '_> {
         unsafe {
             let align = [
                 llvm_sys::target::LLVMABIAlignmentOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_ptr()).as_ptr(),
                 ),
                 llvm_sys::target::LLVMABIAlignmentOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
                 ),
                 llvm_sys::target::LLVMABIAlignmentOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_double()).as_ptr(),
                 ),
             ]
@@ -655,22 +655,22 @@ impl OsdiTyBuilder<'_, '_, '_> {
             .unwrap();
             let mut size = [
                 llvm_sys::target::LLVMABISizeOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_ptr()).as_ptr(),
                 ),
                 llvm_sys::target::LLVMABISizeOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_int()).as_ptr(),
                 ),
                 llvm_sys::target::LLVMABISizeOfType(
-                    self.target_data.clone(),
+                    self.target_data,
                     core::ptr::NonNull::from(ctx.ty_double()).as_ptr(),
                 ),
             ]
             .into_iter()
             .max()
             .unwrap() as u32;
-            size = (size + align - 1) / align;
+            size = size.div_ceil(align);
             let elem = ctx.ty_aint(align * 8);
             let ty = ctx.ty_array(elem, size);
             self.osdi_attribute_value = Some(ty);

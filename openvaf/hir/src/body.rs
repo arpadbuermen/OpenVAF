@@ -89,34 +89,19 @@ impl<'a> BodyRef<'a> {
     // AB: get integer literal
     pub fn as_literalint(&self, &expr1: &ExprId) -> Option<i32> {
         match &self.body.exprs[expr1] {
-            hir_def::Expr::Literal(lit) => match &lit {
-                Literal::Int(ii) => Some(*ii), // Int literal
-                _ => None,                     // other literals
-            },
-            _ => None, // not a literal
+            hir_def::Expr::Literal(Literal::Int(ii)) => Some(*ii),
+            _ => None,
         }
     }
 
     // AB: get integer literal with optional negative sign
     pub fn as_literalsignedint(&self, &expr1: &ExprId) -> Option<i32> {
         match &self.body.exprs[expr1] {
-            hir_def::Expr::Literal(lit) => match &lit {
-                // Literal
-                Literal::Int(ii) => Some(*ii), // Int literal
-                _ => None,                     // other literals
-            },
-            hir_def::Expr::UnaryOp { expr, op } => {
-                // UnaryOp
-                match op {
-                    UnaryOp::Neg => match self.as_literalint(expr) {
-                        // Neg
-                        Some(ii) => Some(-ii), // Neg Int literal
-                        _ => None,             // Neg anything else
-                    },
-                    _ => None, // Other UnaryOp
-                }
+            hir_def::Expr::Literal(Literal::Int(ii)) => Some(*ii),
+            hir_def::Expr::UnaryOp { expr, op: UnaryOp::Neg } => {
+                self.as_literalint(expr).map(|ii| -ii)
             }
-            _ => None, // Neither Literal nor UnaryOp
+            _ => None,
         }
     }
 

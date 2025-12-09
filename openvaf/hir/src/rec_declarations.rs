@@ -22,7 +22,12 @@ impl Scope {
         // safety: def_map is a immutable/an arc that will live at least as long as the scope
         let iter: indexmap::map::Iter<'_, Name, nameres::ScopeDefItem> =
             def_map[scope].declarations.iter();
-        let iter = unsafe { transmute(iter) };
+        let iter = unsafe {
+            transmute::<
+                indexmap::map::Iter<'_, Name, nameres::ScopeDefItem>,
+                indexmap::map::Iter<'static, Name, nameres::ScopeDefItem>,
+            >(iter)
+        };
         Scope { _def_map: def_map, iter, def: block }
     }
 }

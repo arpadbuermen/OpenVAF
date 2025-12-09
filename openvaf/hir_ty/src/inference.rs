@@ -580,7 +580,7 @@ impl Ctx<'_> {
             return (default_return_ty(info.signatures), false);
         }
 
-        if info.max_args.map_or(false, |max_args| max_args < args.len()) {
+        if info.max_args.is_some_and(|max_args| max_args < args.len()) {
             self.result.diagnostics.push(InferenceDiagnostic::ArgCntMismatch {
                 expected: info.min_args,
                 found: args.len(),
@@ -927,10 +927,7 @@ impl Ctx<'_> {
 
         let mut iter = args.iter();
         let (ty, first_expr) = loop {
-            let arg = match iter.next() {
-                Some(arg) => arg,
-                None => return None,
-            };
+            let arg = iter.next()?;
 
             if let Some(ty) = infere_value_ty(self, *arg) {
                 break (ty, *arg);
@@ -1031,7 +1028,7 @@ impl Ctx<'_> {
                     signatures[*candidate]
                         .args
                         .get(i)
-                        .map_or(false, |req| ty.satisfies_with_conversion(req))
+                        .is_some_and(|req| ty.satisfies_with_conversion(req))
                 });
                 if new_candidates.is_empty() {
                     let candidate_types: Vec<TyRequirement> = candidates
@@ -1082,14 +1079,14 @@ impl Ctx<'_> {
                 new_candidates.clone_from(&candidates);
                 candidates.retain(|candidate| {
                     zip(&arg_types, signatures[*candidate].args.as_ref())
-                        .all(|(ty, req)| ty.as_ref().map_or(false, |ty| ty.satisfies_semantic(req)))
+                        .all(|(ty, req)| ty.as_ref().is_some_and(|ty| ty.satisfies_semantic(req)))
                 });
 
                 if candidates.len() > 1 {
                     new_candidates.clone_from(&candidates);
                     candidates.retain(|candidate| {
                         zip(&arg_types, signatures[*candidate].args.as_ref()).all(|(ty, req)| {
-                            ty.as_ref().map_or(false, |ty| ty.satisfies_exact(req))
+                            ty.as_ref().is_some_and(|ty| ty.satisfies_exact(req))
                         })
                     });
                     if candidates.is_empty() {

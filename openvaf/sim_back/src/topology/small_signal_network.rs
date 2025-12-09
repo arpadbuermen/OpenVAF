@@ -111,9 +111,8 @@ impl Builder<'_> {
                     }
                     to_remove.push(idx);
                     changed = true;
-                } else if set == FlatSet::Top {
-                    // Proven non-zero - remove from candidates
-                    to_remove.push(idx);
+                } else if let Some(node) = candidate.as_node() {
+                    self.topology.small_signal_vals.shift_remove(&node);
                 }
                 // If set == FlatSet::Bottom (unknown), keep in candidates for next iteration
             }

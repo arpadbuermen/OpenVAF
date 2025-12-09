@@ -42,7 +42,7 @@ impl<T> Hash for Idx<T> {
 impl<T> PartialOrd for Idx<T> {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.raw.cmp(&other.raw))
+        Some(self.cmp(other))
     }
 }
 

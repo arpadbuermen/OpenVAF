@@ -3,7 +3,6 @@ use std::iter::once;
 
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_def::db::HirDefDB;
-use hir_def::ndatable::NDATable;
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
 use llvm_sys::core::{
@@ -112,7 +111,6 @@ impl osdi_0_4::OsdiAttributeValue {
                     // Fill initializer array
                     elems[0] = entry;
                 }
-                _ => panic!("Unknown attribute value union member type."),
             }
             // Construct array
             &*LLVMConstArray2(elem_ty, elems.as_mut_ptr(), len)
@@ -212,7 +210,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         inst_params.chain(model_params).chain(opvars).collect()
     }
 
-    pub fn nodes(&self, target_data: &LLVMTargetDataRef, db: &CompilationDB) -> Vec<OsdiNode> {
+    pub fn nodes(&self, target_data: LLVMTargetDataRef, db: &CompilationDB) -> Vec<OsdiNode> {
         let OsdiCompilationUnit { inst_data, module, .. } = self;
         module
             .dae_system
@@ -254,17 +252,17 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 .intern
                 .params
                 .get_index(param)
-                .map_or(true, |(kind, _)| !kind.op_dependent()),
+                .is_none_or(|(kind, _)| !kind.op_dependent()),
             ValueDef::Const(_) => true,
             ValueDef::Invalid => unreachable!(),
         }
     }
 
-    pub fn jacobian_entries(&self, target_data: &LLVMTargetDataRef) -> Vec<OsdiJacobianEntry> {
+    pub fn jacobian_entries(&self, target_data: LLVMTargetDataRef) -> Vec<OsdiJacobianEntry> {
         let OsdiCompilationUnit { inst_data, module, .. } = self;
         let mut jacobian_ptr_react_offset = unsafe {
             LLVMOffsetOfElement(
-                *target_data,
+                target_data,
                 NonNull::from(inst_data.ty).as_ptr(),
                 JACOBIAN_PTR_REACT,
             )
@@ -320,7 +318,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             .dae_system
             .model_inputs
             .iter()
-            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1).into(), node_2: (*node2).into() })
+            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1), node_2: (*node2) })
             .collect()
     }
 
@@ -342,7 +340,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
     pub fn descriptor(
         &self,
-        target_data: &llvm_sys::target::LLVMTargetDataRef,
+        target_data: llvm_sys::target::LLVMTargetDataRef,
         db: &CompilationDB,
     ) -> OsdiDescriptor<'ll> {
         let collapsible = self.collapsible();
@@ -351,31 +349,31 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
         unsafe {
             let node_mapping_offset = LLVMOffsetOfElement(
-                *target_data,
+                target_data,
                 NonNull::from(inst_data.ty).as_ptr(),
                 NODE_MAPPING,
             ) as u32;
             let jacobian_ptr_resist_offset = LLVMOffsetOfElement(
-                *target_data,
+                target_data,
                 NonNull::from(inst_data.ty).as_ptr(),
                 JACOBIAN_PTR_RESIST,
             ) as u32;
 
             let collapsed_offset =
-                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), COLLAPSED)
+                LLVMOffsetOfElement(target_data, NonNull::from(inst_data.ty).as_ptr(), COLLAPSED)
                     as u32;
             let bound_step_offset = inst_data.bound_step_elem().map_or(u32::MAX, |elem| {
-                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), elem) as u32
+                LLVMOffsetOfElement(target_data, NonNull::from(inst_data.ty).as_ptr(), elem) as u32
             });
 
             let state_idx_off =
-                LLVMOffsetOfElement(*target_data, NonNull::from(inst_data.ty).as_ptr(), STATE_IDX)
+                LLVMOffsetOfElement(target_data, NonNull::from(inst_data.ty).as_ptr(), STATE_IDX)
                     as u32;
 
             let instance_size =
-                LLVMABISizeOfType(*target_data, NonNull::from(inst_data.ty).as_ptr()) as u32;
+                LLVMABISizeOfType(target_data, NonNull::from(inst_data.ty).as_ptr()) as u32;
             let model_size =
-                LLVMABISizeOfType(*target_data, NonNull::from(model_data.ty).as_ptr()) as u32;
+                LLVMABISizeOfType(target_data, NonNull::from(model_data.ty).as_ptr()) as u32;
 
             let noise_sources: Vec<_> = module
                 .dae_system

@@ -29,20 +29,20 @@ pub static mut NUMPY_API: Option<PyArrayNew> = None;
 pub static mut NUMPY_CDOUBLE_DESCR: *mut PyObject = std::ptr::null_mut();
 pub static mut NUMPY_INT_DESCR: *mut PyObject = std::ptr::null_mut();
 
-pub static mut PATHLIB_PATH: *mut PyTypeObject = 0 as *mut PyTypeObject;
+pub static mut PATHLIB_PATH: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
 // pub static mut STR_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut INT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut FLOAT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut LIST_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut DICT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut ARRAY_STRUCT_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut EMPTY_UNICODE: *mut PyObject = 0 as *mut PyObject;
+pub static mut INT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut FLOAT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut LIST_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut DICT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut ARRAY_STRUCT_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut EMPTY_UNICODE: *mut PyObject = std::ptr::null_mut::<PyObject>();
 // Internted arguments so that kwargs check are simple pointer comparisons
-pub static mut MODULE_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut VFS_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut VOLTAGES_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut CURRENTS_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut TEMPERATURE_STR: *mut PyObject = 0 as *mut PyObject;
+pub static mut MODULE_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut VFS_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut VOLTAGES_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut CURRENTS_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut TEMPERATURE_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
 
 static INIT: Once = Once::new();
 
@@ -55,15 +55,14 @@ pub fn init_typerefs() {
         FLOAT_TYPE = (*PyFloat_FromDouble(0.0)).ob_type;
         NUMPY_ARR_TYPE = load_numpy_types();
 
-        MODULE_STR = PyUnicode_InternFromString("module\0".as_ptr() as *const c_char);
-        VFS_STR = PyUnicode_InternFromString("vfs\0".as_ptr() as *const c_char);
-        VOLTAGES_STR = PyUnicode_InternFromString("voltages\0".as_ptr() as *const c_char);
-        CURRENTS_STR = PyUnicode_InternFromString("currents\0".as_ptr() as *const c_char);
-        TEMPERATURE_STR = PyUnicode_InternFromString("temperature\0".as_ptr() as *const c_char);
+        MODULE_STR = PyUnicode_InternFromString(c"module".as_ptr());
+        VFS_STR = PyUnicode_InternFromString(c"vfs".as_ptr());
+        VOLTAGES_STR = PyUnicode_InternFromString(c"voltages".as_ptr());
+        CURRENTS_STR = PyUnicode_InternFromString(c"currents".as_ptr());
+        TEMPERATURE_STR = PyUnicode_InternFromString(c"temperature".as_ptr());
         EMPTY_UNICODE = PyUnicode_New(0, 255);
 
-        ARRAY_STRUCT_STR =
-            PyUnicode_InternFromString("__array_struct__\0".as_ptr() as *const c_char);
+        ARRAY_STRUCT_STR = PyUnicode_InternFromString(c"__array_struct__".as_ptr());
         if let Some(numpy_api) = get_numpy_api() {
             let api = *(numpy_api.offset(94) as *const PyArrayNew);
             let py_array_descr_from_type =
@@ -76,16 +75,16 @@ pub fn init_typerefs() {
 
             NUMPY_API = Some(api);
         }
-        let pathlib = PyImport_ImportModule("pathlib\0".as_ptr() as *const c_char);
+        let pathlib = PyImport_ImportModule(c"pathlib".as_ptr());
         assert!(!pathlib.is_null(), "failed to import pathlib!");
-        PATHLIB_PATH = lookup_module_type(pathlib, "Path\0");
+        PATHLIB_PATH = lookup_module_type(pathlib, c"Path".as_ptr());
     });
 }
 
 #[cold]
-unsafe fn lookup_module_type(module: *mut PyObject, name: &str) -> *mut PyTypeObject {
+unsafe fn lookup_module_type(module: *mut PyObject, name: *const c_char) -> *mut PyTypeObject {
     let mod_dict = PyObject_GenericGetDict(module, std::ptr::null_mut());
-    let ptr = PyMapping_GetItemString(mod_dict, name.as_ptr() as *const c_char);
+    let ptr = PyMapping_GetItemString(mod_dict, name);
     Py_XDECREF(ptr);
     Py_XDECREF(mod_dict);
     ptr as *mut PyTypeObject
@@ -93,12 +92,12 @@ unsafe fn lookup_module_type(module: *mut PyObject, name: &str) -> *mut PyTypeOb
 
 #[cold]
 unsafe fn load_numpy_types() -> Option<*mut PyTypeObject> {
-    let numpy = PyImport_ImportModule("numpy\0".as_ptr() as *const c_char);
+    let numpy = PyImport_ImportModule(c"numpy".as_ptr());
     if numpy.is_null() {
         PyErr_Clear();
         return None;
     }
-    let array = lookup_module_type(numpy, "ndarray\0");
+    let array = lookup_module_type(numpy, c"ndarray".as_ptr());
     Py_XDECREF(numpy);
     Some(array)
 }
@@ -106,12 +105,12 @@ unsafe fn load_numpy_types() -> Option<*mut PyTypeObject> {
 #[cold]
 fn get_numpy_api() -> Option<*const *const c_void> {
     unsafe {
-        let numpy = PyImport_ImportModule("numpy.core.multiarray\0".as_ptr() as *const c_char);
+        let numpy = PyImport_ImportModule(c"numpy.core.multiarray".as_ptr());
         if numpy.is_null() {
             PyErr_Clear();
             return None;
         }
-        let capsule = PyObject_GetAttrString(numpy as _, "_ARRAY_API\0".as_ptr() as *const c_char);
+        let capsule = PyObject_GetAttrString(numpy as _, c"_ARRAY_API".as_ptr());
         if capsule.is_null() {
             PyErr_Clear();
             return None;

@@ -2,7 +2,7 @@ use bitset::{BitSet, SparseBitMatrix};
 use hir::CompilationDB;
 use hir_lower::{HirInterner, MirBuilder, PlaceKind};
 use lasso::Rodeo;
-use mir::{Block, ControlFlowGraph, DominatorTree, Function, Inst, InstructionData, Value};
+use mir::{Block, ControlFlowGraph, DominatorTree, Function, Inst, Value};
 use mir_opt::{
     aggressive_dead_code_elimination, dead_code_elimination, inst_combine, propagate_direct_taint,
     propagate_taint, simplify_cfg, simplify_cfg_no_phi_merge,

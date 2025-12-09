@@ -153,7 +153,7 @@ impl<'a> HeaderParser<'a> {
             let typedef_pos = self.src().find("typedef");
             let define_pos = self.src().find("#define");
             if let Some(pos) = typedef_pos {
-                if define_pos.map_or(true, |define_pos| pos < define_pos) {
+                if define_pos.is_none_or(|define_pos| pos < define_pos) {
                     self.off += pos;
                     assert!(self.eat("typedef"));
                     if self.eat("struct") {
@@ -281,8 +281,7 @@ impl ToTokens for BaseTy<'_> {
                 return;
             }
             BaseTy::Void => "c_void",
-            BaseTy::Struct(name) => name,
-            BaseTy::Union(name) => name,
+            BaseTy::Struct(name) | BaseTy::Union(name) => name,
         };
 
         tokens.append(Ident::new(ident, Span::call_site()));
@@ -370,12 +369,7 @@ impl ToTokens for LLVMTyInterp<'_, '_> {
                 }
                 BaseTy::Bool => quote!(ctx.ty_c_bool()),
                 BaseTy::Void => quote!(ctx.ty_void()),
-                BaseTy::Struct(ty) => {
-                    let ty = &self.lut[ty].llvm_ty_ident;
-                    let ty = Ident::new(ty, Span::call_site());
-                    quote!(self.#ty.unwrap())
-                }
-                BaseTy::Union(ty) => {
+                BaseTy::Struct(ty) | BaseTy::Union(ty) => {
                     let ty = &self.lut[ty].llvm_ty_ident;
                     let ty = Ident::new(ty, Span::call_site());
                     quote!(self.#ty.unwrap())
@@ -426,12 +420,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
                     }
                     BaseTy::Bool => quote!(ctx.ty_c_bool()),
                     BaseTy::Void => unreachable!(),
-                    BaseTy::Struct(ty) => {
-                        let ty = &self.lut[ty].llvm_ty_ident;
-                        let ty = Ident::new(ty, Span::call_site());
-                        quote!(tys.#ty)
-                    }
-                    BaseTy::Union(ty) => {
+                    BaseTy::Struct(ty) | BaseTy::Union(ty) => {
                         let ty = &self.lut[ty].llvm_ty_ident;
                         let ty = Ident::new(ty, Span::call_site());
                         quote!(tys.#ty)
@@ -456,10 +445,7 @@ impl ToTokens for LLVMValInterp<'_, '_> {
             }
             BaseTy::Bool => quote!(ctx.const_c_bool(#src)),
             BaseTy::Void => unreachable!(),
-            BaseTy::Struct(_) => {
-                quote!(#src.to_ll_val(ctx, tys))
-            }
-            BaseTy::Union(_) => {
+            BaseTy::Struct(_) | BaseTy::Union(_) => {
                 quote!(#src.to_ll_val(ctx, tys))
             }
         };
@@ -558,7 +544,7 @@ impl ToTokens for OsdiStructInterp<'_, '_> {
                 let mut v: Vec<String> = Vec::new();
                 let capitalized_field_names = fields.iter().map(|(name, _)| {
                     v.push(name.to_upper_camel_case());
-                    let s: &str = &v.last().unwrap();
+                    let s: &str = v.last().unwrap();
                     Ident::new(s, Span::call_site())
                 });
 
@@ -690,8 +676,7 @@ impl ToTokens for RustBasicTy<'_> {
             BaseTy::Bool => "bool",
             BaseTy::Char => "c_char",
             BaseTy::Void => "c_void",
-            BaseTy::Struct(name) => name,
-            BaseTy::Union(name) => name,
+            BaseTy::Struct(name) |  BaseTy::Union(name) => name,
         };
 
         let base = Ident::new(ident, Span::call_site());
