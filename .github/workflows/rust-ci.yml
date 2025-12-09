@@ -69,6 +69,9 @@ jobs:
         echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
 
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
     - name: "Cache cargo"
       id: cache-cargo
       uses: "actions/cache@v4"
