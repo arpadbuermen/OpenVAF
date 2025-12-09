@@ -670,10 +670,7 @@ impl Arena {
     /// # Returns
     ///
     /// An (exct size) iterator that yields all parameters in `ctx`
-    pub fn ctx_params(
-        &self,
-        ctx: CircuitParamCtx,
-    ) -> impl ExactSizeIterator<Item = CircuitParam> {
+    pub fn ctx_params(&self, ctx: CircuitParamCtx) -> impl ExactSizeIterator<Item = CircuitParam> {
         self.params[ctx].keys().map(move |param| CircuitParam { ctx, param })
     }
 }

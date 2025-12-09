@@ -676,7 +676,7 @@ impl ToTokens for RustBasicTy<'_> {
             BaseTy::Bool => "bool",
             BaseTy::Char => "c_char",
             BaseTy::Void => "c_void",
-            BaseTy::Struct(name) |  BaseTy::Union(name) => name,
+            BaseTy::Struct(name) | BaseTy::Union(name) => name,
         };
 
         let base = Ident::new(ident, Span::call_site());

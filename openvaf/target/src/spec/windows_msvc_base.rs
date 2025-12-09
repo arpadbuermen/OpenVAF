@@ -7,15 +7,9 @@ pub fn opts() -> TargetOptions {
     // Suppress the verbose logo and authorship debugging output, which would needlessly
     // clog any log files.
     // Add MSVC-specific linker arguments like `/NOLOGO` and `msvcrt.lib`
-    base.pre_link_args
-        .entry(LinkerFlavor::Msvc)
-        .or_default()
-        .push("/NOLOGO".to_string());
+    base.pre_link_args.entry(LinkerFlavor::Msvc).or_default().push("/NOLOGO".to_string());
 
-    base.post_link_args
-        .entry(LinkerFlavor::Msvc)
-        .or_default()
-        .push("msvcrt.lib".to_string());
+    base.post_link_args.entry(LinkerFlavor::Msvc).or_default().push("msvcrt.lib".to_string());
 
     base
 }

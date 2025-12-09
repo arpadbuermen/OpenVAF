@@ -1,7 +1,7 @@
+use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 use std::mem::take;
-use std::fmt;
 
 use stdx::iter::zip;
 use stdx::vec::{SliceExntesions, VecExtensions};
