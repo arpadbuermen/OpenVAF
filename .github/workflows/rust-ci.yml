@@ -33,8 +33,8 @@ jobs:
     - name: Configure sccache
       if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
       run: |
-        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
 
     - uses: actions/checkout@v4
 
@@ -66,8 +66,8 @@ jobs:
     - name: Configure sccache
       if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
       run: |
-        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
 
     - name: "Cache cargo"
       id: cache-cargo
@@ -102,10 +102,12 @@ jobs:
 
     - name: Set LLVM environment variables
       run: |
-        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> $GITHUB_ENV
-        echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang" >> $GITHUB_ENV
-        echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> $GITHUB_ENV
-        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
+        {
+          echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18"
+          echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang"
+          echo "PATH=/usr/lib/llvm-18/bin:$PATH"
+          echo "RUST_BACKTRACE=1" 
+        }>> "$GITHUB_ENV"
 
     - name: Install build dependencies
       run: |
@@ -229,15 +231,17 @@ jobs:
 
     - name: Set LLVM environment variables
       run: |
-        echo "$(brew --prefix llvm@18)/bin" >> $GITHUB_PATH
-        echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)" >> $GITHUB_ENV
-        echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
-        echo "RUN_DEV_TESTS=1" >> $GITHUB_ENV
+        echo "$(brew --prefix llvm@18)/bin" >> "$GITHUB_PATH"
+        {
+          echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)"
+          echo "RUST_BACKTRACE=1"
+          echo "RUN_DEV_TESTS=1"
+        } >> "$GITHUB_ENV"
 
     - name: sccache setup
       run: |
-        # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-        echo "RUSTC_WRAPPER=$(which sccache)" >> $GITHUB_ENV
+        # echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
+        echo "RUSTC_WRAPPER=$(which sccache)" >> "$GITHUB_ENV"
 
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
