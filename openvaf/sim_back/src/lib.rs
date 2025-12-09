@@ -60,13 +60,13 @@ pub fn print_module(
 ) {
     let m = module.module;
 
-    println!("{pfx}Module: {:?}", m.name(&db));
-    println!("{pfx}Ports: {:?}", m.ports(&db));
-    println!("{pfx}Internal nodes: {:?}", m.internal_nodes(&db));
+    println!("{pfx}Module: {:?}", m.name(db));
+    println!("{pfx}Ports: {:?}", m.ports(db));
+    println!("{pfx}Internal nodes: {:?}", m.internal_nodes(db));
 
     let dae_str = format!("{dae_system:#?}");
     println!("{pfx}{}", dae_str);
-    println!("");
+    println!();
 
     println!("Cached values during instance setup");
     init.cached_vals.iter().for_each(|(val, slot)| {
@@ -82,10 +82,7 @@ pub fn print_intern(pfx: &str, db: &CompilationDB, intern: &HirInterner) {
     intern.params.iter().for_each(|(p, val)| {
         print!("{pfx}  {:?}", p);
         match p {
-            ParamKind::Param(param) => {
-                println!("{pfx} .. {:?} -> {:?}", param.name(db), val);
-            }
-            ParamKind::ParamGiven { param } => {
+            ParamKind::Param(param) | ParamKind::ParamGiven { param } => {
                 println!("{pfx} .. {:?} -> {:?}", param.name(db), val);
             }
             ParamKind::Voltage { hi, lo } => {
@@ -124,7 +121,7 @@ pub fn print_intern(pfx: &str, db: &CompilationDB, intern: &HirInterner) {
             }
         }
     });
-    println!("");
+    println!();
 
     println!("{pfx}Outputs:");
     intern.outputs.iter().for_each(|(p, val)| {
@@ -134,13 +131,13 @@ pub fn print_intern(pfx: &str, db: &CompilationDB, intern: &HirInterner) {
             println!("{pfx}  {:?} -> None", p);
         }
     });
-    println!("");
+    println!();
 
     println!("{pfx}Tagged reads:");
     intern.tagged_reads.iter().for_each(|(val, var)| {
         println!("{pfx}  {:?} -> {:?}", val, var);
     });
-    println!("");
+    println!();
 
     println!("{pfx}Implicit equations:");
     for (i, &iek) in intern.implicit_equations.iter().enumerate() {

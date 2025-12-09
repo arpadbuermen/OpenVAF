@@ -9,7 +9,7 @@
 //! * The MIR only represent Verilog-A allowing dropping support for atomics etc.
 //! * The MIR does not map to actual hardware opcodes as dirct codegeneration is not a goal
 //! * The MIR is untyped. All opcodes have fixed argument/return types. Instructions must be
-//! constructed with correct types.
+//!   constructed with correct types.
 //!
 //! Compared to the HIR the MIR is completely decoupled from the AST (and HIR) which allows for much
 //! faster compile times. This break comes quite naturally as the various algorithms that operate on the
@@ -127,7 +127,7 @@ impl Function {
         res
     }
 
-    pub fn print<'a>(&'a self, resolver: &'a dyn lasso::Resolver) -> PrintableFunction {
+    pub fn print<'a>(&'a self, resolver: &'a dyn lasso::Resolver) -> PrintableFunction<'a> {
         PrintableFunction { fun: self, resolver }
     }
 

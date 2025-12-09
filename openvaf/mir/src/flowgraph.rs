@@ -374,12 +374,12 @@ impl ControlFlowGraph {
     }
 
     #[inline]
-    pub fn postorder_from(&self, start: Block) -> Postorder {
+    pub fn postorder_from(&self, start: Block) -> Postorder<'_> {
         Postorder::new(self, start)
     }
 
     #[inline]
-    pub fn postorder(&self, func: &Function) -> Postorder {
+    pub fn postorder(&self, func: &Function) -> Postorder<'_> {
         Postorder::new(self, func.layout.entry_block().unwrap())
     }
 }

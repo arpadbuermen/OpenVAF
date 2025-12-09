@@ -333,6 +333,6 @@ pub(crate) struct BuiltinInfo {
 }
 
 pub fn default_return_ty(signatures: &[SignatureData]) -> Option<Ty> {
-    let ty = &signatures.get(0)?.return_ty;
+    let ty = &signatures.first()?.return_ty;
     signatures.iter().all(|sig| &sig.return_ty == ty).then(|| Ty::Val(ty.clone()))
 }

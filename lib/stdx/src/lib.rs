@@ -56,7 +56,7 @@ pub fn integration_test_dir(test: &str) -> PathBuf {
 }
 
 pub fn is_va_file(path: &Path) -> bool {
-    path.extension().and_then(|ext| ext.to_str()).map_or(false, |ext| ext == "va")
+    path.extension().and_then(|ext| ext.to_str()) == Some("va")
 }
 
 pub trait Upcast<T: ?Sized> {

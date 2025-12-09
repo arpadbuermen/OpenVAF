@@ -673,7 +673,7 @@ impl Arena {
     pub fn ctx_params(
         &self,
         ctx: CircuitParamCtx,
-    ) -> impl Iterator<Item = CircuitParam> + ExactSizeIterator {
+    ) -> impl ExactSizeIterator<Item = CircuitParam> {
         self.params[ctx].keys().map(move |param| CircuitParam { ctx, param })
     }
 }

@@ -376,11 +376,11 @@ where
     }
 }
 
-impl<T> ToString for BitSet<T>
+impl<T> std::fmt::Display for BitSet<T>
 where
     T: From<usize> + Into<usize> + Copy + PartialEq + Debug,
 {
-    fn to_string(&self) -> String {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
         let mut sep = '[';
 
@@ -411,7 +411,7 @@ where
         }
         result.push(']');
 
-        result
+        write!(f, "{}", result)
     }
 }
 
@@ -546,7 +546,7 @@ impl<T: From<usize> + Into<usize> + Copy + PartialEq + Debug> GrowableBitSet<T> 
 
 #[inline]
 fn num_words<T: Into<usize>>(domain_size: T) -> usize {
-    (domain_size.into() + WORD_BITS - 1) / WORD_BITS
+    domain_size.into().div_ceil(WORD_BITS)
 }
 
 #[inline]

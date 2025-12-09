@@ -75,7 +75,7 @@ impl EvalOutput {
                         kind,
                         ParamKind::Param { .. }
                             | ParamKind::ParamSysFun { .. }
-                            | ParamKind::Temperature { .. }
+                            | ParamKind::Temperature
                     ) {
                         return EvalOutput::Param(param);
                     }
@@ -242,9 +242,7 @@ impl<'ll> OsdiInstanceData<'ll> {
             .sys_fun_alias
             .keys()
             .map(|param| (OsdiInstanceParam::Builtin(*param), ty_f64));
-        let user_inst_params = module.info.params.iter().filter_map(|(param, info)| {
-            info.is_instance.then(|| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)))
-        });
+        let user_inst_params = module.info.params.iter().filter(|&(_, info)| info.is_instance).map(|(param, _)| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)));
         let mut params = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         params.extend(builtin_inst_params.chain(alias_inst_params).chain(user_inst_params));
 
@@ -470,7 +468,7 @@ impl<'ll> OsdiInstanceData<'ll> {
         &self,
         node: SimUnknown,
         reactive: bool,
-        target_data: &LLVMTargetDataRef,
+        target_data: LLVMTargetDataRef,
     ) -> Option<u32> {
         let residual = &self.residual[node];
         let slot = if reactive { &residual.react } else { &residual.resist };
@@ -480,7 +478,7 @@ impl<'ll> OsdiInstanceData<'ll> {
             + u32::from(slot.expand()?);
 
         let off =
-            unsafe { LLVMOffsetOfElement(*target_data, NonNull::from(self.ty).as_ptr(), elem) }
+            unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
                 as u32;
         Some(off)
     }
@@ -489,14 +487,14 @@ impl<'ll> OsdiInstanceData<'ll> {
         &self,
         node: SimUnknown,
         reactive: bool,
-        target_data: &LLVMTargetDataRef,
+        target_data: LLVMTargetDataRef,
     ) -> Option<u32> {
         let residual = &self.residual[node];
         let residual = if reactive { &residual.react_lim_rhs } else { &residual.resist_lim_rhs };
         let slot = residual.expand()?;
         let elem = self.eval_output_slot_elem(slot);
         let off =
-            unsafe { LLVMOffsetOfElement(*target_data, NonNull::from(self.ty).as_ptr(), elem) }
+            unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
                 as u32;
         Some(off)
     }
@@ -870,6 +868,7 @@ impl<'ll> OsdiInstanceData<'ll> {
     }
 
     // Adds Jacobian contribution to destination
+    #[allow(clippy::too_many_arguments)]
     pub unsafe fn store_jacobian_contrib(
         &self,
         cx: &CodegenCx<'_, 'll>,
@@ -1282,7 +1281,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     | ParamKind::Current(_)
                     | ParamKind::PortConnected { .. }
                     | ParamKind::ParamGiven { .. }
-                    | ParamKind::EnableIntegration { .. }
+                    | ParamKind::EnableIntegration
                     | ParamKind::Abstime
                     | ParamKind::EnableLim
                     | ParamKind::PrevState(_)

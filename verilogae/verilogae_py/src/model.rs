@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use core::ffi::CStr;
 use std::mem::take;
 use std::os::raw::c_long;
 use std::{ptr, slice};
@@ -33,9 +33,8 @@ use crate::util::{likely, unlikely};
 
 pub static mut VAE_MODEL_TY: PyTypeObject = {
     let mut res = new_type::<VaeModel>();
-    res.tp_name = "verilogae.VaeModel\0".as_ptr() as *const c_char;
-    res.tp_doc =
-        "A Verilog-A module compiled and loaded with Verilog-AE\0".as_ptr() as *const c_char;
+    res.tp_name = c"verilogae.VaeModel".as_ptr();
+    res.tp_doc = c"A Verilog-A module compiled and loaded with Verilog-AE".as_ptr();
     res.tp_members = std::ptr::addr_of_mut!(VAE_MODEL_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeModel::dealloc);
     res
@@ -43,39 +42,39 @@ pub static mut VAE_MODEL_TY: PyTypeObject = {
 
 static mut VAE_MODEL_MEMBERS: [PyMemberDef; 6] = [
     PyMemberDef {
-        name: "functions\0".as_ptr() as *mut c_char,
+        name: c"functions".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeModel::offset_to.functions as isize,
         flags: READONLY,
-        doc: "all functions defined within this module\0".as_ptr() as *mut c_char,
+        doc: c"all functions defined within this module".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "modelcard\0".as_ptr() as *mut c_char,
+        name: c"modelcard".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeModel::offset_to.modelcard as isize,
         flags: READONLY,
-        doc: "all parameters defined within this module\0".as_ptr() as *mut c_char,
+        doc: c"all parameters defined within this module".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "op_vars\0".as_ptr() as *mut c_char,
+        name: c"op_vars".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeModel::offset_to.op_vars as isize,
         flags: READONLY,
-        doc: "all variables marked with (*op_var*)\0".as_ptr() as *mut c_char,
+        doc: c"all variables marked with (*op_var*)".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "module_name\0".as_ptr() as *mut c_char,
+        name: c"module_name".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeModel::offset_to.module_name as isize,
         flags: READONLY,
-        doc: "the name of the compiled model\0".as_ptr() as *mut c_char,
+        doc: c"the name of the compiled model".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "nodes\0".as_ptr() as *mut c_char,
+        name: c"nodes".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeModel::offset_to.nodes as isize,
         flags: READONLY,
-        doc: "Verilog-A ports of the compiled module\0".as_ptr() as *mut c_char,
+        doc: c"Verilog-A ports of the compiled module".as_ptr() as *mut c_char,
     },
     unsafe { zero!(PyMemberDef) },
 ];
@@ -154,9 +153,9 @@ impl VaeModel {
 
 pub static mut VAE_PARAM_TY: PyTypeObject = {
     let mut res = new_type::<VaeParam>();
-    res.tp_name = "verilogae.VaeParam\0".as_ptr() as *const c_char;
-    res.tp_doc = "A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE\0"
-        .as_ptr() as *const c_char;
+    res.tp_name = c"verilogae.VaeParam".as_ptr();
+    res.tp_doc = c"A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE"
+        .as_ptr();
     res.tp_members = std::ptr::addr_of_mut!(VAE_PARAM_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeParam::dealloc);
     res
@@ -164,67 +163,67 @@ pub static mut VAE_PARAM_TY: PyTypeObject = {
 
 static mut VAE_PARAM_MEMBERS: [PyMemberDef; 10] = [
     PyMemberDef {
-        name: "name\0".as_ptr() as *mut c_char,
+        name: c"name".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeParam::offset_to.name as isize,
         flags: READONLY,
-        doc: "The name of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"The name of the parameter".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "default\0".as_ptr() as *mut c_char,
+        name: c"default".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeParam::offset_to.default as isize,
         flags: READONLY,
-        doc: "The default value of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"The default value of the parameter".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "min\0".as_ptr() as *mut c_char,
+        name: c"min".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.min as isize,
         flags: READONLY,
-        doc: "The lowest bounds of the patamer\0".as_ptr() as *mut c_char,
+        doc: c"The lowest bounds of the patamer".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "max\0".as_ptr() as *mut c_char,
+        name: c"max".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.max as isize,
         flags: READONLY,
-        doc: "The highest bound of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"The highest bound of the parameter".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "min_inclusive\0".as_ptr() as *mut c_char,
+        name: c"min_inclusive".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.min_inclusive as isize,
         flags: READONLY,
-        doc: "Whether the lowest bound is inclusive\0".as_ptr() as *mut c_char,
+        doc: c"Whether the lowest bound is inclusive".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "max_inclusive\0".as_ptr() as *mut c_char,
+        name: c"max_inclusive".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.max_inclusive as isize,
         flags: READONLY,
-        doc: "Whether the highest bound is inclusive\0".as_ptr() as *mut c_char,
+        doc: c"Whether the highest bound is inclusive".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "description\0".as_ptr() as *mut c_char,
+        name: c"description".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.description as isize,
         flags: READONLY,
-        doc: "Contents of the descr attribute of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"Contents of the descr attribute of the parameter".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "unit\0".as_ptr() as *mut c_char,
+        name: c"unit".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.unit as isize,
         flags: READONLY,
-        doc: "Contents of the units attribute of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"Contents of the units attribute of the parameter".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "group\0".as_ptr() as *mut c_char,
+        name: c"group".as_ptr() as *mut c_char,
         type_code: T_OBJECT_EX,
         offset: VaeParam::offset_to.group as isize,
         flags: READONLY,
-        doc: "Contents of the group attribute of the parameter\0".as_ptr() as *mut c_char,
+        doc: c"Contents of the group attribute of the parameter".as_ptr() as *mut c_char,
     },
     unsafe { zero!(PyMemberDef) },
 ];
@@ -468,9 +467,9 @@ impl VaeParam {
 
 pub static mut VAE_FUNCTION_TY: PyTypeObject = {
     let mut res = new_type::<VaeFun>();
-    res.tp_name = "verilogae.VaeFun\0".as_ptr() as *const c_char;
+    res.tp_name = c"verilogae.VaeFun".as_ptr();
     res.tp_doc =
-        "A function (compiled with VerilogAE) to calculate a Verilog-A variable marked with `retrieve`\0".as_ptr() as *const c_char;
+        c"A function (compiled with VerilogAE) to calculate a Verilog-A variable marked with `retrieve`".as_ptr();
     res.tp_members = std::ptr::addr_of_mut!(VAE_FUNCTION_MEMBERS) as *mut _;
     res.tp_methods = std::ptr::addr_of_mut!(VAE_FUNCTION_METHODS) as *mut _;
     res.tp_dealloc = Some(VaeFun::dealloc);
@@ -479,62 +478,52 @@ pub static mut VAE_FUNCTION_TY: PyTypeObject = {
 
 static mut VAE_FUNCTION_MEMBERS: [PyMemberDef; 6] = [
     PyMemberDef {
-        name: "name\0".as_ptr() as *mut c_char,
+        name: c"name".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeFun::offset_to.name as isize,
         flags: READONLY,
-        doc: "The name of the retrieved function".as_ptr() as *mut c_char,
+        doc: c"The name of the retrieved function".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "voltages\0".as_ptr() as *mut c_char,
+        name: c"voltages".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeFun::offset_to.voltages as isize,
         flags: READONLY,
-        doc: "The names of all voltages the function requires".as_ptr() as *mut c_char,
+        doc: c"The names of all voltages the function requires".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "currents\0".as_ptr() as *mut c_char,
+        name: c"currents".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeFun::offset_to.currents as isize,
         flags: READONLY,
-        doc: "The names of all currents the function requires".as_ptr() as *mut c_char,
+        doc: c"The names of all currents the function requires".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "parameters\0".as_ptr() as *mut c_char,
+        name: c"parameters".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeFun::offset_to.parameters as isize,
         flags: READONLY,
-        doc: "The names of all parameters the function requires".as_ptr() as *mut c_char,
+        doc: c"The names of all parameters the function requires".as_ptr() as *mut c_char,
     },
     PyMemberDef {
-        name: "depbreak\0".as_ptr() as *mut c_char,
+        name: c"depbreak".as_ptr() as *mut c_char,
         type_code: T_OBJECT,
         offset: VaeFun::offset_to.depbreak as isize,
         flags: READONLY,
-        doc: "The names of all variables the function requires for dependency breaking".as_ptr()
+        doc: c"The names of all variables the function requires for dependency breaking".as_ptr()
             as *mut c_char,
     },
     unsafe { zero!(PyMemberDef) },
 ];
 
-const EVAL_DOC: &str = "\0";
+const EVAL_DOC: &CStr = c"";
 
 static mut VAE_FUNCTION_METHODS: [PyMethodDef; 2] = [
-    // #[cfg(Py_3_8)]
-    // PyMethodDef {
-    //     ml_name: "eval\0".as_ptr() as *const c_char,
-    //     ml_meth: unsafe {
-    //         transmute::<_PyCFunctionFastWithKeywords, Option<PyCFunction>>(VaeFun::eval)
-    //     },
-    //     ml_flags: METH_FASTCALL | METH_KEYWORDS,
-    //     ml_doc: EVAL_DOC.as_ptr() as *const c_char,
-    // },
-    // #[cfg(not(Py_3_8))]
     PyMethodDef {
-        ml_name: "eval\0".as_ptr() as *const c_char,
+        ml_name: c"eval".as_ptr(),
         ml_meth: PyMethodDefPointer { PyCFunctionWithKeywords: VaeFun::eval },
         ml_flags: METH_VARARGS | METH_KEYWORDS,
-        ml_doc: EVAL_DOC.as_ptr() as *const c_char,
+        ml_doc: EVAL_DOC.as_ptr(),
     },
     unsafe { zero!(PyMethodDef) },
 ];
@@ -871,7 +860,6 @@ impl VaeFun {
         take(&mut self_.ffi_str_data);
     }
 
-    // #[cfg(not(Py_3_8))]
     unsafe extern "C" fn eval(
         self_: *mut PyObject,
         args: *mut PyObject,

@@ -1,7 +1,7 @@
 //! `LineIndex` maps flat `TextSize` offsets into `(Line, Column)`
 //! representation.
 //!
-use std::{iter, usize};
+use std::iter;
 
 use ahash::AHashMap as HashMap;
 use text_size::{TextRange, TextSize};

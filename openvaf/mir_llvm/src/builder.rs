@@ -3,10 +3,7 @@ use std::slice;
 
 use arrayvec::ArrayVec;
 use libc::c_uint;
-use llvm_sys::core::{
-    LLVMBuildExtractValue, LLVMBuildICmp, LLVMBuildLoad2, LLVMBuildStore, LLVMGetReturnType,
-    LLVMGetTypeKind, LLVMTypeOf,
-};
+use llvm_sys::core::LLVMBuildExtractValue;
 use mir::{
     Block, ControlFlowGraph, FuncRef, Function, Inst, Opcode, Param, PhiNode, Value, ValueDef,
     F_ZERO, ZERO,
@@ -560,7 +557,7 @@ impl<'ll> Builder<'_, '_, 'll> {
         self.select_bb(bb);
 
         for inst in self.func.layout.block_insts(bb) {
-            let fast_math = self.func.srclocs.get(inst).map_or(false, |loc| loc.0 < 0);
+            let fast_math = self.func.srclocs.get(inst).is_some_and(|loc| loc.0 < 0);
             self.build_inst(
                 inst,
                 if fast_math { FastMathMode::Partial } else { FastMathMode::Disabled },

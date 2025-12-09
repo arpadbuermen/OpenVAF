@@ -130,7 +130,7 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 }
             } else {
                 let ty = self.resolved_ty(expr);
-                let has_whitespace = fmt_lit.chars().last().map_or(false, |c| c.is_whitespace());
+                let has_whitespace = fmt_lit.chars().last().is_some_and(|c| c.is_whitespace());
                 if !has_whitespace {
                     fmt_lit.push(' ')
                 }

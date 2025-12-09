@@ -83,7 +83,7 @@ impl InstructionData {
     /// # Note
     ///
     /// It is up to the caller to ensure that uses are updates as appropriate
-    pub fn arguments_mut<'a>(&'a mut self, pool: &'a mut ValueListPool) -> &mut [Value] {
+    pub fn arguments_mut<'a>(&'a mut self, pool: &'a mut ValueListPool) -> &'a mut [Value] {
         match self {
             InstructionData::Unary { arg, .. } | InstructionData::Branch { cond: arg, .. } => {
                 core::slice::from_mut(arg)
@@ -93,14 +93,13 @@ impl InstructionData {
                 args.as_mut_slice(pool)
             }
 
-            InstructionData::Jump { .. } => &mut [],
-            InstructionData::Exit { .. } => &mut [],
+            InstructionData::Jump { .. } | InstructionData::Exit => &mut [],
         }
     }
 
     /// Get mutable references to the value arguments to this
     /// instruction.
-    pub fn arguments<'a>(&'a self, pool: &'a ValueListPool) -> &[Value] {
+    pub fn arguments<'a>(&'a self, pool: &'a ValueListPool) -> &'a [Value] {
         match self {
             InstructionData::Unary { arg, .. } | InstructionData::Branch { cond: arg, .. } => {
                 core::slice::from_ref(arg)
@@ -110,8 +109,7 @@ impl InstructionData {
                 args.as_slice(pool)
             }
 
-            InstructionData::Jump { .. } => &[],
-            InstructionData::Exit { .. } => &[],
+            InstructionData::Jump { .. } | InstructionData::Exit => &[],
         }
     }
 
@@ -123,7 +121,7 @@ impl InstructionData {
             InstructionData::Jump { .. } => Opcode::Jmp,
             InstructionData::PhiNode { .. } => Opcode::Phi,
             InstructionData::Branch { .. } => Opcode::Br,
-            InstructionData::Exit { .. } => Opcode::Exit,
+            InstructionData::Exit => Opcode::Exit,
         }
     }
 

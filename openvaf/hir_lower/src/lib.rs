@@ -395,6 +395,7 @@ impl HirInterner {
         *entry.or_insert_with(|| func.as_mut().dfg.make_param(len.into()))
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn live_params<'a>(
         &'a self,
         dfg: &'a DataFlowGraph,

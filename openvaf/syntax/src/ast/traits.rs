@@ -28,10 +28,10 @@ pub trait AttrsOwner: AstNode {
         attrs(self.syntax())
     }
     fn has_attr(&self, name: &str) -> bool {
-        self.attrs().any(|attr| attr.name().map_or(false, |n| n.text() == name))
+        self.attrs().any(|attr| attr.name().is_some_and(|n| n.text() == name))
     }
     fn get_attr(&self, name: &str) -> Option<ast::Attr> {
-        self.attrs().find(|attr| attr.name().map_or(false, |n| n.text() == name))
+        self.attrs().find(|attr| attr.name().is_some_and(|n| n.text() == name))
     }
 }
 

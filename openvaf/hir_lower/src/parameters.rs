@@ -1,4 +1,3 @@
-use std::f64::NEG_INFINITY;
 use std::mem::replace;
 
 use hir::{CompilationDB, ConstraintValue, ParamConstraint, Parameter, Type};
@@ -59,7 +58,7 @@ impl HirInterner {
     ) {
         let mut default_vals = if build_stores { vec![GRAVESTONE; params.len()] } else { vec![] };
 
-        let f_neg_inf = func.dfg.fconst(NEG_INFINITY.into());
+        let f_neg_inf = func.dfg.fconst(f64::NEG_INFINITY.into());
         let f_inf = INFINITY;
         let i_inf = func.dfg.iconst(i32::MAX);
         let i_neg_inf = func.dfg.iconst(i32::MIN);

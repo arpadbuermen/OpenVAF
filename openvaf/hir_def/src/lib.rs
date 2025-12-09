@@ -153,7 +153,7 @@ impl<N: ItemTreeNode> ItemLoc<N> {
 }
 
 #[allow(unknown_lints)]
-#[allow(clippy::incorrect_clone_impl_on_copy_type)]
+#[allow(clippy::non_canonical_clone_impl)]
 impl<N: ItemTreeNode> Clone for ItemLoc<N> {
     fn clone(&self) -> Self {
         Self { scope: self.scope, id: self.id }

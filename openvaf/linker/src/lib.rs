@@ -113,9 +113,9 @@ fn linker_with_args<'a>(
     cmd
 }
 
-//// The third parameter is for env vars, used on windows to set up the
-//// path for MSVC to find its DLLs, and gcc to find its bundled
-//// toolchain
+/// The third parameter is for env vars, used on windows to set up the
+/// path for MSVC to find its DLLs, and gcc to find its bundled
+/// toolchain
 fn get_linker<'a>(
     path: Option<PathBuf>,
     flavor: LinkerFlavor,

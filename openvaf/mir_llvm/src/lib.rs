@@ -1,3 +1,6 @@
+// Allow missing safety docs for LLVM FFI wrappers - these are thin wrappers around LLVM-C API
+#![allow(clippy::missing_safety_doc)]
+
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display, Formatter};
@@ -15,7 +18,7 @@ use llvm_sys::core::{LLVMCreateMessage, LLVMDisposeMessage};
 use llvm_sys::error::LLVMGetErrorMessage;
 use llvm_sys::transforms::pass_builder::*;
 
-pub const UNNAMED: *const c_char = b"\0".as_ptr() as *const c_char;
+pub const UNNAMED: *const c_char = c"".as_ptr();
 #[derive(Eq)]
 #[repr(transparent)]
 pub struct LLVMString {
