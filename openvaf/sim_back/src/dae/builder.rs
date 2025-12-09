@@ -1,6 +1,6 @@
 use bitset::BitSet;
 use hir::{BranchWrite, CompilationDB, Node, ParamSysFun};
-use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
+use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind, StateKey};
 use indexmap::IndexSet;
 use mir::builder::InstBuilder;
 use mir::cursor::{Cursor, FuncCursor};
@@ -224,46 +224,49 @@ impl<'a> Builder<'a> {
     ) {
         for residual in &mut self.system.residual {
             for (state, (unchanged, lim_vals)) in self.intern.lim_state.iter_enumerated() {
-                for &(val, neg) in lim_vals {
-                    let unknown = if let Some(unknown) = derivative_info.unknowns.index(&val) {
-                        unknown
-                    } else {
-                        continue;
-                    };
-                    let changed = HirInterner::ensure_param_(
-                        &mut self.intern.params,
-                        &mut self.cursor,
-                        ParamKind::NewState(state),
-                    );
+                // Handle limit states, ignore other simulator states
+                if let StateKey::Value(unchanged) = unchanged { 
+                    for &(val, neg) in lim_vals {
+                        let unknown = if let Some(unknown) = derivative_info.unknowns.index(&val) {
+                            unknown
+                        } else {
+                            continue;
+                        };
+                        let changed = HirInterner::ensure_param_(
+                            &mut self.intern.params,
+                            &mut self.cursor,
+                            ParamKind::NewState(state),
+                        );
 
-                    let delta = if neg {
-                        self.cursor.ins().fadd(changed, *unchanged)
-                    } else {
-                        self.cursor.ins().fsub(changed, *unchanged)
-                    };
-                    let mut add_lim_rhs = |dst, residual, residual_small_signal| {
-                        let mut ddx =
-                            derivatives.get(&(residual, unknown)).copied().unwrap_or(F_ZERO);
-                        let ddx_small_signal = derivatives
-                            .get(&(residual_small_signal, unknown))
-                            .copied()
-                            .unwrap_or(F_ZERO);
-                        add(&mut self.cursor, &mut ddx, ddx_small_signal, false);
-                        if ddx != F_ZERO && delta != F_ZERO {
-                            let rhs = self.cursor.ins().fmul(ddx, delta);
-                            add(&mut self.cursor, dst, rhs, false);
-                        }
-                    };
-                    add_lim_rhs(
-                        &mut residual.resist_lim_rhs,
-                        residual.resist,
-                        residual.resist_small_signal,
-                    );
-                    add_lim_rhs(
-                        &mut residual.react_lim_rhs,
-                        residual.react,
-                        residual.react_small_signal,
-                    );
+                        let delta = if neg {
+                            self.cursor.ins().fadd(changed, *unchanged)
+                        } else {
+                            self.cursor.ins().fsub(changed, *unchanged)
+                        };
+                        let mut add_lim_rhs = |dst, residual, residual_small_signal| {
+                            let mut ddx =
+                                derivatives.get(&(residual, unknown)).copied().unwrap_or(F_ZERO);
+                            let ddx_small_signal = derivatives
+                                .get(&(residual_small_signal, unknown))
+                                .copied()
+                                .unwrap_or(F_ZERO);
+                            add(&mut self.cursor, &mut ddx, ddx_small_signal, false);
+                            if ddx != F_ZERO && delta != F_ZERO {
+                                let rhs = self.cursor.ins().fmul(ddx, delta);
+                                add(&mut self.cursor, dst, rhs, false);
+                            }
+                        };
+                        add_lim_rhs(
+                            &mut residual.resist_lim_rhs,
+                            residual.resist,
+                            residual.resist_small_signal,
+                        );
+                        add_lim_rhs(
+                            &mut residual.react_lim_rhs,
+                            residual.react,
+                            residual.react_small_signal,
+                        );
+                    }
                 }
             }
         }
@@ -295,7 +298,7 @@ impl<'a> Builder<'a> {
                     return;
                 };
                 let (resist, react) = &mut dense_row[sim_unknown];
-                if let Some(lim_vals) = self.intern.lim_state.raw.get(&unknown) {
+                if let Some(lim_vals) = self.intern.lim_state.raw.get(&StateKey::Value(unknown)) {
                     for (val, negate_lim) in lim_vals {
                         let lim_unknown = if let Some(it) = derivative_info.unknowns.index(val) {
                             it

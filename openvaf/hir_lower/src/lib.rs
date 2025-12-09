@@ -21,6 +21,8 @@ use typed_indexmap::{map, TiMap, TiSet};
 use crate::body::BodyLoweringCtx;
 use crate::ctx::LoweringCtx;
 
+use std::fmt as stdfmt;
+
 macro_rules! match_signature {
     ($signature:ident: $($case:ident $(| $extra_case:ident)* => $res:expr),*) => {
         match $signature {
@@ -220,6 +222,40 @@ impl_debug_display! {
     match LimitState {LimitState(i) => "lim_state{}", i;}
 }
 
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum StateKey {
+    Value(Value), 
+    Inst(Inst)
+}
+impl stdfmt::Debug for StateKey {
+    fn fmt(&self, f: &mut stdfmt::Formatter<'_>) -> stdfmt::Result {
+        match self {
+            StateKey::Value(v) => write!(f, "simulator_state{{{:?}}}", v),
+            StateKey::Inst(i) => write!(f, "simulator_state{{{:?}}}", i),
+        }
+    }
+}
+
+impl stdfmt::Display for StateKey {
+    fn fmt(&self, f: &mut stdfmt::Formatter<'_>) -> stdfmt::Result {
+        // Same format as Debug — adjust if you want Display to differ
+        match self {
+            StateKey::Value(v) => write!(f, "simulator_state{{{:?}}}", v),
+            StateKey::Inst(i) => write!(f, "simulator_state{{{:?}}}", i),
+        }
+    }
+}
+impl From<Value> for StateKey {
+    fn from(v: Value) -> Self {
+        StateKey::Value(v)
+    }
+}
+impl From<Inst> for StateKey {
+    fn from(i: Inst) -> Self {
+        StateKey::Inst(i)
+    }
+}
+
 /// A mapping between abstractions used in the MIR and the corresponding
 /// information from the HIR. This allows the MIR to remain independent of the frontend/HIR
 #[derive(Debug, PartialEq, Clone)]
@@ -230,7 +266,8 @@ pub struct HirInterner {
     pub callback_uses: TiVec<FuncRef, Vec<Inst>>,
     pub tagged_reads: IndexMap<Value, Variable, BuildHasherDefault<FxHasher>>,
     pub implicit_equations: TiVec<ImplicitEquation, ImplicitEquationKind>,
-    pub lim_state: TiMap<LimitState, Value, Vec<(Value, bool)>>,
+    // pub lim_state: TiMap<LimitState, Value, Vec<(Value, bool)>>,
+    pub lim_state: TiMap<LimitState, StateKey, Vec<(Value, bool)>>,
 }
 
 pub type LiveParams<'a> = FilterMap<
@@ -320,39 +357,41 @@ impl HirInterner {
         }
 
         for (param, vals) in self.lim_state.iter() {
-            for &(val, neg) in vals {
-                let param = func.dfg.value_def(*param).unwrap_param();
+            // Handle limit states, ignore other simulator states
+            if let StateKey::Value(param) = param {                for &(val, neg) in vals {
+                    let param = func.dfg.value_def(*param).unwrap_param();
 
-                let mut required = Self::contains_ddx(
-                    &mut ddx_calls,
-                    func,
-                    &self.callbacks,
-                    &CallBackKind::Derivative(param),
-                    unknowns.len().into(),
-                    neg,
-                );
-
-                let mut node_required = |node, neg| {
-                    Self::contains_ddx(
+                    let mut required = Self::contains_ddx(
                         &mut ddx_calls,
                         func,
                         &self.callbacks,
-                        &CallBackKind::NodeDerivative(node),
+                        &CallBackKind::Derivative(param),
                         unknowns.len().into(),
                         neg,
-                    )
-                };
+                    );
 
-                match *self.params.get_index(param).unwrap().0 {
-                    ParamKind::Voltage { hi, lo: None } => required |= node_required(hi, neg),
-                    ParamKind::Voltage { hi, lo: Some(lo) } => {
-                        required |= node_required(hi, false) | node_required(lo, !neg);
+                    let mut node_required = |node, neg| {
+                        Self::contains_ddx(
+                            &mut ddx_calls,
+                            func,
+                            &self.callbacks,
+                            &CallBackKind::NodeDerivative(node),
+                            unknowns.len().into(),
+                            neg,
+                        )
+                    };
+
+                    match *self.params.get_index(param).unwrap().0 {
+                        ParamKind::Voltage { hi, lo: None } => required |= node_required(hi, neg),
+                        ParamKind::Voltage { hi, lo: Some(lo) } => {
+                            required |= node_required(hi, false) | node_required(lo, !neg);
+                        }
+                        _ => (),
+                    };
+
+                    if required | sim_derivatives {
+                        unknowns.insert(val);
                     }
-                    _ => (),
-                };
-
-                if required | sim_derivatives {
-                    unknowns.insert(val);
                 }
             }
         }

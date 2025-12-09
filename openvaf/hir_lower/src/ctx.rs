@@ -203,7 +203,7 @@ impl<'a, 'c> LoweringCtx<'a, 'c> {
             debug_assert_eq!(self.func.func.dfg.insts[inst].opcode(), Opcode::Fneg);
             unknown = self.func.func.dfg.instr_args(inst)[0];
         }
-        let dst = self.intern.lim_state.raw.entry(unknown);
+        let dst = self.intern.lim_state.raw.entry(unknown.into());
         let state = LimitState::from(dst.index());
         // value is a placeholder that will be populated by insert_limit
         dst.or_default().push((F_ZERO, probe != unknown));
