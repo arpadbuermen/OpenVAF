@@ -110,7 +110,6 @@ impl<'ll> CodegenCx<'_, 'll> {
     }
 
     pub fn local_callback_name(&self) -> String {
-        
         self.generate_local_symbol_name("cb")
     }
 }

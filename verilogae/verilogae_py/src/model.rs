@@ -154,8 +154,8 @@ impl VaeModel {
 pub static mut VAE_PARAM_TY: PyTypeObject = {
     let mut res = new_type::<VaeParam>();
     res.tp_name = c"verilogae.VaeParam".as_ptr();
-    res.tp_doc = c"A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE"
-        .as_ptr();
+    res.tp_doc =
+        c"A parameter belonging to Verilog-A module compiled and loaded with Verilog-AE".as_ptr();
     res.tp_members = std::ptr::addr_of_mut!(VAE_PARAM_MEMBERS) as *mut _;
     res.tp_dealloc = Some(VaeParam::dealloc);
     res

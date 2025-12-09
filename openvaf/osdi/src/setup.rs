@@ -193,9 +193,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let exit_bb = *postorder
             .iter()
             .find(|bb| {
-                func.layout
-                    .last_inst(**bb)
-                    .is_none_or(|term| !func.dfg.insts[term].is_terminator())
+                func.layout.last_inst(**bb).is_none_or(|term| !func.dfg.insts[term].is_terminator())
             })
             .unwrap();
 

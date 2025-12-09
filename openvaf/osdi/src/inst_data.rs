@@ -242,7 +242,12 @@ impl<'ll> OsdiInstanceData<'ll> {
             .sys_fun_alias
             .keys()
             .map(|param| (OsdiInstanceParam::Builtin(*param), ty_f64));
-        let user_inst_params = module.info.params.iter().filter(|&(_, info)| info.is_instance).map(|(param, _)| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)));
+        let user_inst_params = module
+            .info
+            .params
+            .iter()
+            .filter(|&(_, info)| info.is_instance)
+            .map(|(param, _)| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)));
         let mut params = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         params.extend(builtin_inst_params.chain(alias_inst_params).chain(user_inst_params));
 
@@ -477,9 +482,8 @@ impl<'ll> OsdiInstanceData<'ll> {
             + self.cache_slots.len() as u32
             + u32::from(slot.expand()?);
 
-        let off =
-            unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
-                as u32;
+        let off = unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
+            as u32;
         Some(off)
     }
 
@@ -493,9 +497,8 @@ impl<'ll> OsdiInstanceData<'ll> {
         let residual = if reactive { &residual.react_lim_rhs } else { &residual.resist_lim_rhs };
         let slot = residual.expand()?;
         let elem = self.eval_output_slot_elem(slot);
-        let off =
-            unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
-                as u32;
+        let off = unsafe { LLVMOffsetOfElement(target_data, NonNull::from(self.ty).as_ptr(), elem) }
+            as u32;
         Some(off)
     }
 

@@ -1085,9 +1085,8 @@ impl Ctx<'_> {
                 if candidates.len() > 1 {
                     new_candidates.clone_from(&candidates);
                     candidates.retain(|candidate| {
-                        zip(&arg_types, signatures[*candidate].args.as_ref()).all(|(ty, req)| {
-                            ty.as_ref().is_some_and(|ty| ty.satisfies_exact(req))
-                        })
+                        zip(&arg_types, signatures[*candidate].args.as_ref())
+                            .all(|(ty, req)| ty.as_ref().is_some_and(|ty| ty.satisfies_exact(req)))
                     });
                     if candidates.is_empty() {
                         candidates = new_candidates;
