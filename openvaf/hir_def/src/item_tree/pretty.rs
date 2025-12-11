@@ -124,6 +124,17 @@ impl<'a> Printer<'a> {
                     let param = &self.tree[param];
                     wln!(self, "aliasparam {} = {:?}", param.name, param.src);
                 }
+                ModuleItem::ModuleInst(inst) => {
+                    let inst = &self.tree[inst];
+                    wln!(
+                        self,
+                        "module_inst {} {} #({:?}) ({:?})",
+                        inst.module_name,
+                        inst.name,
+                        inst.param_assignments,
+                        inst.port_connections
+                    );
+                }
             }
         }
     }

@@ -2,14 +2,16 @@ use std::mem;
 
 use basedb::lints::LintRegistry;
 use basedb::{AstIdMap, ErasedAstId, LintAttrs};
-use syntax::ast::{self, ArgListOwner, AttrIter, AttrsOwner, FunctionRef};
-use syntax::name::AsName;
-use syntax::AstPtr;
+use syntax::ast::{self, ArgListOwner, AssignOp, AttrIter, AttrsOwner, BinaryOp, FunctionRef};
+use syntax::name::{AsName, Name};
+use syntax::{AstNode, AstPtr};
 
 // use tracing::debug;
 use super::{Body, BodySourceMap};
+use crate::builtin::BuiltInPrimitive;
 use crate::db::HirDefDB;
 use crate::expr::{CaseCond, Event, GlobalEvent};
+use crate::item_tree::{ItemTree, Module, ModuleInstItem, ModuleItem};
 use crate::nameres::DefMapSource;
 use crate::{BlockLoc, Case, Expr, ExprId, Intern, Literal, Path, ScopeId, Stmt, StmtId};
 
@@ -270,6 +272,188 @@ impl LowerCtx<'_> {
         debug_assert_eq!(id2, id3);
         self.source_map.stmt_map_back.insert(id, src);
         id
+    }
+
+    // ============================================================================
+    // Primitive module instance lowering
+    // ============================================================================
+
+    /// Lower primitive module instances to synthetic contribution statements.
+    /// Called during module body lowering to transform instances like:
+    ///   resistor #(.r(R)) r1 (a, b)  ->  I(a,b) <+ V(a,b) / R
+    pub fn lower_primitive_instances(
+        &mut self,
+        module: &Module,
+        tree: &ItemTree,
+    ) -> Vec<StmtId> {
+        let mut stmts = Vec::new();
+
+        for item in &module.items {
+            if let ModuleItem::ModuleInst(inst_id) = item {
+                let inst = &tree.data.module_insts[*inst_id];
+
+                if let Some(primitive) = BuiltInPrimitive::from_name(&inst.module_name) {
+                    if let Some(stmt) = self.lower_primitive_instance(primitive, inst) {
+                        stmts.push(stmt);
+                    }
+                }
+            }
+        }
+        stmts
+    }
+
+    /// Lower a single primitive instance to a contribution statement
+    fn lower_primitive_instance(
+        &mut self,
+        primitive: BuiltInPrimitive,
+        inst: &ModuleInstItem,
+    ) -> Option<StmtId> {
+        // Validate: must have exactly 2 ports
+        if inst.port_connections.len() != 2 {
+            return None;
+        }
+
+        // Get parameter value expression AstPtr
+        let param_name = primitive.param_name();
+        let param_expr_ptr = inst
+            .param_assignments
+            .iter()
+            .find(|(name, _)| &**name == param_name)
+            .map(|(_, expr_ptr)| expr_ptr.clone())?;
+
+        // Get the syntax tree to resolve the AstPtr
+        let root_file = self.curr_scope.0.root_file;
+        let syntax_tree = self.db.parse(root_file).tree();
+
+        // Collect the parameter expression from AST
+        let param_ast = param_expr_ptr.to_node(syntax_tree.syntax());
+        let param_expr = self.collect_expr(param_ast);
+
+        let hi = &inst.port_connections[0];
+        let lo = &inst.port_connections[1];
+
+        match primitive {
+            BuiltInPrimitive::Resistor => self.create_resistor_contribution(hi, lo, param_expr),
+            BuiltInPrimitive::Capacitor => self.create_capacitor_contribution(hi, lo, param_expr),
+            BuiltInPrimitive::Inductor => self.create_inductor_contribution(hi, lo, param_expr),
+        }
+    }
+
+    /// Create: I(hi, lo) <+ V(hi, lo) / R
+    fn create_resistor_contribution(
+        &mut self,
+        hi: &Name,
+        lo: &Name,
+        r_expr: ExprId,
+    ) -> Option<StmtId> {
+        // Create V(hi, lo) branch access
+        let v_access = self.create_branch_access(Name::new_inline("V"), hi, lo);
+
+        // Create V(hi,lo) / R
+        let div_expr = self.alloc_expr_desugared(Expr::BinaryOp {
+            lhs: v_access,
+            rhs: r_expr,
+            op: Some(BinaryOp::Division),
+        });
+
+        // Create I(hi, lo) branch access
+        let i_access = self.create_branch_access(Name::new_inline("I"), hi, lo);
+
+        // Create contribution statement: I(hi,lo) <+ V(hi,lo) / R
+        Some(self.alloc_stmt_desugared(Stmt::Assignment {
+            dst: i_access,
+            val: div_expr,
+            assignment_kind: AssignOp::Contribute,
+        }))
+    }
+
+    /// Create: I(hi, lo) <+ ddt(C * V(hi, lo))
+    fn create_capacitor_contribution(
+        &mut self,
+        hi: &Name,
+        lo: &Name,
+        c_expr: ExprId,
+    ) -> Option<StmtId> {
+        // Create V(hi, lo) branch access
+        let v_access = self.create_branch_access(Name::new_inline("V"), hi, lo);
+
+        // Create C * V(hi,lo)
+        let mul_expr = self.alloc_expr_desugared(Expr::BinaryOp {
+            lhs: c_expr,
+            rhs: v_access,
+            op: Some(BinaryOp::Multiplication),
+        });
+
+        // Create ddt(C * V(hi,lo))
+        let ddt_expr = self.create_ddt_call(mul_expr);
+
+        // Create I(hi, lo) branch access
+        let i_access = self.create_branch_access(Name::new_inline("I"), hi, lo);
+
+        // Create contribution statement: I(hi,lo) <+ ddt(C * V(hi,lo))
+        Some(self.alloc_stmt_desugared(Stmt::Assignment {
+            dst: i_access,
+            val: ddt_expr,
+            assignment_kind: AssignOp::Contribute,
+        }))
+    }
+
+    /// Create: V(hi, lo) <+ ddt(L * I(hi, lo))
+    fn create_inductor_contribution(
+        &mut self,
+        hi: &Name,
+        lo: &Name,
+        l_expr: ExprId,
+    ) -> Option<StmtId> {
+        // Create I(hi, lo) branch access
+        let i_access = self.create_branch_access(Name::new_inline("I"), hi, lo);
+
+        // Create L * I(hi,lo)
+        let mul_expr = self.alloc_expr_desugared(Expr::BinaryOp {
+            lhs: l_expr,
+            rhs: i_access,
+            op: Some(BinaryOp::Multiplication),
+        });
+
+        // Create ddt(L * I(hi,lo))
+        let ddt_expr = self.create_ddt_call(mul_expr);
+
+        // Create V(hi, lo) branch access
+        let v_access = self.create_branch_access(Name::new_inline("V"), hi, lo);
+
+        // Create contribution statement: V(hi,lo) <+ ddt(L * I(hi,lo))
+        Some(self.alloc_stmt_desugared(Stmt::Assignment {
+            dst: v_access,
+            val: ddt_expr,
+            assignment_kind: AssignOp::Contribute,
+        }))
+    }
+
+    /// Create a branch access expression like V(hi, lo) or I(hi, lo)
+    fn create_branch_access(&mut self, nature: Name, hi: &Name, lo: &Name) -> ExprId {
+        // Create path expressions for the nodes
+        let hi_path = self.alloc_expr_desugared(Expr::Path {
+            path: Path::new_ident(hi.clone()),
+            port: false,
+        });
+        let lo_path = self.alloc_expr_desugared(Expr::Path {
+            path: Path::new_ident(lo.clone()),
+            port: false,
+        });
+
+        // Create the function call: V(hi, lo) or I(hi, lo)
+        self.alloc_expr_desugared(Expr::Call {
+            fun: Some(Path::new_ident(nature)),
+            args: vec![hi_path, lo_path],
+        })
+    }
+
+    /// Create a ddt() function call
+    fn create_ddt_call(&mut self, arg: ExprId) -> ExprId {
+        self.alloc_expr_desugared(Expr::Call {
+            fun: Some(Path::new_ident(Name::new_inline("ddt"))),
+            args: vec![arg],
+        })
     }
 }
 

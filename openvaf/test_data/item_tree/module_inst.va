@@ -1,0 +1,15 @@
+// Test module instantiation parsing
+module test(a, b);
+    electrical a, b, mid;
+    inout a, b;
+
+    parameter real r1 = 100.0;
+    parameter real r2 = 200.0;
+
+    // Module instantiation with parameter override
+    resistor #(.r(r1)) inst1 (a, mid);
+
+    // Module instantiation with multiple parameters
+    resistor #(.r(r2)) inst2 (mid, b);
+
+endmodule

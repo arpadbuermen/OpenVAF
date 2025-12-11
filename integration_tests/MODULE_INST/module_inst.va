@@ -1,0 +1,35 @@
+// Test module instantiation syntax support
+// This tests hierarchical module instantiation with parameter overrides
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+// Simple resistor module that can be instantiated
+module resistor(p, n);
+    inout p, n;
+    electrical p, n;
+    parameter real r = 1.0 from (0:inf);
+
+    analog begin
+        I(p, n) <+ V(p, n) / r;
+    end
+endmodule
+
+// Module that instantiates resistors
+module module_inst(d, s);
+    inout d, s;
+    electrical d, s, mid;
+
+    parameter real rwire = 1e-3 from (0:inf);
+    parameter real rload = 1e3 from (0:inf);
+
+    // Module instantiation with parameter override
+    resistor #(.r(rwire)) r_wire (d, mid);
+    resistor #(.r(rload)) r_load (mid, s);
+
+    // Additional behavior
+    analog begin
+        // Add small leakage current
+        I(d, s) <+ V(d, s) * 1e-12;
+    end
+endmodule

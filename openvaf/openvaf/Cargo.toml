@@ -4,6 +4,7 @@ version = "0.1.2"
 authors = ["DSPOM"]
 edition = "2021"
 license = "GPL-3.0"
+readme = "README.md"
 
 [lib]
 doctest = false
