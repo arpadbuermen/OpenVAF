@@ -646,11 +646,8 @@ impl Ctx {
                     .filter_map(|pc| {
                         // For named connections: .port(expr) - use the connection expr
                         // For positional connections: just expr - use the expr
-                        let expr = if pc.dot_token().is_some() {
-                            pc.connection()
-                        } else {
-                            pc.expr()
-                        };
+                        let expr =
+                            if pc.dot_token().is_some() { pc.connection() } else { pc.expr() };
                         expr.and_then(|e| e.as_ident())
                     })
                     .collect()

@@ -27,8 +27,8 @@ use basedb::{AstId, ErasedAstId, FileId};
 use stdx::impl_from_typed;
 use syntax::ast::{self, BlockStmt, NameRef};
 use syntax::name::Name;
-use syntax::{AstNode, AstPtr};
 use syntax::ConstExprValue;
+use syntax::{AstNode, AstPtr};
 use typed_index_collections::TiVec;
 
 use crate::db::HirDefDB;

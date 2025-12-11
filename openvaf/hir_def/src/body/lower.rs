@@ -281,11 +281,7 @@ impl LowerCtx<'_> {
     /// Lower primitive module instances to synthetic contribution statements.
     /// Called during module body lowering to transform instances like:
     ///   resistor #(.r(R)) r1 (a, b)  ->  I(a,b) <+ V(a,b) / R
-    pub fn lower_primitive_instances(
-        &mut self,
-        module: &Module,
-        tree: &ItemTree,
-    ) -> Vec<StmtId> {
+    pub fn lower_primitive_instances(&mut self, module: &Module, tree: &ItemTree) -> Vec<StmtId> {
         let mut stmts = Vec::new();
 
         for item in &module.items {
@@ -432,14 +428,10 @@ impl LowerCtx<'_> {
     /// Create a branch access expression like V(hi, lo) or I(hi, lo)
     fn create_branch_access(&mut self, nature: Name, hi: &Name, lo: &Name) -> ExprId {
         // Create path expressions for the nodes
-        let hi_path = self.alloc_expr_desugared(Expr::Path {
-            path: Path::new_ident(hi.clone()),
-            port: false,
-        });
-        let lo_path = self.alloc_expr_desugared(Expr::Path {
-            path: Path::new_ident(lo.clone()),
-            port: false,
-        });
+        let hi_path = self
+            .alloc_expr_desugared(Expr::Path { path: Path::new_ident(hi.clone()), port: false });
+        let lo_path = self
+            .alloc_expr_desugared(Expr::Path { path: Path::new_ident(lo.clone()), port: false });
 
         // Create the function call: V(hi, lo) or I(hi, lo)
         self.alloc_expr_desugared(Expr::Call {
