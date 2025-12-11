@@ -115,7 +115,7 @@ ninja
 ninja install 
 ```
 
-Add the LLVM binary directory (`LLVM_install_directory\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `LLVM_install_directory`.
+Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `<LLVM install directory>`.
 
 Restart command prompt. Now you are good to go.
 
@@ -206,10 +206,15 @@ RUN_SLOW_TESTS=1 cargo test
 
 ## Integration Tests
 
+By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g.
+
+    RUN_SLOW_TESTS=1 cargo test
+
+## Integration Tests
+
 Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM, etc.) and verify the generated OSDI libraries. These tests are disabled by default but can be enabled with:
-```bash
-RUN_DEV_TESTS=1 cargo test --release --test integration
-```
+
+    RUN_DEV_TESTS=1 cargo test --release --test integration
 
 On macOS with LLVM 18, all integration tests should pass.
 

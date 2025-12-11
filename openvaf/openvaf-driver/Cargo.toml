@@ -5,6 +5,9 @@ authors = ["DSPOM"]
 edition = "2021"
 license = "GPL-3.0"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("nightly"))'] }
+
 [[bin]]
 name = "openvaf-r"
 path = "src/main.rs"

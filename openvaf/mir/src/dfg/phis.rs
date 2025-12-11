@@ -69,7 +69,7 @@ impl DataFlowGraph {
         }
     }
 
-    pub fn phi_edges(&self, phi: &PhiNode) -> PhiEdges {
+    pub fn phi_edges(&self, phi: &PhiNode) -> PhiEdges<'_> {
         phi.edges(&self.insts.value_lists, &self.phi_forest)
     }
 

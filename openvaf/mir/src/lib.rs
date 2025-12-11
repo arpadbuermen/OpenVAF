@@ -127,7 +127,7 @@ impl Function {
         res
     }
 
-    pub fn print<'a>(&'a self, resolver: &'a dyn lasso::Resolver) -> PrintableFunction {
+    pub fn print<'a>(&'a self, resolver: &'a dyn lasso::Resolver) -> PrintableFunction<'a> {
         PrintableFunction { fun: self, resolver }
     }
 

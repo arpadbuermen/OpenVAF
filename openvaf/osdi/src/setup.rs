@@ -7,77 +7,11 @@ use llvm_sys::core::{
 };
 use llvm_sys::LLVMIntPredicate::LLVMIntSLT;
 use mir::ControlFlowGraph;
-use mir_llvm::{
-    Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder, UNNAMED,
-};
+use mir_llvm::{Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, UNNAMED};
 use sim_back::SimUnknownKind;
 
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
 use crate::inst_data::OsdiInstanceParam;
-
-struct VoidAbortCallback;
-
-impl<'ll> InlineCallbackBuilder<'ll> for VoidAbortCallback {
-    fn build_inline(
-        &self,
-        builder: &Builder<'_, '_, 'll>, // Keep as &Builder (immutable reference)
-        state: &Box<[&'ll llvm_sys::LLVMValue]>,
-    ) -> &'ll llvm_sys::LLVMValue {
-        let cx = builder.cx; // cx is immutable and safe to access
-        unsafe {
-            // Cast &Builder to *mut Builder to allow field access
-            let builder_ptr = builder as *const Builder<'_, '_, 'll> as *mut Builder<'_, '_, 'll>;
-
-            // Access llbuilder field and cast to *mut LLVMBuilder
-            let llbuilder = (*builder_ptr).llbuilder as *mut llvm_sys::LLVMBuilder;
-
-            // state[0] .. ret_flags value
-            // state[1] .. pointer where to store it at exit
-            // state[2] .. llfunc prototype
-
-            // Store ret_flags in flags field
-            let ret_flags = builder.load(cx.ty_int(), state[0]);
-            builder.store(state[1], ret_flags);
-
-            // Create return and continue blocks
-            let ret_block = LLVMAppendBasicBlockInContext(
-                NonNull::from(cx.llcx).as_ptr(),
-                NonNull::from(state[2]).as_ptr(),
-                UNNAMED,
-            );
-            let cont_block = LLVMAppendBasicBlockInContext(
-                NonNull::from(cx.llcx).as_ptr(),
-                NonNull::from(state[2]).as_ptr(),
-                UNNAMED,
-            );
-
-            // Branch always to return block
-            let cond = cx.const_bool(true);
-            LLVMBuildCondBr(
-                llbuilder, // Use the raw pointer directly
-                NonNull::from(cond).as_ptr(),
-                ret_block,
-                cont_block,
-            );
-
-            // Add ret_void to return block
-            LLVMPositionBuilderAtEnd(llbuilder, ret_block);
-            LLVMBuildRetVoid(llbuilder); // Use raw LLVM function instead of builder.ret_void()
-
-            // Position builder at start of continue block (will be discarded after optimization)
-            LLVMPositionBuilderAtEnd(llbuilder, cont_block);
-        }
-        cx.const_int(0)
-    }
-
-    fn return_type(
-        &self,
-        builder: &Builder<'_, '_, 'll>,
-        _state: &Box<[&'ll llvm_sys::LLVMValue]>,
-    ) -> &'ll llvm_sys::LLVMType {
-        builder.cx.ty_int()
-    }
-}
 
 impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
     fn mark_collapsed(&self) -> (&'ll llvm_sys::LLVMValue, &'ll llvm_sys::LLVMType) {

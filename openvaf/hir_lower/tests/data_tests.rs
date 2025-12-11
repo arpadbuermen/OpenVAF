@@ -2,7 +2,7 @@ use std::path::Path;
 
 use basedb::AbsPathBuf;
 use expect_test::expect_file;
-use hir::CompilationDB;
+use hir::{CompilationDB, CompilationOpts};
 use hir_lower::{MirBuilder, PlaceKind};
 use lasso::Rodeo;
 use mini_harness::{harness, Result};
@@ -29,14 +29,27 @@ fn lower(db: &CompilationDB) {
 fn integration_test(dir: &Path) -> Result {
     let name = dir.file_name().unwrap().to_str().unwrap().to_lowercase();
     let main_file = dir.join(format!("{name}.va")).canonicalize().unwrap();
-    let db = CompilationDB::new_fs(AbsPathBuf::assert(main_file), &[], &[], &[]).unwrap();
+    let db = CompilationDB::new_fs(
+        AbsPathBuf::assert(main_file),
+        &[],
+        &[],
+        &[],
+        &CompilationOpts::default(),
+    )
+    .unwrap();
     lower(&db);
     Ok(())
 }
 
 fn mir_test(file: &Path) -> Result {
-    let db = CompilationDB::new_fs(AbsPathBuf::assert(file.canonicalize().unwrap()), &[], &[], &[])
-        .unwrap();
+    let db = CompilationDB::new_fs(
+        AbsPathBuf::assert(file.canonicalize().unwrap()),
+        &[],
+        &[],
+        &[],
+        &CompilationOpts::default(),
+    )
+    .unwrap();
     assert_eq!(db.compilation_unit().test_diagnostics(&db), "");
 
     let module = db.compilation_unit().modules(&db)[0];

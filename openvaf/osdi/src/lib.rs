@@ -9,7 +9,6 @@ use rustc_hash::FxHasher;
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
-use hir_def::db::HirDefDB;
 use hir_lower::{CallBackKind, HirInterner, ParamKind};
 use lasso::Rodeo;
 use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
