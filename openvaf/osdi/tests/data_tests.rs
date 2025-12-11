@@ -2,10 +2,9 @@ use std::path::Path;
 
 use camino::Utf8Path;
 use hir::diagnostics::ConsoleSink;
-use hir::{CompilationDB, CompilationOpts};
-use llvm_sys::target_machine::LLVMCodeGenOptLevel;
+use hir::CompilationDB;
 use mini_harness::{harness, Result};
-use mir_llvm::LLVMBackend;
+use mir_llvm::{LLVMBackend, LLVMCodeGenOptLevel};
 use paths::AbsPathBuf;
 use sim_back::collect_modules;
 use stdx::{ignore_slow_tests, project_root};

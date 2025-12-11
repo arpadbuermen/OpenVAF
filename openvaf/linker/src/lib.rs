@@ -11,6 +11,16 @@ use camino::{Utf8Path, Utf8PathBuf};
 use cc::windows_registry;
 use target::spec::{LinkerFlavor, Target};
 
+/// Get the LLVM prefix from environment variables.
+/// Checks in order: LLVM 21.1, 20.1, 19.1, 18.1 (newest first).
+fn get_llvm_prefix() -> Option<String> {
+    env::var("LLVM_SYS_211_PREFIX")
+        .or_else(|_| env::var("LLVM_SYS_201_PREFIX"))
+        .or_else(|_| env::var("LLVM_SYS_191_PREFIX"))
+        .or_else(|_| env::var("LLVM_SYS_181_PREFIX"))
+        .ok()
+}
+
 pub fn link(
     path: Option<Utf8PathBuf>,
     target: &Target,
@@ -89,7 +99,7 @@ fn linker_with_args<'a>(
 
     // When using ld64.lld on macOS, we need to add the SDK sysroot
     if flavor == LinkerFlavor::Ld64 && target.options.is_like_osx {
-        if let Ok(llvm_prefix) = env::var("LLVM_SYS_181_PREFIX") {
+        if let Some(llvm_prefix) = get_llvm_prefix() {
             let llvm_lld = PathBuf::from(llvm_prefix).join("bin/ld64.lld");
             if llvm_lld.exists() {
                 // Detect SDK path using xcrun
@@ -169,7 +179,7 @@ fn get_linker<'a>(
                     "gcc".into()
                 } else if flavor == LinkerFlavor::Ld64 {
                     // For macOS, prefer LLVM's ld64.lld if available
-                    if let Ok(llvm_prefix) = env::var("LLVM_SYS_181_PREFIX") {
+                    if let Some(llvm_prefix) = get_llvm_prefix() {
                         let llvm_lld = PathBuf::from(llvm_prefix).join("bin/ld64.lld");
                         if llvm_lld.exists() {
                             return llvm_lld;

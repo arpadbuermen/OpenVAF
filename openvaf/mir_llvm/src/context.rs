@@ -4,7 +4,9 @@ use std::ptr::NonNull;
 
 use ahash::AHashMap;
 use lasso::{Rodeo, Spur};
-use libc::{c_char, c_uint};
+use libc::c_char;
+#[cfg(feature = "llvm18")]
+use libc::c_uint;
 use llvm_sys::bit_reader::LLVMParseBitcodeInContext2;
 //use llvm_sys::LLVMBool; // For False, if applicable
 use llvm_sys::core::{LLVMCreateMemoryBufferWithMemoryRange, LLVMGetNamedFunction};
@@ -107,11 +109,22 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
 
         // assert!(!val.contains(&b'\0'));
         // val.push(b'\0');
+        // LLVM 18 uses LLVMConstStringInContext, LLVM 19+ uses LLVMConstStringInContext2
+        #[cfg(feature = "llvm18")]
         let val = unsafe {
             llvm_sys::core::LLVMConstStringInContext(
                 NonNull::from(self.llcx).as_ptr(),
                 val.as_ptr() as *const c_char,
                 val.len() as c_uint,
+                0,
+            )
+        };
+        #[cfg(any(feature = "llvm19", feature = "llvm20", feature = "llvm21"))]
+        let val = unsafe {
+            llvm_sys::core::LLVMConstStringInContext2(
+                NonNull::from(self.llcx).as_ptr(),
+                val.as_ptr() as *const c_char,
+                val.len(),
                 0,
             )
         };

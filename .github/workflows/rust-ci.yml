@@ -7,6 +7,7 @@ on:
       - main
       - llvm18
       - branches/macos-patches-v3
+      - llvm21
   pull_request:
     branches:
       - '**'
@@ -48,6 +49,18 @@ jobs:
       run: cargo machete
 
   ubuntu-build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # LLVM 18 - Ubuntu Noble system package
+          - llvm_version: "18"
+            llvm_env_var: "LLVM_SYS_181_PREFIX"
+            cargo_features: "--no-default-features --features llvm18"
+          # LLVM 21 - Latest from apt.llvm.org
+          - llvm_version: "21"
+            llvm_env_var: "LLVM_SYS_211_PREFIX"
+            cargo_features: "--no-default-features --features llvm21"
     runs-on: ubuntu-latest
     needs: [format, machete]
     steps:
@@ -83,32 +96,41 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-${{runner.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-${{runner.arch}}-cargo-
+        key: ${{ runner.os }}-${{runner.arch}}-llvm${{ matrix.llvm_version }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{runner.arch}}-llvm${{ matrix.llvm_version }}-cargo-
 
-    - name: Install LLVM 18 and Windows cross-compilation tools
+    - name: Install LLVM ${{ matrix.llvm_version }} and Windows cross-compilation tools
       run: |
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh 18
-        sudo apt-get install -y llvm-18 llvm-18-dev libclang-18-dev
-        
+        sudo ./llvm.sh ${{ matrix.llvm_version }}
+        sudo apt-get install -y llvm-${{ matrix.llvm_version }} llvm-${{ matrix.llvm_version }}-dev libclang-${{ matrix.llvm_version }}-dev
+
         # Install llvm-lib for Windows cross-compilation
         sudo apt-get install -y mingw-w64
-        
+
         # Create symlink for llvm-lib
-        sudo ln -s /usr/bin/llvm-ar-18 /usr/local/bin/llvm-lib
-        
+        sudo ln -sf /usr/bin/llvm-ar-${{ matrix.llvm_version }} /usr/local/bin/llvm-lib
+
         # Verify installation
         which llvm-lib
         llvm-lib --version
 
     - name: Set LLVM environment variables
       run: |
-        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> $GITHUB_ENV
-        echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang" >> $GITHUB_ENV
-        echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> $GITHUB_ENV
+        # Set LLVM prefix for llvm-sys crate
+        echo "${{ matrix.llvm_env_var }}=/usr/lib/llvm-${{ matrix.llvm_version }}" >> $GITHUB_ENV
+
+        # llvm-sys needs llvm-config to be findable - create symlink in the LLVM bin dir if not already present
+        sudo mkdir -p /usr/lib/llvm-${{ matrix.llvm_version }}/bin
+        sudo ln -sf /usr/bin/llvm-config-${{ matrix.llvm_version }} /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config || true
+
+        echo "CLANG_PATH=/usr/lib/llvm-${{ matrix.llvm_version }}/bin/clang" >> $GITHUB_ENV
+        echo "PATH=/usr/lib/llvm-${{ matrix.llvm_version }}/bin:$PATH" >> $GITHUB_ENV
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
+
+        # Verify llvm-config is accessible
+        /usr/lib/llvm-${{ matrix.llvm_version }}/bin/llvm-config --version
 
     - name: Install build dependencies
       run: |
@@ -116,7 +138,13 @@ jobs:
         sudo apt-get install -y build-essential
 
     - name: Build
-      run: cargo build --release
+      run: |
+        # Build specific packages to avoid workspace feature unification issues
+        # that cause multiple llvm-sys versions to be compiled
+        cargo build --release --package openvaf-driver ${{ matrix.cargo_features }}
+        cargo build --release --package openvaf ${{ matrix.cargo_features }}
+        cargo build --release --package osdi ${{ matrix.cargo_features }}
+        cargo build --release --package mir_llvm ${{ matrix.cargo_features }}
 
     - name: Show sccache stats
       if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
@@ -127,10 +155,15 @@ jobs:
     #   run: cargo clippy -- -D warnings
 
     - name: Run tests
-      run: cargo test --release
+      run: |
+        # Run tests for specific packages to avoid workspace feature unification issues
+        cargo test --release --package openvaf-driver ${{ matrix.cargo_features }}
+        cargo test --release --package openvaf ${{ matrix.cargo_features }}
+        cargo test --release --package osdi ${{ matrix.cargo_features }}
+        cargo test --release --package mir_llvm ${{ matrix.cargo_features }}
 
     - name: Run integration tests
-      run: cargo test --release --test integration
+      run: cargo test --release --package openvaf-driver --test integration ${{ matrix.cargo_features }}
 
   msys2-build-test:
     strategy:
@@ -211,12 +244,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Intel
-          - image: macos-15-intel
-          # ARM64
-          - image: macos-15
-          - image: macos-14
+        # Use default Homebrew LLVM (latest) on all macOS runners
+        image: [macos-15-intel, macos-15, macos-14]
 
     runs-on: ${{ matrix.image }}
     needs: [format, machete]
@@ -227,13 +256,12 @@ jobs:
     - name: Install dependencies with Homebrew
       uses: tecolicom/actions-use-homebrew-tools@v1
       with:
-        tools: pkg-config sccache llvm@18
+        tools: pkg-config sccache llvm
         cache: yes
 
     - name: Set LLVM environment variables
       run: |
-        echo "$(brew --prefix llvm@18)/bin" >> $GITHUB_PATH
-        echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)" >> $GITHUB_ENV
+        echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
         echo "RUST_BACKTRACE=1" >> $GITHUB_ENV
         echo "RUN_DEV_TESTS=1" >> $GITHUB_ENV
 
@@ -253,9 +281,9 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-${{runner.arch}}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-${{runner.arch}}}-cargo-
-    
+        key: ${{ runner.os }}-${{runner.arch}}-llvm-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{runner.arch}}-llvm-cargo-
+
     - name: Build
       run: cargo build --release
 
@@ -264,4 +292,3 @@ jobs:
 
     - name: Run integration tests
       run: cargo test --release --test integration
-

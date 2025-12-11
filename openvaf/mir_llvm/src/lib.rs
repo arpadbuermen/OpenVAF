@@ -1,3 +1,13 @@
+// Re-export the correct llvm-sys version based on feature flags
+#[cfg(feature = "llvm18")]
+extern crate llvm_sys_181 as llvm_sys;
+#[cfg(feature = "llvm19")]
+extern crate llvm_sys_191 as llvm_sys;
+#[cfg(feature = "llvm20")]
+extern crate llvm_sys_201 as llvm_sys;
+#[cfg(feature = "llvm21")]
+extern crate llvm_sys_211 as llvm_sys;
+
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display, Formatter};
@@ -82,7 +92,8 @@ impl Drop for LLVMString {
 }
 
 use llvm_sys::core::{LLVMGetDiagInfoDescription, LLVMGetDiagInfoSeverity};
-use llvm_sys::target_machine::{LLVMCodeGenOptLevel, LLVMGetHostCPUFeatures, LLVMGetHostCPUName};
+pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
+use llvm_sys::target_machine::{LLVMGetHostCPUFeatures, LLVMGetHostCPUName};
 use target::spec::Target;
 
 mod builder;
@@ -98,6 +109,7 @@ mod tests;
 pub use builder::{Builder, BuilderVal, MemLoc};
 pub use callbacks::{BuiltCallbackFun, CallbackFun, InlineCallbackBuilder};
 pub use context::CodegenCx;
+
 pub struct LLVMBackend<'t> {
     target: &'t Target,
     target_cpu: String,

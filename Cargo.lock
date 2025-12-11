@@ -725,9 +725,51 @@ dependencies = [
 
 [[package]]
 name = "llvm-sys"
-version = "181.2.0"
+version = "181.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d320f9d2723c97d4b78f9190a61ed25cc7cfbe456668c08e6e7dd8e50ceb8500"
+checksum = "e24aad69cbdb0c6ebe777262e9e6314dceba0d6e6a2a63e47563ccd293a2eda8"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "191.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0ad1fffbdac72a40b55aa58b31aa0efe925e277941b6705f128692b27f1d506"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "201.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bb947e8b79254ca10d496d0798a9ba1287dcf68e50a92b016fec1cc45bef447"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "211.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "108b3ad2b2eaf2a561fc74196273b20e3436e4a688b8b44e250d83974dc1b2e2"
 dependencies = [
  "anyhow",
  "cc",
@@ -886,7 +928,10 @@ dependencies = [
  "base_n",
  "lasso",
  "libc",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "log",
  "mir",
  "target",
@@ -983,7 +1028,10 @@ dependencies = [
  "libc",
  "libloading",
  "linker",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "md5",
  "mini_harness",
  "mir_llvm",
@@ -1039,7 +1087,10 @@ dependencies = [
  "hir_lower",
  "indexmap 2.10.0",
  "lasso",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "log",
  "mini_harness",
  "mir",
@@ -1558,7 +1609,10 @@ dependencies = [
  "lasso",
  "libloading",
  "linker",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "md5",
  "mir",
  "mir_autodiff",
