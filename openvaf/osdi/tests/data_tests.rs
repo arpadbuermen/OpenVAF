@@ -2,7 +2,7 @@ use std::path::Path;
 
 use camino::Utf8Path;
 use hir::diagnostics::ConsoleSink;
-use hir::CompilationDB;
+use hir::{CompilationDB, CompilationOpts};
 use mini_harness::{harness, Result};
 use mir_llvm::{LLVMBackend, LLVMCodeGenOptLevel};
 use paths::AbsPathBuf;
