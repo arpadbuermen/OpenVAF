@@ -166,6 +166,7 @@ dependencies = [
  "indexmap 2.10.0",
  "mini_harness",
  "parking_lot",
+ "rustc-hash 2.1.1",
  "salsa",
  "stdx",
  "syntax",
@@ -543,6 +544,7 @@ dependencies = [
  "once_cell",
  "ordered-float",
  "parking_lot",
+ "rustc-hash 2.1.1",
  "salsa",
  "stdx",
  "syntax",
@@ -564,6 +566,7 @@ dependencies = [
  "mir",
  "mir_build",
  "parking_lot",
+ "rustc-hash 2.1.1",
  "salsa",
  "stdx",
  "syntax",
@@ -722,9 +725,51 @@ dependencies = [
 
 [[package]]
 name = "llvm-sys"
-version = "181.2.0"
+version = "181.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d320f9d2723c97d4b78f9190a61ed25cc7cfbe456668c08e6e7dd8e50ceb8500"
+checksum = "e24aad69cbdb0c6ebe777262e9e6314dceba0d6e6a2a63e47563ccd293a2eda8"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "191.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d0ad1fffbdac72a40b55aa58b31aa0efe925e277941b6705f128692b27f1d506"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "201.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bb947e8b79254ca10d496d0798a9ba1287dcf68e50a92b016fec1cc45bef447"
+dependencies = [
+ "anyhow",
+ "cc",
+ "lazy_static",
+ "libc",
+ "regex-lite",
+ "semver",
+]
+
+[[package]]
+name = "llvm-sys"
+version = "211.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "108b3ad2b2eaf2a561fc74196273b20e3436e4a688b8b44e250d83974dc1b2e2"
 dependencies = [
  "anyhow",
  "cc",
@@ -823,6 +868,7 @@ dependencies = [
  "indexmap 2.10.0",
  "lasso",
  "list_pool",
+ "rustc-hash 2.1.1",
  "smallvec",
  "stdx",
  "typed-index-collections",
@@ -842,6 +888,7 @@ dependencies = [
  "mir",
  "mir_interpret",
  "mir_reader",
+ "rustc-hash 2.1.1",
  "stdx",
  "typed-index-collections",
  "typed_indexmap",
@@ -881,7 +928,10 @@ dependencies = [
  "base_n",
  "lasso",
  "libc",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "log",
  "mir",
  "target",
@@ -892,12 +942,12 @@ dependencies = [
 name = "mir_opt"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.12",
  "bitset",
  "expect-test",
  "hashbrown 0.14.5",
  "mir",
  "mir_reader",
+ "rustc-hash 2.1.1",
  "stdx",
  "typed-index-collections",
  "workqueue",
@@ -978,7 +1028,10 @@ dependencies = [
  "libc",
  "libloading",
  "linker",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "md5",
  "mini_harness",
  "mir_llvm",
@@ -1025,7 +1078,6 @@ dependencies = [
 name = "osdi"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.12",
  "base_n",
  "camino",
  "expect-test",
@@ -1035,7 +1087,10 @@ dependencies = [
  "hir_lower",
  "indexmap 2.10.0",
  "lasso",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "log",
  "mini_harness",
  "mir",
@@ -1043,6 +1098,7 @@ dependencies = [
  "mir_llvm",
  "paths",
  "rayon-core",
+ "rustc-hash 2.1.1",
  "salsa",
  "sim_back",
  "smol_str",
@@ -1229,7 +1285,7 @@ checksum = "0a542b0253fa46e632d27a1dc5cf7b930de4df8659dc6e720b647fc72147ae3d"
 dependencies = [
  "countme",
  "hashbrown 0.14.5",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "text-size",
 ]
 
@@ -1244,6 +1300,12 @@ name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+
+[[package]]
+name = "rustc-hash"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "ryu_floating_decimal"
@@ -1265,7 +1327,7 @@ dependencies = [
  "log",
  "oorandom",
  "parking_lot",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "salsa-macros",
  "smallvec",
 ]
@@ -1338,6 +1400,7 @@ dependencies = [
  "mir_build",
  "mir_interpret",
  "mir_opt",
+ "rustc-hash 2.1.1",
  "smol_str",
  "stdx",
  "syntax",
@@ -1489,8 +1552,8 @@ dependencies = [
 name = "typed_indexmap"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.12",
  "indexmap 2.10.0",
+ "rustc-hash 2.1.1",
 ]
 
 [[package]]
@@ -1546,7 +1609,10 @@ dependencies = [
  "lasso",
  "libloading",
  "linker",
- "llvm-sys",
+ "llvm-sys 181.3.0",
+ "llvm-sys 191.1.0",
+ "llvm-sys 201.0.1",
+ "llvm-sys 211.0.0",
  "md5",
  "mir",
  "mir_autodiff",
@@ -1591,11 +1657,11 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "vfs"
 version = "0.0.0"
 dependencies = [
- "ahash 0.8.12",
  "chardetng",
  "encoding_rs",
  "indexmap 2.10.0",
  "paths",
+ "rustc-hash 2.1.1",
 ]
 
 [[package]]

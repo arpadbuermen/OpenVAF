@@ -3,7 +3,8 @@ name = "mir_opt"
 version = "0.0.0"
 authors = ["DSPOM"]
 edition = "2021"
-license="GPL-3.0"
+license = "GPL-3.0"
+readme = "README.md"
 
 [lib]
 doctest = false
@@ -17,8 +18,8 @@ workqueue = {version = "0.0.0", path = "../../lib/workqueue" }
 bitset = {version = "0.0.0", path = "../../lib/bitset" }
 
 typed-index-collections = "3.1"
-ahash = "0.8"
 hashbrown = {version = "0.14", features = ["raw"]}
+rustc-hash = "2.1"
 
 [dev-dependencies]
 expect-test = "1.4"

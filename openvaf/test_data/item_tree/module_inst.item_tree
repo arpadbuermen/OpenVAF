@@ -1,0 +1,9 @@
+module test
+
+    node a = {is_input: true, is_output:true, gnd: false , discipline Some(Name("electrical"))}
+    node b = {is_input: true, is_output:true, gnd: false , discipline Some(Name("electrical"))}
+    node mid = {is_input: false, is_output:false, gnd: false , discipline Some(Name("electrical"))}
+    param real r1
+    param real r2
+    module_inst resistor inst1 #([(Name("r"), AstPtr { raw: SyntaxNodePtr { range: 232..234, kind: PATH_EXPR }, _ty: PhantomData<fn() -> syntax::ast::generated::nodes::Expr> })]) ([Name("a"), Name("mid")])
+    module_inst resistor inst2 #([(Name("r"), AstPtr { raw: SyntaxNodePtr { range: 325..327, kind: PATH_EXPR }, _ty: PhantomData<fn() -> syntax::ast::generated::nodes::Expr> })]) ([Name("mid"), Name("b")])

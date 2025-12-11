@@ -4,6 +4,10 @@ version = "23.5.0"
 authors = ["DSPOM"]
 edition = "2021"
 license = "GPL-3.0"
+readme = "README.md"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("nightly"))'] }
 
 [[bin]]
 name = "openvaf-r"
@@ -11,9 +15,16 @@ path = "src/main.rs"
 doctest = false
 test = false
 
+[features]
+default = ["llvm21"]
+llvm18 = ["openvaf/llvm18"]
+llvm19 = ["openvaf/llvm19"]
+llvm20 = ["openvaf/llvm20"]
+llvm21 = ["openvaf/llvm21"]
+
 [dependencies]
 
-openvaf = { version = "0.1.2", path = "../openvaf" }
+openvaf = { version = "0.1.2", path = "../openvaf", default-features = false }
 
 clap = "=4.3"
 directories-next = "2"

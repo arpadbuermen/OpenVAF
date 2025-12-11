@@ -1,9 +1,11 @@
+use std::hash::BuildHasherDefault;
 use std::iter::once;
 use std::mem::take;
 
 use hir::Node;
 use indexmap::IndexMap;
 use mir::{Const, InstructionData, Opcode, Value, ValueDef, FALSE, F_ZERO};
+use rustc_hash::FxHasher;
 
 use crate::topology::Builder;
 use crate::util::{add, update_optbarrier};
@@ -56,36 +58,83 @@ enum CandidateKind {
 }
 
 impl Builder<'_> {
-    /// explores all `candidates` to extract the noise network
+    /// Explores all `candidates` to extract the small-signal network using an order-independent algorithm.
+    ///
+    /// The algorithm uses fixed-point iteration with four phases per iteration:
+    /// 1. Speculatively add ALL candidate nodes to small_signal_vals
+    /// 2. Evaluate all candidates against this consistent set state
+    /// 3. Confirm nodes that are proven zero, remove those proven non-zero
+    /// 4. Restore small_signal_vals to contain only confirmed values
+    ///
+    /// This ensures order-independence: all candidates see the SAME set state (all candidate nodes)
+    /// during evaluation, regardless of iteration order or platform-specific hash ordering.
     fn solve(&mut self, candidates: &mut Vec<Candidate>) {
         loop {
             let mut changed = false;
-            candidates.retain_mut(|candidate| {
-                if let Some(node) = candidate.as_node() {
-                    self.topology.small_signal_vals.insert(node);
-                }
+            let mut confirmed_nodes = Vec::new();
+            let mut confirmed_flows = Vec::new();
+            let mut to_remove = Vec::new();
+
+            // Phase 1: Speculatively add ALL candidate nodes to small_signal_vals
+            // This creates a consistent set state for all evaluations in this iteration
+            let speculative_nodes: Vec<Value> =
+                candidates.iter().filter_map(|c| c.as_node()).collect();
+
+            for &node in &speculative_nodes {
+                self.topology.small_signal_vals.insert(node);
+            }
+
+            // Phase 2: Evaluate all candidates against the consistent set state
+            for (idx, candidate) in candidates.iter().enumerate() {
                 let mut set = FlatSet::Zero;
+
+                // Analyze resistive contributions
                 for &val in &candidate.resist {
                     set = set.min(self.analyze_value(val, RECUSE_DEPTH));
                 }
+
+                // Analyze reactive contributions
                 for &val in &candidate.react {
                     set = set.min(self.analyze_value(val, RECUSE_DEPTH));
                 }
+
                 if set == FlatSet::Zero {
+                    // Proven zero - mark for confirmation
                     match candidate.kind {
-                        CandidateKind::Node { .. } => {
+                        CandidateKind::Node { potential } => {
+                            confirmed_nodes.push(potential);
                             cov_mark::hit!(node_is_small_signal);
                         }
                         CandidateKind::Flow { flow } => {
-                            self.topology.small_signal_vals.insert(flow);
+                            confirmed_flows.push(flow);
                         }
                     }
+                    to_remove.push(idx);
                     changed = true;
-                } else if let Some(node) = candidate.as_node() {
-                    self.topology.small_signal_vals.remove(&node);
+                } else if set == FlatSet::Top {
+                    // Proven non-zero - remove from candidates
+                    to_remove.push(idx);
                 }
-                set == FlatSet::Bottom
-            });
+                // If set == FlatSet::Bottom (unknown), keep in candidates for next iteration
+            }
+
+            // Phase 3: Remove speculative nodes that weren't confirmed
+            for &node in &speculative_nodes {
+                if !confirmed_nodes.contains(&node) {
+                    self.topology.small_signal_vals.swap_remove(&node);
+                }
+            }
+
+            // Phase 4: Add confirmed flows
+            for flow in confirmed_flows {
+                self.topology.small_signal_vals.insert(flow);
+            }
+
+            // Phase 5: Remove resolved candidates (iterate backwards to preserve indices)
+            for &idx in to_remove.iter().rev() {
+                candidates.swap_remove(idx);
+            }
+
             if !changed {
                 break;
             }
@@ -305,7 +354,8 @@ impl Builder<'_> {
     }
 
     fn collect_candidates(&mut self) -> Vec<Candidate> {
-        let mut nodes = IndexMap::with_capacity_and_hasher(32, ahash::RandomState::new());
+        let mut nodes =
+            IndexMap::with_capacity_and_hasher(32, BuildHasherDefault::<FxHasher>::default());
         let mut candidates = Vec::new();
         for (_, (&branch, contributes)) in self.topology.branches() {
             let (hi, lo) = branch.nodes(self.db);

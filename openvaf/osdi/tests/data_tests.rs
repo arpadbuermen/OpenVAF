@@ -2,10 +2,9 @@ use std::path::Path;
 
 use camino::Utf8Path;
 use hir::diagnostics::ConsoleSink;
-use hir::CompilationDB;
-use llvm_sys::target_machine::LLVMCodeGenOptLevel;
+use hir::{CompilationDB, CompilationOpts};
 use mini_harness::{harness, Result};
-use mir_llvm::LLVMBackend;
+use mir_llvm::{LLVMBackend, LLVMCodeGenOptLevel};
 use paths::AbsPathBuf;
 use sim_back::collect_modules;
 use stdx::{ignore_slow_tests, project_root};
@@ -13,7 +12,7 @@ use target::spec::Target;
 
 fn test_compile(root_file: &Path) {
     let root_file = AbsPathBuf::assert(root_file.canonicalize().unwrap());
-    let db = CompilationDB::new_fs(root_file, &[], &[], &[]).unwrap();
+    let db = CompilationDB::new_fs(root_file, &[], &[], &[], &CompilationOpts::default()).unwrap();
     let modules = collect_modules(&db, false, &mut ConsoleSink::new(&db)).unwrap();
     let target = Target::host_target().expect(
         "Failed to determine host target. This architecture may not be supported by OpenVAF. \

@@ -1,3 +1,13 @@
+// Re-export the correct llvm-sys version based on feature flags
+#[cfg(feature = "llvm18")]
+extern crate llvm_sys_181 as llvm_sys;
+#[cfg(feature = "llvm19")]
+extern crate llvm_sys_191 as llvm_sys;
+#[cfg(feature = "llvm20")]
+extern crate llvm_sys_201 as llvm_sys;
+#[cfg(feature = "llvm21")]
+extern crate llvm_sys_211 as llvm_sys;
+
 use std::fs::{create_dir_all, remove_file};
 use std::io::Write;
 use std::time::Instant;
@@ -8,6 +18,7 @@ pub use basedb::lints::{builtin as builtin_lints, LintLevel};
 use basedb::BaseDB;
 use camino::Utf8PathBuf;
 use hir::CompilationDB;
+pub use hir::CompilationOpts;
 use linker::link;
 pub use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::LLVMBackend;
@@ -46,6 +57,7 @@ pub struct Opts {
     pub dump_unopt_mir: bool,
     pub dump_ir: bool,
     pub dump_unopt_ir: bool,
+    pub compilation_opts: CompilationOpts,
 }
 // pub fn dump_json(opts: &Opts) -> Result<CompilationTermination> {
 //     let input =
@@ -111,7 +123,13 @@ pub fn expand(opts: &Opts) -> Result<CompilationTermination> {
     let input =
         opts.input.canonicalize().with_context(|| format!("failed to resolve {}", opts.input))?;
     let input = AbsPathBuf::assert(input);
-    let db = CompilationDB::new_fs(input, &opts.include, &opts.defines, &opts.lints)?;
+    let db = CompilationDB::new_fs(
+        input,
+        &opts.include,
+        &opts.defines,
+        &opts.lints,
+        &opts.compilation_opts,
+    )?;
     let cu = db.compilation_unit();
 
     let preprocess = cu.preprocess(&db);
@@ -159,7 +177,13 @@ pub fn compile(opts: &Opts) -> Result<CompilationTermination> {
     let input =
         opts.input.canonicalize().with_context(|| format!("failed to resolve {}", opts.input))?;
     let input = AbsPathBuf::assert(input);
-    let db = CompilationDB::new_fs(input, &opts.include, &opts.defines, &opts.lints)?;
+    let db = CompilationDB::new_fs(
+        input,
+        &opts.include,
+        &opts.defines,
+        &opts.lints,
+        &opts.compilation_opts,
+    )?;
 
     let lib_file = match &opts.output {
         CompilationDestination::Cache { cache_dir } => {

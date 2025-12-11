@@ -1,0 +1,15 @@
+// Test built-in primitive module lowering
+// Primitive instances should be lowered to contribution statements
+`include "disciplines.vams"
+
+module test(a, b);
+    inout a, b;
+    electrical a, b, mid;
+
+    parameter real rval = 1e3;
+    parameter real cval = 1e-12;
+
+    // Built-in primitives
+    resistor #(.r(rval)) r1 (a, mid);
+    capacitor #(.c(cval)) c1 (mid, b);
+endmodule

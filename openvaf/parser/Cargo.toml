@@ -6,7 +6,7 @@ edition = "2021"
 repository= "https://github.com/pascalkuthe/OpenVAF"
 description = "A compiler frontend for VerilogA aimed predominantly at compact modelling"
 license="GPL-3.0"
-readme="../README.md"
+readme = "README.md"
 
 [lib]
 doctest = false

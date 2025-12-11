@@ -9,8 +9,8 @@ use libc::c_void;
 use libloading::Library;
 use log::{debug, error, info, warn};
 use openvaf::{
-    AbsPathBuf, CompilationDestination, CompilationTermination, LLVMCodeGenOptLevel, LintLevel,
-    Target,
+    AbsPathBuf, CompilationDestination, CompilationOpts, CompilationTermination,
+    LLVMCodeGenOptLevel, LintLevel, Target,
 };
 pub(crate) use osdi_0_4::{
     ANALYSIS_AC, ANALYSIS_DC, ANALYSIS_IC, ANALYSIS_NOISE, ANALYSIS_STATIC, ANALYSIS_TRAN,
@@ -78,6 +78,7 @@ pub fn compile_va(path: &Utf8Path, opts: &Opts) -> Result<Vec<Box<dyn DeviceImpl
         dump_unopt_mir: false,
         dump_ir: false,
         dump_unopt_ir: false,
+        compilation_opts: CompilationOpts::default(),
     };
 
     let res = openvaf::compile(&openvaf_opts);

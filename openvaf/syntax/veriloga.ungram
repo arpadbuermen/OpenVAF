@@ -195,6 +195,7 @@ ModuleItem =
 | VarDecl
 | ParamDecl
 | AliasParam
+| ModuleInst
 
 ModulePorts = '('ports: (ModulePort (',' ModulePort)*)? ')'
 ModulePort = kind: ModulePortKind
@@ -257,3 +258,20 @@ FunctionArg =
 
 BranchDecl =
   AttrList* 'branch' ArgList (Name (',' Name)*)';'
+
+// Module instantiation: module_name #(.param(value), ...) instance_name (port1, port2, ...);
+// Example: resistor #(.r(rwire)) r1 (d, de0);
+ModuleInst =
+  AttrList* module_name:NameRef ParamAssignments? inst_name:Name PortConnections ';'
+
+ParamAssignments =
+  '#' '(' (ParamAssignment (',' ParamAssignment)*)? ')'
+
+ParamAssignment =
+  '.' param:Name '(' value:Expr ')'
+
+PortConnections =
+  '(' (PortConnection (',' PortConnection)*)? ')'
+
+PortConnection =
+  Expr | '.' port:Name '(' connection:Expr ')'

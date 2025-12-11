@@ -22,6 +22,16 @@ fn main() {
     let osdi_dir = stdx::project_root().join("openvaf").join("osdi");
     let src_file = osdi_dir.join("stdlib.c");
 
+    // Use clang from LLVM prefix environment variables (check newest first)
+    let clang_path = tracked_env_var_os("LLVM_SYS_211_PREFIX")
+        .or_else(|| tracked_env_var_os("LLVM_SYS_201_PREFIX"))
+        .or_else(|| tracked_env_var_os("LLVM_SYS_191_PREFIX"))
+        .or_else(|| tracked_env_var_os("LLVM_SYS_181_PREFIX"))
+        .map(|prefix| Path::new(&prefix).join("bin/clang"))
+        .and_then(|path| path.exists().then_some(path))
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|| "clang".to_string());
+
     sh.change_dir(osdi_dir);
     for file in sh.read_dir("header").unwrap() {
         if file.extension().map_or(true, |ext| ext != "h")
@@ -47,7 +57,7 @@ fn main() {
             } else {
                 println!("cargo:rerun-if-changed={}", file.display());
 
-                let mut cmd = cmd!(sh, "clang -emit-llvm -O3 -D{def_name} -DNO_STD -o {out_file} -c {src_file} -target {target_name}");
+                let mut cmd = cmd!(sh, "{clang_path} -emit-llvm -O3 -D{def_name} -DNO_STD -o {out_file} -c {src_file} -target {target_name}");
                 if !target.options.is_like_windows {
                     cmd = cmd.arg("-fPIC");
                 }

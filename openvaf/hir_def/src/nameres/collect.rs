@@ -282,6 +282,10 @@ impl DefCollector<'_> {
                 ModuleItem::AliasParameter(id) => {
                     self.insert_item_decl(scope, self.tree[id].name.clone(), id)
                 }
+                ModuleItem::ModuleInst(_) => {
+                    // Module instances are recorded but don't participate in name resolution
+                    // They will be processed later during elaboration/flattening
+                }
             }
         }
     }

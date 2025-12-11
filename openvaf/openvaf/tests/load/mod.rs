@@ -452,24 +452,19 @@ impl Debug for OsdiDescriptor {
                     osdi_str(node.units),
                     osdi_str(node.residual_units)
                 );
-                wn!(
-                    "residual {} {} {} {}",
-                    node.resist_residual_off,
-                    node.react_residual_off,
-                    node.resist_limit_rhs_off,
-                    node.react_limit_rhs_off
-                );
+                // Residual offsets are arch-specific (depend on struct alignment)
+                // so we omit them from snapshots to allow cross-platform testing
             }
             for matrix_entry in self.matrix_entries() {
                 let hi = self.nodes()[matrix_entry.nodes.node_1 as usize].name;
                 let lo = self.nodes()[matrix_entry.nodes.node_2 as usize].name;
                 wn!(
-                    "jacobian ({}, {}) {:?} react_ptr = {}",
+                    "jacobian ({}, {}) {:?}",
                     osdi_str(hi),
                     osdi_str(lo),
                     JacobianFlags::from_bits(matrix_entry.flags).unwrap(),
-                    matrix_entry.react_ptr_off,
                 );
+                // react_ptr offset is arch-specific, omitted for cross-platform testing
             }
             for OsdiNodePair { node_1, node_2 } in self.collapsible() {
                 let hi = self.nodes()[*node_1 as usize].name;
@@ -491,8 +486,8 @@ impl Debug for OsdiDescriptor {
             }
             wn!("{} states", self.num_states);
             wn!("has bound_step {}", self.bound_step_offset != u32::MAX);
-            wn!("instance size {}", self.instance_size);
-            wn!("model size {}", self.model_size);
+            // instance_size and model_size are arch-specific (depend on struct alignment)
+            // so we omit them from snapshots to allow cross-platform testing
             Ok(())
         }
     }

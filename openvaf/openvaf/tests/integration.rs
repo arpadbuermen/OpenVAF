@@ -4,9 +4,8 @@ use std::path::Path;
 use camino::Utf8Path;
 use expect_test::expect_file;
 use float_cmp::assert_approx_eq;
-use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mini_harness::{harness, Result};
-use openvaf::{CompilationDestination, CompilationTermination};
+use openvaf::{CompilationDestination, CompilationTermination, LLVMCodeGenOptLevel};
 use stdx::{ignore_dev_tests, openvaf_test_data, project_root};
 use target::spec::Target;
 
@@ -35,6 +34,7 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         dump_unopt_mir: false,
         dump_ir: false,
         dump_unopt_ir: false,
+        compilation_opts: hir::CompilationOpts::default(),
     };
 
     let res = openvaf::compile(&openvaf_opts).unwrap();

@@ -8,8 +8,8 @@ use lasso::Rodeo;
 use llvm_sys::core::{
     LLVMAddIncoming, LLVMAppendBasicBlockInContext, LLVMBuildAdd, LLVMBuildArrayMalloc,
     LLVMBuildBr, LLVMBuildCall2, LLVMBuildCondBr, LLVMBuildFMul, LLVMBuildFree, LLVMBuildICmp,
-    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMGetFirstFunction, LLVMGetNextFunction,
-    LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
+    LLVMBuildInBoundsGEP2, LLVMBuildLoad2, LLVMBuildPhi, LLVMBuildZExt, LLVMGetFirstFunction,
+    LLVMGetNextFunction, LLVMGetParam, LLVMIsDeclaration, LLVMPositionBuilderAtEnd, LLVMSetLinkage,
     LLVMSetUnnamedAddress,
 };
 use llvm_sys::{LLVMIntPredicate, LLVMLinkage, LLVMUnnamedAddr, LLVMValue};
@@ -449,10 +449,6 @@ fn print_callback<'ll>(
                 FmtArgKind::Other => args.push(&*val),
             }
         }
-        args.extend(
-            (1..(2 + arg_tys.len()))
-                .map(|arg| &*LLVMGetParam(NonNull::from(fun).as_ptr(), arg as u32)),
-        );
         let (fun_ty, fun) = cx.intrinsic("snprintf").unwrap();
         // Convert Vec<&LLVMValue> to Vec<*mut LLVMValue>
         let mut raw_args: Vec<*mut LLVMValue> =
@@ -504,6 +500,9 @@ fn print_callback<'ll>(
         LLVMPositionBuilderAtEnd(llbuilder, write_bb);
         let data_len =
             LLVMBuildAdd(llbuilder, len, NonNull::from(cx.const_int(1)).as_ptr(), UNNAMED);
+        // LLVM value data_len is i32, we need size_t because snprintf needs it. Zero extend to get size_t
+        let data_len =
+            LLVMBuildZExt(llbuilder, data_len, NonNull::from(cx.ty_size()).as_ptr(), UNNAMED);
         raw_args[0] = ptr;
         raw_args[1] = data_len;
         let len = LLVMBuildCall2(

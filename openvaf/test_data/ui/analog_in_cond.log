@@ -1,0 +1,36 @@
+error: analog operator 'limexp' is not allowed in conditions
+   --> /analog_in_cond.va:24:27
+   |
+22 |         if (v_internal > 0) begin
+   |             ---------- help: this condition is not a constant
+23 |             // Error: limexp in conditional
+24 |             temp_factor = limexp(v_internal / vth);
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^ not allowed here
+   |
+   = help: analog operators are only allowed in non-conditional behaviour
+   = help: only constant and analysis functions are allowed in conditions
+
+error: analog operator 'ddt' is not allowed in conditions
+   --> /analog_in_cond.va:31:26
+   |
+29 |         if (use_limexp > 0.5) begin
+   |             ---------- help: this condition is not a constant
+30 |             // Error: ddt in conditional
+31 |             i_internal = ddt(v_internal);
+   |                          ^^^^^^^^^^^^^^^ not allowed here
+   |
+   = help: analog operators are only allowed in non-conditional behaviour
+   = help: only constant and analysis functions are allowed in conditions
+
+error: analog operator 'idt' is not allowed in conditions
+   --> /analog_in_cond.va:37:30
+   |
+34 |         case (use_limexp)
+   |               ---------- help: this condition is not a constant
+   .
+37 |                 v_internal = idt(i_internal);
+   |                              ^^^^^^^^^^^^^^^ not allowed here
+   |
+   = help: analog operators are only allowed in non-conditional behaviour
+   = help: only constant and analysis functions are allowed in conditions
+

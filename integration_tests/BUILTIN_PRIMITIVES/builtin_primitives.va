@@ -1,0 +1,26 @@
+// Test module using built-in primitives (resistor, capacitor)
+// This tests that the built-in primitives are correctly lowered
+// to contribution statements.
+
+`include "constants.vams"
+`include "disciplines.vams"
+
+module builtin_primitives(p, n);
+    inout p, n;
+    electrical p, n, mid;
+
+    // Model parameters
+    parameter real R1 = 1000.0 from (0:inf);
+    parameter real R2 = 2000.0 from (0:inf);
+    parameter real C1 = 1e-12 from (0:inf);
+
+    // Use built-in primitives
+    // These should be transformed to:
+    //   I(p, mid) <+ V(p, mid) / R1
+    //   I(mid, n) <+ V(mid, n) / R2
+    //   I(mid, n) <+ ddt(C1 * V(mid, n))
+    resistor #(.r(R1)) r1 (p, mid);
+    resistor #(.r(R2)) r2 (mid, n);
+    capacitor #(.c(C1)) c1 (mid, n);
+
+endmodule
