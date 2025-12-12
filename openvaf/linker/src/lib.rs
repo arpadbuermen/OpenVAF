@@ -87,6 +87,21 @@ fn linker_with_args<'a>(
     // this environment variable too in recent versions.
     cmd.cmd().env("ZERO_AR_DATE", "1");
 
+    // On macOS, we always need to add the SDK sysroot for linking against system libraries
+    if flavor == LinkerFlavor::Ld64 && target.options.is_like_osx {
+        // Detect SDK path using xcrun
+        if let Ok(output) = std::process::Command::new("xcrun").args(["--show-sdk-path"]).output() {
+            if output.status.success() {
+                if let Ok(sdk_path) = String::from_utf8(output.stdout) {
+                    let sdk_path = sdk_path.trim();
+                    if !sdk_path.is_empty() {
+                        cmd.args(["-syslibroot", sdk_path]);
+                    }
+                }
+            }
+        }
+    }
+
     cmd.add_pre_link_args(target, flavor);
 
     add_objects(&mut *cmd);
@@ -146,6 +161,7 @@ fn get_linker<'a>(
                 if is_msys2_environment() {
                     "gcc".into()
                 } else {
+                    // On macOS and Linux, use system ld
                     "ld".into()
                 }
             });
