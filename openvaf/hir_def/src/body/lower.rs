@@ -9,6 +9,39 @@ use syntax::AstPtr;
 // use tracing::debug;
 use super::{Body, BodySourceMap};
 use crate::db::HirDefDB;
+
+/// Built-in primitive modules that can be instantiated.
+/// These are transformed into equivalent contribution statements during lowering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum BuiltInPrimitive {
+    /// resistor #(.r(R)) name (hi, lo) -> I(hi,lo) <+ V(hi,lo) / R
+    Resistor,
+    /// capacitor #(.c(C)) name (hi, lo) -> I(hi,lo) <+ ddt(C * V(hi,lo))
+    Capacitor,
+    /// inductor #(.l(L)) name (hi, lo) -> V(hi,lo) <+ ddt(L * I(hi,lo))
+    Inductor,
+}
+
+impl BuiltInPrimitive {
+    /// Try to parse a primitive name from a string
+    pub fn from_name(name: &str) -> Option<Self> {
+        match name {
+            "resistor" => Some(Self::Resistor),
+            "capacitor" => Some(Self::Capacitor),
+            "inductor" => Some(Self::Inductor),
+            _ => None,
+        }
+    }
+
+    /// Get the expected parameter name for this primitive
+    pub fn param_name(&self) -> &'static str {
+        match self {
+            Self::Resistor => "r",
+            Self::Capacitor => "c",
+            Self::Inductor => "l",
+        }
+    }
+}
 use crate::expr::{CaseCond, Event, GlobalEvent};
 use crate::nameres::DefMapSource;
 use crate::{BlockLoc, Case, Expr, ExprId, Intern, Literal, Path, ScopeId, Stmt, StmtId};
