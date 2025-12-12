@@ -50,6 +50,10 @@ pub trait InternDB: BaseDB {
 
 #[salsa::query_group(HirDefDatabase)]
 pub trait HirDefDB: InternDB + Upcast<dyn BaseDB> {
+    /// Enable built-in primitive module support (resistor, capacitor, inductor).
+    #[salsa::input]
+    fn allow_builtin_primitives(&self) -> bool;
+
     #[salsa::invoke(NDATable::nda_table_query)]
     fn nda_table(&self, root_file: FileId) -> Arc<NDATable>;
 

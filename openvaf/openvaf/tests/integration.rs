@@ -16,6 +16,13 @@ mod load;
 mod mock_sim;
 
 fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
+    compile_and_load_with_opts(root_file, hir::CompilationOpts::default())
+}
+
+fn compile_and_load_with_opts(
+    root_file: &Utf8Path,
+    compilation_opts: hir::CompilationOpts,
+) -> &'static OsdiDescriptor {
     let openvaf_opts = openvaf::Opts {
         defines: Vec::new(),
         codegen_opts: Vec::new(),
@@ -34,7 +41,7 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
         dump_unopt_mir: false,
         dump_ir: false,
         dump_unopt_ir: false,
-        compilation_opts: hir::CompilationOpts::default(),
+        compilation_opts,
     };
 
     let res = openvaf::compile(&openvaf_opts).unwrap();
@@ -59,16 +66,28 @@ fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
 // }
 
 fn integration_test(dir: &Path) -> Result {
-    let name = dir.file_name().unwrap().to_str().unwrap().to_lowercase();
+    let dir_name = dir.file_name().unwrap().to_str().unwrap();
+    let name = dir_name.to_lowercase();
     let main_file = dir.join(format!("{name}.va"));
-    test_descriptor(&main_file)?;
+
+    // Enable built-in primitives for the BUILTIN_PRIMITIVES test
+    let opts = if dir_name == "BUILTIN_PRIMITIVES" {
+        hir::CompilationOpts { allow_builtin_primitives: true, ..Default::default() }
+    } else {
+        hir::CompilationOpts::default()
+    };
+
+    test_descriptor(&main_file, opts)?;
     Ok(())
 }
 
-fn test_descriptor(main_file: &Path) -> Result<&'static OsdiDescriptor> {
+fn test_descriptor(
+    main_file: &Path,
+    opts: hir::CompilationOpts,
+) -> Result<&'static OsdiDescriptor> {
     let main_file: &Utf8Path = main_file.try_into().unwrap();
     let name = main_file.file_stem().unwrap();
-    let desc = compile_and_load(main_file);
+    let desc = compile_and_load_with_opts(main_file, opts);
     let expect = format!("{desc:?}");
     let test_dir = openvaf_test_data("osdi");
     expect_file![test_dir.join(format!("{name}.snap"))].assert_eq(&expect);
@@ -147,7 +166,10 @@ fn test_limit() -> Result<()> {
     };
 
     // compile model and setup simulation
-    let desc = test_descriptor(&openvaf_test_data("osdi").join("diode_lim.va"))?;
+    let desc = test_descriptor(
+        &openvaf_test_data("osdi").join("diode_lim.va"),
+        hir::CompilationOpts::default(),
+    )?;
     let model = desc.new_model();
     model.set_real_param(1, IS);
     model.set_real_param(5, CJ0);
@@ -196,7 +218,10 @@ fn test_noise() -> Result<()> {
     const V_AC: f64 = 13.0;
 
     // compile model and setup simulation
-    let desc = test_descriptor(&openvaf_test_data("osdi").join("noise.va"))?;
+    let desc = test_descriptor(
+        &openvaf_test_data("osdi").join("noise.va"),
+        hir::CompilationOpts::default(),
+    )?;
     let model = desc.new_model();
     model.set_real_param(0, MFACTOR);
     model.set_real_param(1, PWR);

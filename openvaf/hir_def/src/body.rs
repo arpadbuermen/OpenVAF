@@ -85,7 +85,21 @@ impl Body {
                 body.entry_stmts = if initial {
                     ast.analog_initial_behaviour().map(|stmt| ctx.collect_stmt(stmt)).collect()
                 } else {
-                    ast.analog_behaviour().map(|stmt| ctx.collect_stmt(stmt)).collect()
+                    // For non-initial analog blocks, also process primitive module instances
+                    // and generate synthetic contribution statements (if enabled)
+                    let primitive_stmts = if db.allow_builtin_primitives() {
+                        let module_data = &tree[item_tree];
+                        ctx.lower_primitive_instances(module_data, &tree)
+                    } else {
+                        Vec::new()
+                    };
+                    let behavior_stmts: Vec<StmtId> =
+                        ast.analog_behaviour().map(|stmt| ctx.collect_stmt(stmt)).collect();
+
+                    // Prepend primitive contributions to the analog block
+                    let mut all_stmts = primitive_stmts;
+                    all_stmts.extend(behavior_stmts);
+                    all_stmts.into_boxed_slice()
                 };
             }
 

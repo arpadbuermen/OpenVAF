@@ -11,9 +11,9 @@ use openvaf::{
 use termcolor::{Color, ColorChoice, ColorSpec, WriteColor};
 
 use crate::cli_def::{
-    ALLOW, ALLOW_ANALOG_IN_COND, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE, DENY, DRYRUN, DUMPIR,
-    DUMPMIR, DUMPUNOPTIR, DUMPUNOPTMIR, INCLUDE, INPUT, LINTS, OPT_LVL, OUTPUT, SUPPORTED_TARGETS,
-    TARGET, TARGET_CPU, WARN,
+    ALLOW, ALLOW_ANALOG_IN_COND, ALLOW_BUILTIN_PRIMITIVES, BATCHMODE, CACHE_DIR, CODEGEN, DEFINE,
+    DENY, DRYRUN, DUMPIR, DUMPMIR, DUMPUNOPTIR, DUMPUNOPTMIR, INCLUDE, INPUT, LINTS, OPT_LVL,
+    OUTPUT, SUPPORTED_TARGETS, TARGET, TARGET_CPU, WARN,
 };
 use crate::{CompilationDestination, Opts};
 
@@ -125,6 +125,7 @@ pub fn matches_to_opts(matches: ArgMatches) -> Result<Opts> {
         dry_run: matches.get_flag(DRYRUN),
         compilation_opts: CompilationOpts {
             allow_analog_in_cond: matches.get_flag(ALLOW_ANALOG_IN_COND),
+            allow_builtin_primitives: matches.get_flag(ALLOW_BUILTIN_PRIMITIVES),
         },
     })
 }

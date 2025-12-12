@@ -26,6 +26,8 @@ impl TestDataBase {
         let root_file = db.setup_test_db(root_file_path, root_file, &mut vfs.write());
         res.root_file = Some(root_file);
         res.vfs = Some(vfs);
+        // Initialize salsa inputs with default values
+        res.set_allow_builtin_primitives(false);
         res
     }
 
@@ -102,7 +104,13 @@ fn integration_test(dir: &Path) -> Result {
 }
 
 fn body_test(file: &Path) -> Result {
-    let db = TestDataBase::new_from_fs(file);
+    let mut db = TestDataBase::new_from_fs(file);
+
+    // Enable built-in primitives for the primitive_modules test
+    if file.file_stem().map_or(false, |n| n == "primitive_modules") {
+        db.set_allow_builtin_primitives(true);
+    }
+
     let def_map = db.def_map(db.root_file());
 
     let mut actual = String::new();

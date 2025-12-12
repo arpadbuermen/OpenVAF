@@ -22,6 +22,9 @@ pub struct CompilationOpts {
     /// Allow analog operators (limexp, ddt, idt) in signal-dependent conditionals.
     /// This is non-standard Verilog-A behavior required by some foundry models.
     pub allow_analog_in_cond: bool,
+    /// Enable built-in primitive module support (resistor, capacitor, inductor).
+    /// When enabled, these primitives are lowered to equivalent contribution statements.
+    pub allow_builtin_primitives: bool,
 }
 
 #[salsa::database(BaseDatabase, InternDatabase, HirDefDatabase, HirTyDatabase)]
@@ -144,6 +147,7 @@ impl CompilationDB {
 
         res.set_global_lint_overwrites(root_file, overwrites);
         res.set_allow_analog_in_cond(opts.allow_analog_in_cond);
+        res.set_allow_builtin_primitives(opts.allow_builtin_primitives);
         Ok(res)
     }
 }

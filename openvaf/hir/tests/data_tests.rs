@@ -43,7 +43,7 @@ fn ui_allow_analog_cond_test(file: &Path) -> Result {
         &[],
         &[],
         &[],
-        &CompilationOpts { allow_analog_in_cond: true },
+        &CompilationOpts { allow_analog_in_cond: true, ..Default::default() },
     )
     .unwrap();
     let actual = db.compilation_unit().test_diagnostics(&db);

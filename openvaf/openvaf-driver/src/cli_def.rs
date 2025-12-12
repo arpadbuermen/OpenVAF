@@ -40,6 +40,7 @@ pub fn main_command() -> Command {
             expand(),
             dump_json(),
             allow_analog_in_cond(),
+            allow_builtin_primitives(),
             input(),
         ])
         .subcommand_required(false)
@@ -70,6 +71,7 @@ pub const ALLOW: &str = "allow";
 pub const WARN: &str = "warn";
 pub const DENY: &str = "deny";
 pub const ALLOW_ANALOG_IN_COND: &str = "allow-analog-in-cond";
+pub const ALLOW_BUILTIN_PRIMITIVES: &str = "allow-builtin-primitives";
 
 fn interface() -> Arg {
     Arg::new(INTERFACE)
@@ -314,6 +316,23 @@ fn allow_analog_in_cond() -> Arg {
 This is non-standard behavior but required by some commercial foundry models (e.g., GF130 PDK).
 
 By default, OpenVAF enforces strict Verilog-A semantics which only allow analog operators in unconditional code.",
+        )
+}
+
+fn allow_builtin_primitives() -> Arg {
+    flag(ALLOW_BUILTIN_PRIMITIVES, ALLOW_BUILTIN_PRIMITIVES)
+        .help("Enable built-in primitive module support (resistor, capacitor, inductor).")
+        .long_help(
+            "Enable support for built-in primitive modules (resistor, capacitor, inductor).
+
+When enabled, module instances of 'resistor', 'capacitor', and 'inductor' are automatically
+lowered to equivalent contribution statements:
+  - resistor #(.r(R)) r1 (a, b)  ->  I(a,b) <+ V(a,b) / R
+  - capacitor #(.c(C)) c1 (a, b) ->  I(a,b) <+ ddt(C * V(a,b))
+  - inductor #(.l(L)) l1 (a, b)  ->  V(a,b) <+ ddt(L * I(a,b))
+
+This feature is disabled by default to maintain compatibility with models that may define
+their own modules named 'resistor', 'capacitor', or 'inductor'.",
         )
 }
 
