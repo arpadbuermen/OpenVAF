@@ -19,16 +19,15 @@ use std::hash::Hash;
 use std::ops::Index;
 use std::sync::Arc;
 
-use ordered_float::OrderedFloat;
-
 use ahash::AHashMap;
 use arena::{Arena, Idx, IdxRange};
 use basedb::{AstId, ErasedAstId, FileId};
+use ordered_float::OrderedFloat;
 use stdx::impl_from_typed;
 use syntax::ast::{self, BlockStmt, NameRef};
 use syntax::name::Name;
-use syntax::AstNode;
 use syntax::ConstExprValue;
+use syntax::{AstNode, AstPtr, ConstExprValue};
 use typed_index_collections::TiVec;
 
 use crate::db::HirDefDB;

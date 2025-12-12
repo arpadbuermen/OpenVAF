@@ -1,12 +1,13 @@
 // Natues, disciplines, and attributes table
 
-use arena::Idx;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use arena::Idx;
+use basedb::FileId;
+
 use super::{Discipline, ItemTree, Nature};
 use crate::db::HirDefDB;
-use basedb::FileId;
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct NDATable {

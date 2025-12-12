@@ -14,8 +14,6 @@ use std::hash::BuildHasherDefault;
 use std::ptr::NonNull;
 use std::sync::{Arc, Mutex};
 
-use rustc_hash::FxHasher;
-
 use base_n::CASE_INSENSITIVE;
 use camino::{Utf8Path, Utf8PathBuf};
 use hir::{CompilationDB, ParamSysFun, Type};
@@ -26,6 +24,7 @@ use llvm_sys::target::{LLVMABISizeOfType, LLVMDisposeTargetData};
 use llvm_sys::target_machine::LLVMCodeGenOptLevel;
 use mir_llvm::{CodegenCx, LLVMBackend};
 use ndatable::nda_arrays;
+use rustc_hash::FxHasher;
 use salsa::ParallelDatabase;
 use sim_back::{CompiledModule, ModuleInfo};
 use stdx::{impl_debug_display, impl_idx_from};

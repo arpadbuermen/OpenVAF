@@ -1,13 +1,13 @@
 //! Various extension methods to ast Expr Nodes, which are hard to code-generate.
 
+use std::borrow::Cow;
+
+use ast::ConstExprValue;
 use stdx::impl_display;
 
 use super::Stmt;
 use crate::ast::{self, support, AstChildren, AstNode, AstToken};
 use crate::{SyntaxToken, T};
-use ast::ConstExprValue;
-
-use std::borrow::Cow;
 
 impl ast::ConstExprValue {
     pub fn as_real(&self) -> Option<f64> {

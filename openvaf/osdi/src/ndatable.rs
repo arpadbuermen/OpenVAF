@@ -1,8 +1,5 @@
-use crate::metadata::osdi_0_4::{
-    OsdiAttribute, OsdiAttributeValue, OsdiDiscipline, OsdiNature, ATTR_TYPE_INT, ATTR_TYPE_REAL,
-    ATTR_TYPE_STR, DOMAIN_CONTINUOUS, DOMAIN_DISCRETE, DOMAIN_NOT_GIVEN, NATREF_DISCIPLINE_FLOW,
-    NATREF_DISCIPLINE_POTENTIAL, NATREF_NATURE, NATREF_NONE,
-};
+use std::vec::Vec;
+
 use hir::CompilationDB;
 use hir_def::db::HirDefDB;
 use hir_def::item_tree::{
@@ -11,8 +8,13 @@ use hir_def::item_tree::{
 };
 use hir_def::ndatable::NDATable;
 use lasso::Rodeo;
-use std::vec::Vec;
 use syntax::ConstExprValue;
+
+use crate::metadata::osdi_0_4::{
+    OsdiAttribute, OsdiAttributeValue, OsdiDiscipline, OsdiNature, ATTR_TYPE_INT, ATTR_TYPE_REAL,
+    ATTR_TYPE_STR, DOMAIN_CONTINUOUS, DOMAIN_DISCRETE, DOMAIN_NOT_GIVEN, NATREF_DISCIPLINE_FLOW,
+    NATREF_DISCIPLINE_POTENTIAL, NATREF_NATURE, NATREF_NONE,
+};
 
 impl OsdiAttributeValue {
     pub fn new(v: &ConstExprValue, literals: &mut Rodeo) -> OsdiAttributeValue {

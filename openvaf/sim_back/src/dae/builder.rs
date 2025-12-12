@@ -1,3 +1,8 @@
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
+use std::mem::replace;
+use std::vec;
+
 use bitset::BitSet;
 use hir::{BranchWrite, CompilationDB, Node, ParamSysFun};
 use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
@@ -10,10 +15,6 @@ use mir::{
 };
 use mir_autodiff::auto_diff;
 use rustc_hash::FxHasher;
-use std::collections::HashMap;
-use std::hash::BuildHasherDefault;
-use std::mem::replace;
-use std::vec;
 use typed_index_collections::TiVec;
 
 use crate::context::Context;

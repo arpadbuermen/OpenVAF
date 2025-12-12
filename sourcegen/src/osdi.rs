@@ -2,12 +2,11 @@ use std::fs::{read_dir, read_to_string, DirEntry};
 use std::mem::swap;
 
 use ahash::RandomState;
+use heck::ToUpperCamelCase;
 use indexmap::IndexMap;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens, TokenStreamExt};
 use target::spec::get_targets;
-
-use heck::ToUpperCamelCase;
 
 use crate::{add_preamble, ensure_file_contents, project_root, reformat, to_lower_snake_case};
 
