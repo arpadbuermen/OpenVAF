@@ -154,15 +154,8 @@ jobs:
       run: cargo test --release
 
   macos-build-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            macos: 13
-          - arch: x86_64
-            macos: 13
-    runs-on: macos-${{ matrix.macos }}
+    runs-on: macos-latest
+    needs: [format, machete]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
