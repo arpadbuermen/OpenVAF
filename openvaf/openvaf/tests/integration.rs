@@ -15,10 +15,6 @@ use crate::mock_sim::{MockSimulation, ALPHA};
 mod load;
 mod mock_sim;
 
-fn compile_and_load(root_file: &Utf8Path) -> &'static OsdiDescriptor {
-    compile_and_load_with_opts(root_file, hir::CompilationOpts::default())
-}
-
 fn compile_and_load_with_opts(
     root_file: &Utf8Path,
     compilation_opts: hir::CompilationOpts,
@@ -52,8 +48,9 @@ fn compile_and_load_with_opts(
         }
     };
     let libs = unsafe { load_osdi_lib(&lib_file).unwrap() };
-    assert_eq!(libs.len(), 1);
-    &libs[0]
+    assert!(!libs.is_empty(), "Expected at least one module in {root_file}");
+    // Return the last module (typically the main/top-level module)
+    libs.last().unwrap()
 }
 
 // fn integration_test(dir: &str) -> Result {
