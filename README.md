@@ -52,6 +52,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
 - Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
 - $bound_step() fixed. 
+- Initalization of instance parameters from model defaults now works. 
 
 
 # What about binaries? 
