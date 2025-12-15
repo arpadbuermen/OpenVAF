@@ -162,6 +162,22 @@ impl<'ll> OsdiModelData<'ll> {
         );
     }
 
+    pub unsafe fn store_nth_inst_param(
+        &self,
+        inst_data: &OsdiInstanceData<'ll>,
+        param: u32,
+        ptr: &'ll Value,
+        val: &'ll llvm_sys::LLVMValue,
+        llbuilder: &llvm_sys::LLVMBuilder,
+    ) {
+        let (ptr, _) = self.nth_inst_param_ptr(inst_data, param, ptr, llbuilder);
+        LLVMBuildStore(
+            NonNull::from(llbuilder).as_ptr(),
+            NonNull::from(val).as_ptr(),
+            NonNull::from(ptr).as_ptr(),
+        );
+    }
+
     // pub unsafe fn read_nth_param(
     //     &self,
     //     param: u32,
