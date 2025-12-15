@@ -3,9 +3,12 @@ use core::ptr::NonNull;
 use hir_lower::{CallBackKind, ParamInfoKind, ParamKind, PlaceKind};
 use llvm_sys::core::{
     LLVMAppendBasicBlockInContext, LLVMBuildBr, LLVMBuildCondBr, LLVMBuildRetVoid,
-    LLVMCreateBuilderInContext, LLVMDisposeBuilder, LLVMGetParam, LLVMPositionBuilderAtEnd,
+    LLVMCreateBuilderInContext, LLVMDisposeBuilder, LLVMGetInsertBlock, LLVMGetLastInstruction,
+    LLVMGetParam, LLVMPositionBuilder, LLVMPositionBuilderAtEnd,
 };
+use llvm_sys::prelude::LLVMBasicBlockRef;
 use llvm_sys::LLVMIntPredicate::LLVMIntSLT;
+use llvm_sys::LLVMValue;
 use mir::ControlFlowGraph;
 use mir_llvm::{
     Builder, BuilderVal, BuiltCallbackFun, CallbackFun, CodegenCx, InlineCallbackBuilder, UNNAMED,
@@ -14,6 +17,8 @@ use sim_back::SimUnknownKind;
 
 use crate::compilation_unit::{general_callbacks, OsdiCompilationUnit};
 use crate::inst_data::OsdiInstanceParam;
+
+use std::collections::HashMap;
 
 struct VoidAbortCallback;
 
@@ -162,6 +167,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             builder.params[dst] = BuilderVal::Eager(is_given);
         }
 
+        let mut builtin_blocks: HashMap<OsdiInstanceParam, LLVMBasicBlockRef> = HashMap::new();
+        let mut builtin_values: HashMap<OsdiInstanceParam, &LLVMValue> = HashMap::new();
+
         for (i, param) in inst_data.params.keys().enumerate() {
             let i = i as u32;
 
@@ -173,10 +181,16 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
             match *param {
                 OsdiInstanceParam::Builtin(builtin) => {
+                    let default_val = builtin.default_value();
+                    let default_val = cx.const_real(default_val);
+                    let val = unsafe { builder.select(is_given, val, default_val) };
+                    unsafe {
+                        let bb = LLVMGetInsertBlock(builder.llbuilder);
+                        builtin_blocks.insert(*param, bb);
+                    }
+                    builtin_values.insert(*param, val);
+                    // Never true! But does not matter because we never use these LLVM values in built code.
                     if let Some(dst) = intern.params.index(&ParamKind::ParamSysFun(builtin)) {
-                        let default_val = builtin.default_value();
-                        let default_val = cx.const_real(default_val);
-                        let val = unsafe { builder.select(is_given, val, default_val) };
                         builder.params[dst] = BuilderVal::Eager(val);
                     }
                 }
@@ -253,7 +267,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             })
             .unwrap();
 
-        // store parameters
+        // store model parameters to reflect defaulted values
         for (i, param) in model_data.params.keys().enumerate() {
             let val = intern.outputs[&PlaceKind::Param(*param)].unwrap_unchecked();
             let inst = func.dfg.value_def(val).unwrap_inst();
@@ -262,6 +276,49 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             unsafe {
                 let val = builder.values[val].get(&builder);
                 model_data.store_nth_param(i as u32, &*model, val, builder.llbuilder);
+            }
+        }
+
+        // store instance parameters to reflect defaulted values
+        for (i, param) in inst_data.params.keys().enumerate() {
+            match param {
+                OsdiInstanceParam::Builtin(_) => {
+                    if let Some(bb) = builtin_blocks.get(param) {
+                        let val = builtin_values.get(param).unwrap();
+                        unsafe {
+                            let bb_ptr = NonNull::from(&**bb).as_ptr();
+                            let inst = LLVMGetLastInstruction(bb_ptr);
+                            LLVMPositionBuilder(
+                                builder.llbuilder as *const _ as *mut _,
+                                bb_ptr,
+                                inst,
+                            );
+                            model_data.store_nth_inst_param(
+                                inst_data,
+                                i as u32,
+                                &*model,
+                                val,
+                                builder.llbuilder,
+                            );
+                        }
+                    }
+                }
+                OsdiInstanceParam::User(param) => {
+                    let val = intern.outputs[&PlaceKind::Param(*param)].unwrap_unchecked();
+                    let inst = func.dfg.value_def(val).unwrap_inst();
+                    let bb = func.layout.inst_block(inst).unwrap();
+                    builder.select_bb_before_terminator(bb);
+                    unsafe {
+                        let val = builder.values[val].get(&builder);
+                        model_data.store_nth_inst_param(
+                            inst_data,
+                            i as u32,
+                            &*model,
+                            val,
+                            builder.llbuilder,
+                        );
+                    }
+                }
             }
         }
 
@@ -365,6 +422,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 OsdiInstanceParam::User(param) => {
                     let dst = intern.params.unwrap_index(&ParamKind::Param(param));
                     builder.params[dst] = BuilderVal::Eager(val);
+                    // Store in instance structure to reflect defaulted value
+                    unsafe {
+                        inst_data.store_nth_param(i, instance, val, builder.llbuilder);
+                    }
                     let dst = intern.params.unwrap_index(&ParamKind::ParamGiven { param });
                     builder.params[dst] = BuilderVal::Eager(is_given);
                 }
@@ -482,6 +543,9 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         }
 
         unsafe {
+            // This fills builder.values with builder.params based on
+            // param keys associated with a MIR values.
+            // Also builds constants from MIR
             builder.build_consts();
             builder.build_func();
         }
