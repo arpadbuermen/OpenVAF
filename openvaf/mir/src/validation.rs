@@ -7,6 +7,7 @@ impl Function {
         cfg.compute(self);
         let mut dom_tree = DominatorTree::default();
         dom_tree.compute(self, &cfg, true, false, true);
+
         for &bb in dom_tree.cfg_postorder() {
             for (seq_num, inst) in self.layout.block_insts(bb).enumerate() {
                 let mut valid_inst = true;
@@ -27,10 +28,10 @@ impl Function {
                         let edge_def = self.dfg.value_def(edge_val);
                         if let Some(arg_def) = edge_def.inst() {
                             if let Some(edge_val_bb) = self.layout.inst_block(arg_def) {
-                                assert!(
-                                    dom_tree.dominates(edge_bb, edge_val_bb),
-                                    "{edge_val} doesn't dominate use ({edge_val_bb} !dom {edge_bb})"
-                                );
+                                if !dom_tree.dominates(edge_bb, edge_val_bb) {
+                                    eprintln!("{edge_val} doesn't dominate use ({edge_val_bb} !dom {edge_bb})");
+                                    valid_inst = false;
+                                }
                             }
                         } else {
                             assert!(edge_def != ValueDef::Invalid, "invalid argument {edge_val}");
@@ -48,11 +49,9 @@ impl Function {
                                         .position(|inst| inst == arg_inst)
                                         .unwrap();
                                     assert!(arg_seq_num < seq_num, "{arg} doesn't dominate use");
-                                } else {
-                                    assert!(
-                                        dom_tree.dominates(bb, arg_bb),
-                                        "{arg} doesn't dominate use ({arg_bb} !dom {bb})"
-                                    );
+                                } else if !dom_tree.dominates(bb, arg_bb) {
+                                    eprintln!("{arg} doesn't dominate use ({arg_bb} !dom {bb})");
+                                    valid_inst = false;
                                 }
                             }
                         } else {
