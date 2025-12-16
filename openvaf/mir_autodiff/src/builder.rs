@@ -323,6 +323,58 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                         self.derivative_values.insert((prev_order, unknown), val);
                     }
 
+                    // Before calling insert_conversions, ensure any derivative values it will
+                    // access that are defined in calculate_derivative_block have phi nodes.
+                    // This fixes dominance violations when chain rule conversions reference
+                    // intermediate derivatives computed in the conditional block.
+                    if let Some(conversion) = self.live_derivatives.conversions.get(&inst) {
+                        let values_to_phi: Vec<_> = conversion
+                            .iter()
+                            .flat_map(|chain_rule| {
+                                let outer =
+                                    self.derivative_of(chain_rule.val, chain_rule.outer_derivative);
+                                let inner = self.derivative_of(
+                                    chain_rule.inner_derivative.0,
+                                    chain_rule.inner_derivative.1,
+                                );
+                                [outer, inner]
+                            })
+                            .filter(|&val| {
+                                if val == F_ZERO {
+                                    return false;
+                                }
+                                // Check if value is defined in calculate_derivative_block
+                                if let Some(def_inst) = self.func.dfg.value_def(val).inst() {
+                                    self.func.layout.inst_block(def_inst)
+                                        == Some(calculate_derivative_block)
+                                } else {
+                                    false
+                                }
+                            })
+                            .collect();
+
+                        // Create phis for these values and update derivative_values
+                        // We need to find the keys that map to these values
+                        let entries_to_update: Vec<_> = self
+                            .derivative_values
+                            .iter()
+                            .filter_map(|(&key, &val)| {
+                                if values_to_phi.contains(&val) {
+                                    Some((key, val))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
+                        for (key, val) in entries_to_update {
+                            let checked_val = self
+                                .ins()
+                                .phi(&[(old_block, F_ZERO), (calculate_derivative_block, val)]);
+                            self.derivative_values.insert(key, checked_val);
+                        }
+                    }
+
                     self.insert_conversions(inst);
                     self.new_block.take();
                 }
