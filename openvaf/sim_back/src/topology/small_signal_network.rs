@@ -58,7 +58,7 @@ enum CandidateKind {
 }
 
 impl Builder<'_> {
-    /// explores all `candidates` to extract the noise network
+    /// Explores all `candidates` to extract the noise network
     fn solve(&mut self, candidates: &mut Vec<Candidate>) {
         loop {
             let mut changed = false;
@@ -67,19 +67,13 @@ impl Builder<'_> {
                     self.topology.small_signal_vals.insert(node);
                 }
                 let mut set = FlatSet::Zero;
-
-                // Analyze resistive contributions
                 for &val in &candidate.resist {
                     set = set.min(self.analyze_value(val, RECUSE_DEPTH));
                 }
-
-                // Analyze reactive contributions
                 for &val in &candidate.react {
                     set = set.min(self.analyze_value(val, RECUSE_DEPTH));
                 }
-
                 if set == FlatSet::Zero {
-                    // Proven zero - mark for confirmation
                     match candidate.kind {
                         CandidateKind::Node { .. } => {
                             cov_mark::hit!(node_is_small_signal);
@@ -90,7 +84,7 @@ impl Builder<'_> {
                     }
                     changed = true;
                 } else if let Some(node) = candidate.as_node() {
-                    self.topology.small_signal_vals.remove(&node);
+                    self.topology.small_signal_vals.swap_remove(&node);
                 }
                 set == FlatSet::Bottom
             });
