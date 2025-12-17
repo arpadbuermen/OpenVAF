@@ -51,6 +51,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Loops no longer crash the compiler. 
 - Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
 - Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
+- $bound_step() fixed. 
 
 
 # What about binaries? 
@@ -63,9 +64,7 @@ openvaf-reloaded-<version>-<platform>
 
 The version name is generated with `git --describe`. The OpenVAF-reloaded that produces models with the OSDI API 0.3 is version `osdi_0.3`. All newer versions (`osdi_0.4`) produce models with OSDI API 0.4. 
 
-If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch and produces models with the OSDI 0.3 API. If the binary is named `openvaf-r` it comes from the `master` branch and produces models with the OSDI 0.4 API. 
-
-Packages named `openvaf-reloaded-llvm18-osdi_0.4*` come from the `llvm18` branch. They are linked against LLVM18. The LLVM18 version of OpenVAF produces slightly faster models. If you experience problems with these binaries, let me know. Packages named `openvaf-reloaded-osdi_0.4*` are the conservative choice. They come from the `master` branch and are linked against LLVM15.
+If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch and produces models with the OSDI 0.3 API (note that this branch is no longer maintained). If the binary is named `openvaf-r` it comes from the `master` branch and produces models with the OSDI 0.4 API. 
 
 
 # Building OpenVAF-reloaded

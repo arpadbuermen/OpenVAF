@@ -2,7 +2,7 @@ use bitset::{BitSet, SparseBitMatrix};
 use hir::CompilationDB;
 use hir_lower::{HirInterner, MirBuilder, PlaceKind};
 use lasso::Rodeo;
-use mir::{Block, ControlFlowGraph, DominatorTree, Function, Inst, Value};
+use mir::{InstructionData, Block, ControlFlowGraph, DominatorTree, Function, Inst, Value};
 use mir_opt::{
     aggressive_dead_code_elimination, dead_code_elimination, inst_combine, propagate_direct_taint,
     propagate_taint, simplify_cfg, simplify_cfg_no_phi_merge,
@@ -40,7 +40,8 @@ impl<'a> Context<'a> {
                 PlaceKind::Contribute { .. }
                 | PlaceKind::ImplicitResidual { .. }
                 | PlaceKind::CollapseImplicitEquation(_)
-                | PlaceKind::IsVoltageSrc(_) => true,
+                | PlaceKind::IsVoltageSrc(_) 
+                | PlaceKind::BoundStep => true,
                 PlaceKind::Var(var) => module.op_vars.contains_key(&var),
                 _ => false,
             },
@@ -147,12 +148,14 @@ impl<'a> Context<'a> {
                 self.op_dependent_vals.push(val)
             }
         }
+        
+        // Propagate taint
         propagate_direct_taint(
             &self.func,
             dom_frontiers,
             self.op_dependent_vals.iter().copied(),
             &mut self.op_dependent_insts,
-        )
+        );
     }
 
     pub fn refresh_op_dependent_insts(&mut self) {
@@ -160,8 +163,13 @@ impl<'a> Context<'a> {
         self.op_dependent_vals.clear();
         self.op_dependent_insts.clear();
         self.op_dependent_insts.ensure(dfg.num_insts());
+        // Go through all callbacks and their uses
         for (cb, uses) in self.intern.callback_uses.iter_mut_enumerated() {
+            // Ff callback is op dependent
             if self.intern.callbacks[cb].op_dependent() {
+                // Remove uses that appear in instructions that are not inserted into the layout. 
+                // Add to op dependent instructions. 
+                // Add the results of these instructions to op dependent values. 
                 uses.retain(|&inst| {
                     if self.func.layout.inst_block(inst).is_none() {
                         return false;
@@ -174,17 +182,21 @@ impl<'a> Context<'a> {
                 })
             }
         }
+        // Go through parameters, if the corresponding value is not dead and is op dependent
+        // (i.e. current, voltage, abstime, ...) add it to op dependent values. 
         for (param, &val) in self.intern.params.iter() {
             if !dfg.value_dead(val) && param.op_dependent() {
                 self.op_dependent_vals.push(val)
             }
         }
+        
+        // Propagate taint
         propagate_taint(
             &self.func,
             &self.dom_tree,
             &self.cfg,
             self.op_dependent_vals.iter().copied(),
             &mut self.op_dependent_insts,
-        )
+        );
     }
 }

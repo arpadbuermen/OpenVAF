@@ -2,6 +2,7 @@ use bitset::BitSet;
 
 use crate::flowgraph::Successors;
 use crate::{Block, ControlFlowGraph};
+use smallvec::SmallVec;
 
 /// Postorder traversal of a graph.
 ///
@@ -22,7 +23,7 @@ use crate::{Block, ControlFlowGraph};
 ///
 /// A Postorder traversal of this graph is `D B C A` or `D C B A`
 ///
-pub struct Postorder<'a> {
+/*pub struct Postorder<'a> {
     cfg: &'a ControlFlowGraph,
     visited: BitSet<Block>,
     visit_stack: Vec<(Block, Successors)>,
@@ -115,6 +116,61 @@ impl<'lt> Iterator for Postorder<'lt> {
         let lower = self.visit_stack.len();
 
         (lower, Some(upper))
+    }
+}
+*/
+
+// Pascal's Postorder was wrong. Did not work for loops. 
+// This one passses all tests, except for HiSIMHV (has loops that we are trying to fix). 
+// TODO: rewrite this without using recursion
+pub struct Postorder<'a> {
+    cfg: &'a ControlFlowGraph,
+    visited: BitSet<Block>,
+    result: SmallVec<[Block; 32]>,
+    index: usize,
+}
+
+impl<'a> Postorder<'a> {
+    pub fn new(cfg: &'a ControlFlowGraph, root: Block) -> Self {
+        let mut po = Postorder {
+            cfg,
+            visited: BitSet::new_empty(cfg.data.len()),
+            result: SmallVec::new(),
+            index: 0, 
+        };
+
+        po.dfs(root);
+        po
+    }
+
+    fn dfs(&mut self, bb: Block) {
+        if !self.visited.insert(bb) {
+            return;
+        }
+        for succ in self.cfg.successors(bb).iter() {
+            self.dfs(succ);
+        }
+
+        self.result.push(bb);
+    }
+}
+
+impl<'a> Iterator for Postorder<'a> {
+    type Item = Block;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.result.len() {
+            let block = self.result[self.index];
+            self.index += 1;
+            Some(block)
+        } else {
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.result.len() - self.index;
+        (len, Some(len))
     }
 }
 
