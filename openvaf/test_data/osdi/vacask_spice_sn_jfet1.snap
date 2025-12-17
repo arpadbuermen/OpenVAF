@@ -1,0 +1,86 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "area"
+units = "", desc = "Area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference", flags = ParameterFlags(PARA_KIND_INST)
+param "type"
+units = "", desc = "N-type (1) or P-type (-1)", flags = ParameterFlags(PARA_TY_INT)
+param "vt0", "vto"
+units = "", desc = "Threshold voltage", flags = ParameterFlags(0x0)
+param "beta"
+units = "", desc = "Transconductance parameter", flags = ParameterFlags(0x0)
+param "lambda"
+units = "", desc = "Channel length modulation param.", flags = ParameterFlags(0x0)
+param "rd"
+units = "", desc = "Drain ohmic resistance", flags = ParameterFlags(0x0)
+param "rs"
+units = "", desc = "Source ohmic resistance", flags = ParameterFlags(0x0)
+param "cgs"
+units = "", desc = "G-S junction capactance", flags = ParameterFlags(0x0)
+param "cgd"
+units = "", desc = "G-D junction cap", flags = ParameterFlags(0x0)
+param "pb"
+units = "", desc = "Gate junction potential", flags = ParameterFlags(0x0)
+param "is"
+units = "", desc = "Gate junction saturation current", flags = ParameterFlags(0x0)
+param "n"
+units = "", desc = "Emission Coefficient for gate-drain and gate-source diodes", flags = ParameterFlags(0x0)
+param "fc"
+units = "", desc = "Forward bias junction fit parm.", flags = ParameterFlags(0x0)
+param "b"
+units = "", desc = "Doping tail parameter", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "parameter measurement temperature", flags = ParameterFlags(0x0)
+param "tcv"
+units = "", desc = "Threshold voltage temperature coefficient", flags = ParameterFlags(0x0)
+param "vtotc"
+units = "", desc = "Threshold voltage temperature coefficient alternative", flags = ParameterFlags(0x0)
+param "bex"
+units = "", desc = "Mobility temperature exponent", flags = ParameterFlags(0x0)
+param "betatce"
+units = "", desc = "Mobility temperature exponent alternative", flags = ParameterFlags(0x0)
+param "xti"
+units = "", desc = "Gate junction saturation current temperature exponent", flags = ParameterFlags(0x0)
+param "eg"
+units = "", desc = "Bandgap voltage", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker Noise Coefficient", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker Noise Exponent", flags = ParameterFlags(0x0)
+param "nlev"
+units = "", desc = "Noise equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "gdsnoi"
+units = "", desc = "Channel noise coefficient", flags = ParameterFlags(0x0)
+
+3 terminals
+node "d" units = "V", runits = "A"
+node "g" units = "V", runits = "A"
+node "s" units = "V", runits = "A"
+node "d_int" units = "V", runits = "A"
+node "s_int" units = "V", runits = "A"
+jacobian (d, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+collapsible (s_int, s)
+collapsible (d_int, d)
+noise "rs" (s_int, s)
+noise "rd" (d_int, d)
+noise "flicker" (d_int, s_int)
+noise "id" (d_int, s_int)
+2 states
+has bound_step false

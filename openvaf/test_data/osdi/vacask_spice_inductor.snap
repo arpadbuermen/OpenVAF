@@ -1,0 +1,46 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "inductance", "l"
+units = "", desc = "Inductance of inductor", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance operating temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference with the rest of the circuit", flags = ParameterFlags(PARA_KIND_INST)
+param "tc1"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "tc2"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "scale"
+units = "", desc = "Scale factor", flags = ParameterFlags(PARA_KIND_INST)
+param "nt"
+units = "", desc = "Number of turns", flags = ParameterFlags(PARA_KIND_INST)
+param "ind"
+units = "", desc = "Model inductance", flags = ParameterFlags(0x0)
+param "model_tc1"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(0x0)
+param "model_tc2"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "csect"
+units = "", desc = "Inductor cross section", flags = ParameterFlags(0x0)
+param "dia"
+units = "", desc = "Inductor diameter", flags = ParameterFlags(0x0)
+param "length"
+units = "", desc = "Inductor length", flags = ParameterFlags(0x0)
+param "model_nt"
+units = "", desc = "Model number of turns", flags = ParameterFlags(0x0)
+param "mu"
+units = "", desc = "Relative magnetic permeability", flags = ParameterFlags(0x0)
+
+2 terminals
+node "pos" units = "V", runits = "A"
+node "neg" units = "V", runits = "A"
+node(flow) "flow(br)" units = "A", runits = "V"
+jacobian (pos, flow(br)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (neg, flow(br)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(br), pos) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(br), neg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(br), flow(br)) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+0 states
+has bound_step false

@@ -1,0 +1,68 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "resistance", "r"
+units = "", desc = "Resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance operating temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference with the rest of the circuit", flags = ParameterFlags(PARA_KIND_INST)
+param "l"
+units = "", desc = "Length", flags = ParameterFlags(PARA_KIND_INST)
+param "w"
+units = "", desc = "Width", flags = ParameterFlags(PARA_KIND_INST)
+param "tc", "tc1"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "tc2"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "tce"
+units = "", desc = "exponential temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "bv_max"
+units = "", desc = "maximum voltage over resistor", flags = ParameterFlags(PARA_KIND_INST)
+param "scale"
+units = "", desc = "Scale factor", flags = ParameterFlags(PARA_KIND_INST)
+param "noisy", "noise"
+units = "", desc = "Resistor generate noise", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "rsh"
+units = "", desc = "Sheet resistance", flags = ParameterFlags(0x0)
+param "narrow", "dw"
+units = "", desc = "Narrowing of resistor", flags = ParameterFlags(0x0)
+param "short", "dlr"
+units = "", desc = "Shortening of resistor", flags = ParameterFlags(0x0)
+param "model_tc1", "tc1r"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(0x0)
+param "model_tc2", "tc2r"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(0x0)
+param "model_tce"
+units = "", desc = "exponential temp. coefficient", flags = ParameterFlags(0x0)
+param "defw", "model_w"
+units = "", desc = "Default device width", flags = ParameterFlags(0x0)
+param "model_l"
+units = "", desc = "Default device length", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker noise coefficient", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker noise exponent", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "model_r", "res"
+units = "", desc = "Resistor model default value", flags = ParameterFlags(0x0)
+param "model_bv_max"
+units = "", desc = "maximum voltage over resistor", flags = ParameterFlags(0x0)
+param "lf"
+units = "", desc = "noise area length exponent", flags = ParameterFlags(0x0)
+param "wf"
+units = "", desc = "noise area width exponent", flags = ParameterFlags(0x0)
+param "ef"
+units = "", desc = "noise frequency exponent", flags = ParameterFlags(0x0)
+
+2 terminals
+node "pos" units = "V", runits = "A"
+node "neg" units = "V", runits = "A"
+jacobian (pos, pos) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (pos, neg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (neg, pos) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (neg, neg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+noise "thermal" (pos, neg)
+noise "flicker" (pos, neg)
+0 states
+has bound_step false

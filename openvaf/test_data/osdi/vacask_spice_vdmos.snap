@@ -1,0 +1,221 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference", flags = ParameterFlags(PARA_KIND_INST)
+param "thermal_enabled"
+units = "", desc = "Thermal model switch on/off", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "type"
+units = "", desc = "NMOS (1) or PMOS (-1)", flags = ParameterFlags(PARA_TY_INT)
+param "vto", "vth0"
+units = "", desc = "Threshold voltage", flags = ParameterFlags(0x0)
+param "kp"
+units = "", desc = "Transconductance parameter", flags = ParameterFlags(0x0)
+param "phi"
+units = "", desc = "Surface potential", flags = ParameterFlags(0x0)
+param "lambda"
+units = "", desc = "Channel length modulation", flags = ParameterFlags(0x0)
+param "theta"
+units = "", desc = "Vgs dependence on mobility", flags = ParameterFlags(0x0)
+param "rd"
+units = "", desc = "Drain ohmic resistance", flags = ParameterFlags(0x0)
+param "rs"
+units = "", desc = "Source ohmic resistance", flags = ParameterFlags(0x0)
+param "rg"
+units = "", desc = "Gate ohmic resistance", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker noise coefficient", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker noise exponent", flags = ParameterFlags(0x0)
+param "vdmos"
+units = "", desc = "DMOS transistor", flags = ParameterFlags(0x0)
+param "rq"
+units = "", desc = "Quasi saturation resistance fitting parameter", flags = ParameterFlags(0x0)
+param "vq"
+units = "", desc = "Quasi saturation voltage fitting parameter", flags = ParameterFlags(0x0)
+param "mtriode"
+units = "", desc = "Conductance multiplier in triode region", flags = ParameterFlags(0x0)
+param "tcvth", "vtotc"
+units = "", desc = "Linear Vth0 temperature coefficient", flags = ParameterFlags(0x0)
+param "mu", "bex"
+units = "", desc = "Exponent of gain temperature dependency", flags = ParameterFlags(0x0)
+param "texp0"
+units = "", desc = "Drain resistance rd0 temperature exponent", flags = ParameterFlags(0x0)
+param "texp1"
+units = "", desc = "Drain resistance rd1 temperature exponent", flags = ParameterFlags(0x0)
+param "trd1"
+units = "", desc = "Drain resistance linear temperature coefficient", flags = ParameterFlags(0x0)
+param "trd2"
+units = "", desc = "Drain resistance quadratic temperature coefficient", flags = ParameterFlags(0x0)
+param "trg1"
+units = "", desc = "Gate resistance linear temperature coefficient", flags = ParameterFlags(0x0)
+param "trg2"
+units = "", desc = "Gate resistance quadratic temperature coefficient", flags = ParameterFlags(0x0)
+param "trs1"
+units = "", desc = "Source resistance linear temperature coefficient", flags = ParameterFlags(0x0)
+param "trs2"
+units = "", desc = "Source resistance quadratic temperature coefficient", flags = ParameterFlags(0x0)
+param "trb1"
+units = "", desc = "Body resistance linear temperature coefficient", flags = ParameterFlags(0x0)
+param "trb2"
+units = "", desc = "Body resistance quadratic temperature coefficient", flags = ParameterFlags(0x0)
+param "subshift"
+units = "", desc = "Shift of weak inversion plot on the vgs axis", flags = ParameterFlags(0x0)
+param "ksubthres"
+units = "", desc = "Slope of weak inversion log current versus vgs", flags = ParameterFlags(0x0)
+param "tksubthres1"
+units = "", desc = "Linear temperature coefficient of ksubthres", flags = ParameterFlags(0x0)
+param "tksubthres2"
+units = "", desc = "Quadratic temperature coefficient of ksubthres", flags = ParameterFlags(0x0)
+param "bv"
+units = "", desc = "Vds breakdown voltage", flags = ParameterFlags(0x0)
+param "ibv"
+units = "", desc = "Current at Vds=bv", flags = ParameterFlags(0x0)
+param "nbv"
+units = "", desc = "Vds breakdown emission coefficient", flags = ParameterFlags(0x0)
+param "rds"
+units = "", desc = "Drain-source shunt resistance", flags = ParameterFlags(0x0)
+param "rb"
+units = "", desc = "Body diode ohmic resistance", flags = ParameterFlags(0x0)
+param "n"
+units = "", desc = "Body diode emission coefficient", flags = ParameterFlags(0x0)
+param "tt"
+units = "", desc = "Body diode transit time", flags = ParameterFlags(0x0)
+param "eg"
+units = "", desc = "Body diode activation energy for temperature effect on Is", flags = ParameterFlags(0x0)
+param "xti"
+units = "", desc = "Body diode saturation current temperature exponent", flags = ParameterFlags(0x0)
+param "is"
+units = "", desc = "Body diode saturation current", flags = ParameterFlags(0x0)
+param "vj"
+units = "", desc = "Body diode junction potential", flags = ParameterFlags(0x0)
+param "cjo"
+units = "", desc = "Zero-bias body diode junction capacitance", flags = ParameterFlags(0x0)
+param "m"
+units = "", desc = "Body diode grading coefficient", flags = ParameterFlags(0x0)
+param "fc"
+units = "", desc = "Body diode coefficient for forward-bias depletion capacitance formula", flags = ParameterFlags(0x0)
+param "cgdmin"
+units = "", desc = "Minimum non-linear G-D capacitance", flags = ParameterFlags(0x0)
+param "cgdmax"
+units = "", desc = "Maximum non-linear G-D capacitance", flags = ParameterFlags(0x0)
+param "a"
+units = "", desc = "Non-linear Cgd capacitance parameter", flags = ParameterFlags(0x0)
+param "cgs"
+units = "", desc = "Gate-source capacitance", flags = ParameterFlags(0x0)
+param "rthjc"
+units = "", desc = "Self-heating thermal resistance, junction-to-case", flags = ParameterFlags(0x0)
+param "rthca"
+units = "", desc = "Self-heating thermal resistance, case-to-ambient", flags = ParameterFlags(0x0)
+param "cthj"
+units = "", desc = "Self-heating thermal capacitance", flags = ParameterFlags(0x0)
+param "vgs_max"
+units = "", desc = "maximum voltage G-S branch", flags = ParameterFlags(0x0)
+param "vgd_max"
+units = "", desc = "maximum voltage G-D branch", flags = ParameterFlags(0x0)
+param "vds_max"
+units = "", desc = "maximum voltage D-S branch", flags = ParameterFlags(0x0)
+param "vgsr_max"
+units = "", desc = "maximum voltage G-S branch", flags = ParameterFlags(0x0)
+param "vgdr_max"
+units = "", desc = "maximum voltage G-D branch", flags = ParameterFlags(0x0)
+param "pd_max"
+units = "", desc = "maximum device power dissipation", flags = ParameterFlags(0x0)
+param "id_max"
+units = "", desc = "maximum drain/source current", flags = ParameterFlags(0x0)
+param "idr_max"
+units = "", desc = "maximum drain/source reverse current", flags = ParameterFlags(0x0)
+param "te_max"
+units = "", desc = "maximum temperature", flags = ParameterFlags(0x0)
+param "rth_ext"
+units = "", desc = "thermal resistance case to ambient, incl. heat sink", flags = ParameterFlags(0x0)
+param "derating"
+units = "", desc = "thermal derating for power", flags = ParameterFlags(0x0)
+
+5 terminals
+node "d" units = "V", runits = "A"
+node "g" units = "V", runits = "A"
+node "s" units = "V", runits = "A"
+node "t" units = "V", runits = "A"
+node "tc" units = "V", runits = "A"
+node "d_int" units = "V", runits = "A"
+node "g_int" units = "V", runits = "A"
+node "s_int" units = "V", runits = "A"
+node "bd_int" units = "V", runits = "A"
+node "t_int" units = "V", runits = "A"
+node(flow) "flow(tbr)" units = "A", runits = "V"
+node "implicit_equation_0" units = "", runits = ""
+node "implicit_equation_1" units = "", runits = ""
+jacobian (d, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, bd_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, bd_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (t, tc) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (tc, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (tc, tc) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (tc, t_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (bd_int, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (bd_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (bd_int, t) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (bd_int, bd_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (t_int, tc) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t_int, t_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (t_int, flow(tbr)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(tbr), t_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (implicit_equation_0, g_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, s_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (implicit_equation_1, d_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, g_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, s_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+collapsible (d_int, d)
+collapsible (g_int, g)
+collapsible (s_int, s)
+collapsible (bd_int, s)
+collapsible (t, gnd)
+collapsible (tc, gnd)
+noise "rd" (d_int, d)
+noise "rs" (s_int, s)
+noise "id" (d_int, s_int)
+noise "flicker" (d_int, s_int)
+4 states
+has bound_step false

@@ -1,0 +1,156 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "area"
+units = "", desc = "Area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference", flags = ParameterFlags(PARA_KIND_INST)
+param "type"
+units = "", desc = "N-type (1) or P-type (-1)", flags = ParameterFlags(PARA_TY_INT)
+param "acgam"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker Noise Exponent", flags = ParameterFlags(0x0)
+param "beta"
+units = "", desc = "Transconductance parameter", flags = ParameterFlags(0x0)
+param "cds"
+units = "", desc = "D-S junction capacitance", flags = ParameterFlags(0x0)
+param "cgd"
+units = "", desc = "G-D junction capacitance", flags = ParameterFlags(0x0)
+param "cgs"
+units = "", desc = "G-S junction capacitance", flags = ParameterFlags(0x0)
+param "delta"
+units = "", desc = "coef of thermal current reduction", flags = ParameterFlags(0x0)
+param "hfeta"
+units = "", desc = "drain feedback modulation", flags = ParameterFlags(0x0)
+param "hfe1"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "hfe2"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "hfg1"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "hfg2"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "mvst"
+units = "", desc = "modulation index for subtreshold current", flags = ParameterFlags(0x0)
+param "mxi"
+units = "", desc = "saturation potential modulation parameter", flags = ParameterFlags(0x0)
+param "fc"
+units = "", desc = "Forward bias junction fit parm.", flags = ParameterFlags(0x0)
+param "ibd"
+units = "", desc = "Breakdown current of diode jnc", flags = ParameterFlags(0x0)
+param "is"
+units = "", desc = "Gate junction saturation current", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker Noise Coefficient", flags = ParameterFlags(0x0)
+param "lambda"
+units = "", desc = "Channel length modulation param.", flags = ParameterFlags(0x0)
+param "lfgam"
+units = "", desc = "drain feedback parameter", flags = ParameterFlags(0x0)
+param "lfg1"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "lfg2"
+units = "", desc = "", flags = ParameterFlags(0x0)
+param "n"
+units = "", desc = "gate junction ideality factor", flags = ParameterFlags(0x0)
+param "p"
+units = "", desc = "Power law (triode region)", flags = ParameterFlags(0x0)
+param "vbi", "pb"
+units = "", desc = "Gate junction potential", flags = ParameterFlags(0x0)
+param "q"
+units = "", desc = "Power Law (Saturated region)", flags = ParameterFlags(0x0)
+param "rd"
+units = "", desc = "Drain ohmic resistance", flags = ParameterFlags(0x0)
+param "rs"
+units = "", desc = "Source ohmic resistance", flags = ParameterFlags(0x0)
+param "taud"
+units = "", desc = "Thermal relaxation time", flags = ParameterFlags(0x0)
+param "taug"
+units = "", desc = "Drain feedback relaxation time", flags = ParameterFlags(0x0)
+param "vbd"
+units = "", desc = "Breakdown potential of diode jnc", flags = ParameterFlags(0x0)
+param "ver"
+units = "", desc = "version number of PS model", flags = ParameterFlags(0x0)
+param "vst"
+units = "", desc = "Crit Poten subthreshold conductn", flags = ParameterFlags(0x0)
+param "vt0", "vto"
+units = "", desc = "Threshold voltage", flags = ParameterFlags(0x0)
+param "xc"
+units = "", desc = "amount of cap. red at pinch-off", flags = ParameterFlags(0x0)
+param "xi"
+units = "", desc = "velocity saturation index", flags = ParameterFlags(0x0)
+param "z"
+units = "", desc = "rate of velocity saturation", flags = ParameterFlags(0x0)
+param "hfgam"
+units = "", desc = "high freq drain feedback parm", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "parameter measurement temperature", flags = ParameterFlags(0x0)
+
+3 terminals
+node "d" units = "V", runits = "A"
+node "g" units = "V", runits = "A"
+node "s" units = "V", runits = "A"
+node "d_int" units = "V", runits = "A"
+node "s_int" units = "V", runits = "A"
+node "vgs_avg" units = "V", runits = "A"
+node "vgd_avg" units = "V", runits = "A"
+node "p_avg" units = "V", runits = "A"
+node "implicit_equation_0" units = "", runits = ""
+node "implicit_equation_1" units = "", runits = ""
+jacobian (d, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, vgs_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, vgd_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, p_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, vgs_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, vgd_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, p_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgs_avg, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgs_avg, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgs_avg, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgs_avg, vgs_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (vgd_avg, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgd_avg, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgd_avg, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (vgd_avg, vgd_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (p_avg, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (p_avg, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (p_avg, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (p_avg, vgs_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (p_avg, vgd_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (p_avg, p_avg) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, g) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, s_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (implicit_equation_1, g) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, d_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+collapsible (s_int, s)
+collapsible (d_int, d)
+collapsible (vgs_avg, gnd)
+collapsible (vgd_avg, gnd)
+collapsible (p_avg, gnd)
+noise "rs" (s_int, s)
+noise "rd" (d_int, d)
+noise "id" (d_int, s_int)
+noise "flicker" (d_int, s_int)
+2 states
+has bound_step false
