@@ -52,6 +52,8 @@ jobs:
     needs: [format, machete]
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
@@ -140,6 +142,8 @@ jobs:
     needs: [format, machete]
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
@@ -222,6 +226,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Install dependencies with Homebrew
       uses: tecolicom/actions-use-homebrew-tools@v1

@@ -1,4 +1,5 @@
 use std::f64::consts;
+use std::ffi::OsStr;
 use std::path::Path;
 
 use camino::Utf8Path;
@@ -65,13 +66,46 @@ fn integration_test(dir: &Path) -> Result {
     Ok(())
 }
 
+/// Test a single Verilog-A file directly (for VACASK models)
+/// Uses "vacask_" prefix for snapshot names to avoid conflicts with OpenVAF models
+fn vacask_test(file: &Path) -> Result {
+    test_descriptor_with_prefix(file, "vacask_")?;
+    Ok(())
+}
+
+/// Test a single Verilog-A file with SPICE naming prefix
+fn vacask_spice_test(file: &Path) -> Result {
+    test_descriptor_with_prefix(file, "vacask_spice_")?;
+    Ok(())
+}
+
+/// Test a single Verilog-A file with simplified SPICE naming prefix
+fn vacask_spice_sn_test(file: &Path) -> Result {
+    test_descriptor_with_prefix(file, "vacask_spice_sn_")?;
+    Ok(())
+}
+
+/// Filter to only include .va files
+fn is_va_file(path: &Path) -> bool {
+    path.extension() == Some(OsStr::new("va"))
+}
+
+/// Get path to VACASK devices directory
+fn vacask_devices() -> std::path::PathBuf {
+    project_root().join("external/vacask/devices")
+}
+
 fn test_descriptor(main_file: &Path) -> Result<&'static OsdiDescriptor> {
+    test_descriptor_with_prefix(main_file, "")
+}
+
+fn test_descriptor_with_prefix(main_file: &Path, prefix: &str) -> Result<&'static OsdiDescriptor> {
     let main_file: &Utf8Path = main_file.try_into().unwrap();
     let name = main_file.file_stem().unwrap();
     let desc = compile_and_load(main_file);
     let expect = format!("{desc:?}");
     let test_dir = openvaf_test_data("osdi");
-    expect_file![test_dir.join(format!("{name}.snap"))].assert_eq(&expect);
+    expect_file![test_dir.join(format!("{prefix}{name}.snap"))].assert_eq(&expect);
     let default_model = desc.new_model();
     default_model.process_params()?;
     let mut instance = default_model.new_instance();
@@ -225,5 +259,11 @@ fn test_noise() -> Result<()> {
 harness! {
     // TODO: run this in CI, somehow this test is flakey tough regarding the linker invocation (and really slow)
     Test::from_dir("integration", &integration_test, &ignore_dev_tests, &project_root().join("integration_tests")),
+    // VACASK basic device models
+    Test::from_dir_filtered("vacask", &vacask_test, &is_va_file, &ignore_dev_tests, &vacask_devices()),
+    // VACASK SPICE models
+    Test::from_dir_filtered("vacask_spice", &vacask_spice_test, &is_va_file, &ignore_dev_tests, &vacask_devices().join("spice")),
+    // VACASK simplified SPICE models
+    Test::from_dir_filtered("vacask_spice_sn", &vacask_spice_sn_test, &is_va_file, &ignore_dev_tests, &vacask_devices().join("spice/sn")),
     [Test::new("$limit", &test_limit),Test::new("noise", &test_noise)]
 }
