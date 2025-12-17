@@ -1,0 +1,343 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "area"
+units = "", desc = "(Emitter) Area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "areab"
+units = "", desc = "Base area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "areac"
+units = "", desc = "Collector area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "instance temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "instance temperature delta from circuit", flags = ParameterFlags(PARA_KIND_INST)
+param "type"
+units = "", desc = "N-type (1) or P-type (-1)", flags = ParameterFlags(PARA_TY_INT)
+param "subs"
+units = "", desc = "vertical (1) or lateral (-1)", flags = ParameterFlags(PARA_TY_INT)
+param "tnom", "tref"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "is"
+units = "", desc = "Saturation Current", flags = ParameterFlags(0x0)
+param "ibe"
+units = "", desc = "Base-Emitter saturation Current", flags = ParameterFlags(0x0)
+param "ibc"
+units = "", desc = "Base-Collector saturation Current", flags = ParameterFlags(0x0)
+param "bf"
+units = "", desc = "Ideal forward beta", flags = ParameterFlags(0x0)
+param "nf"
+units = "", desc = "Forward emission coefficient", flags = ParameterFlags(0x0)
+param "vaf", "va"
+units = "", desc = "Forward Early voltage", flags = ParameterFlags(0x0)
+param "ikf", "ik"
+units = "", desc = "Forward beta roll-off corner current", flags = ParameterFlags(0x0)
+param "ise", "c2"
+units = "", desc = "B-E leakage saturation current", flags = ParameterFlags(0x0)
+param "ne"
+units = "", desc = "B-E leakage emission coefficient", flags = ParameterFlags(0x0)
+param "br"
+units = "", desc = "Ideal reverse beta", flags = ParameterFlags(0x0)
+param "nr"
+units = "", desc = "Reverse emission coefficient", flags = ParameterFlags(0x0)
+param "var", "vb"
+units = "", desc = "Reverse Early voltage", flags = ParameterFlags(0x0)
+param "ikr"
+units = "", desc = "reverse beta roll-off corner current", flags = ParameterFlags(0x0)
+param "isc", "c4"
+units = "", desc = "B-C leakage saturation current", flags = ParameterFlags(0x0)
+param "nc"
+units = "", desc = "B-C leakage emission coefficient", flags = ParameterFlags(0x0)
+param "rb"
+units = "", desc = "Zero bias base resistance", flags = ParameterFlags(0x0)
+param "irb"
+units = "", desc = "Current for base resistance=(rb+rbm)/2", flags = ParameterFlags(0x0)
+param "rbm"
+units = "", desc = "Minimum base resistance", flags = ParameterFlags(0x0)
+param "re"
+units = "", desc = "Emitter resistance", flags = ParameterFlags(0x0)
+param "rc"
+units = "", desc = "Collector resistance", flags = ParameterFlags(0x0)
+param "cje"
+units = "", desc = "Zero bias B-E depletion capacitance", flags = ParameterFlags(0x0)
+param "vje", "pe"
+units = "", desc = "B-E built in potential", flags = ParameterFlags(0x0)
+param "mje", "me"
+units = "", desc = "B-E junction grading coefficient", flags = ParameterFlags(0x0)
+param "tf"
+units = "", desc = "Ideal forward transit time", flags = ParameterFlags(0x0)
+param "xtf"
+units = "", desc = "Coefficient for bias dependence of TF", flags = ParameterFlags(0x0)
+param "vtf"
+units = "", desc = "Voltage giving VBC dependence of TF", flags = ParameterFlags(0x0)
+param "itf"
+units = "", desc = "High current dependence of TF", flags = ParameterFlags(0x0)
+param "ptf"
+units = "", desc = "Excess phase", flags = ParameterFlags(0x0)
+param "cjc"
+units = "", desc = "Zero bias B-C depletion capacitance", flags = ParameterFlags(0x0)
+param "vjc", "pc"
+units = "", desc = "B-C built in potential", flags = ParameterFlags(0x0)
+param "mjc", "mc"
+units = "", desc = "B-C junction grading coefficient", flags = ParameterFlags(0x0)
+param "xcjc"
+units = "", desc = "Fraction of B-C cap to internal base", flags = ParameterFlags(0x0)
+param "tr"
+units = "", desc = "Ideal reverse transit time", flags = ParameterFlags(0x0)
+param "cjs", "csub", "ccs"
+units = "", desc = "Zero bias Substrate capacitance", flags = ParameterFlags(0x0)
+param "vjs", "ps"
+units = "", desc = "Substrate junction built in potential", flags = ParameterFlags(0x0)
+param "mjs", "ms"
+units = "", desc = "Substrate junction grading coefficient", flags = ParameterFlags(0x0)
+param "xtb"
+units = "", desc = "Forward and reverse beta temp. exp.", flags = ParameterFlags(0x0)
+param "eg"
+units = "", desc = "Energy gap for IS temp. dependency", flags = ParameterFlags(0x0)
+param "xti"
+units = "", desc = "Temp. exponent for IS", flags = ParameterFlags(0x0)
+param "fc"
+units = "", desc = "Forward bias junction fit parameter", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker Noise Coefficient", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker Noise Exponent", flags = ParameterFlags(0x0)
+param "iss"
+units = "", desc = "Substrate Jct. Saturation Current", flags = ParameterFlags(0x0)
+param "ns"
+units = "", desc = "Substrate current emission coefficient", flags = ParameterFlags(0x0)
+param "rco"
+units = "", desc = "Intrinsic coll. resistance", flags = ParameterFlags(0x0)
+param "vo"
+units = "", desc = "Epi drift saturation voltage", flags = ParameterFlags(0x0)
+param "gamma"
+units = "", desc = "Epi doping parameter", flags = ParameterFlags(0x0)
+param "qco"
+units = "", desc = "Epi Charge parameter", flags = ParameterFlags(0x0)
+param "tlev"
+units = "", desc = "Temperature equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "tlevc"
+units = "", desc = "Temperature equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "tbf1"
+units = "", desc = "BF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tbf2"
+units = "", desc = "BF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tbr1"
+units = "", desc = "BR 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tbr2"
+units = "", desc = "BR 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tikf1"
+units = "", desc = "IKF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tikf2"
+units = "", desc = "IKF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tikr1"
+units = "", desc = "IKR 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tikr2"
+units = "", desc = "IKR 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tirb1"
+units = "", desc = "IRB 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tirb2"
+units = "", desc = "IRB 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnc1"
+units = "", desc = "NC 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnc2"
+units = "", desc = "NC 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tne1"
+units = "", desc = "NE 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tne2"
+units = "", desc = "NE 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnf1"
+units = "", desc = "NF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnf2"
+units = "", desc = "NF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnr1"
+units = "", desc = "NR 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tnr2"
+units = "", desc = "NR 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "trb1", "trb"
+units = "", desc = "RB 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "trb2"
+units = "", desc = "RB 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "trc1", "trc"
+units = "", desc = "RC 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "trc2"
+units = "", desc = "RC 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tre1", "tre"
+units = "", desc = "RE 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tre2"
+units = "", desc = "RE 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "trm1"
+units = "", desc = "RBM 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "trm2"
+units = "", desc = "RBM 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tvaf1"
+units = "", desc = "VAF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tvaf2"
+units = "", desc = "VAF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tvar1"
+units = "", desc = "VAR 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tvar2"
+units = "", desc = "VAR 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "ctc"
+units = "", desc = "CJC temperature coefficient", flags = ParameterFlags(0x0)
+param "cte"
+units = "", desc = "CJE temperature coefficient", flags = ParameterFlags(0x0)
+param "cts"
+units = "", desc = "CJS temperature coefficient", flags = ParameterFlags(0x0)
+param "tvjc"
+units = "", desc = "VJC temperature coefficient", flags = ParameterFlags(0x0)
+param "tvje"
+units = "", desc = "VJE temperature coefficient", flags = ParameterFlags(0x0)
+param "tvjs"
+units = "", desc = "VJS temperature coefficient", flags = ParameterFlags(0x0)
+param "titf1"
+units = "", desc = "ITF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "titf2"
+units = "", desc = "ITF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "ttf1"
+units = "", desc = "TF 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "ttf2"
+units = "", desc = "TF 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "ttr1"
+units = "", desc = "TR 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "ttr2"
+units = "", desc = "TR 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmje1"
+units = "", desc = "MJE 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmje2"
+units = "", desc = "MJE 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmjc1"
+units = "", desc = "MJC 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmjc2"
+units = "", desc = "MJC 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmjs1"
+units = "", desc = "MJS 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tmjs2"
+units = "", desc = "MJS 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tns1"
+units = "", desc = "NS 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tns2"
+units = "", desc = "NS 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "nkf", "nk"
+units = "", desc = "NKF High current beta rolloff exponent", flags = ParameterFlags(0x0)
+param "tis1"
+units = "", desc = "IS 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tis2"
+units = "", desc = "IS 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tise1"
+units = "", desc = "ISE 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tise2"
+units = "", desc = "ISE 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tisc1"
+units = "", desc = "ISC 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tisc2"
+units = "", desc = "ISC 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "tiss1"
+units = "", desc = "ISS 1. temperature coefficient", flags = ParameterFlags(0x0)
+param "tiss2"
+units = "", desc = "ISS 2. temperature coefficient", flags = ParameterFlags(0x0)
+param "quasimod"
+units = "", desc = "Temperature equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "vg"
+units = "", desc = "Energy gap for QS temp. dependency", flags = ParameterFlags(0x0)
+param "cn"
+units = "", desc = "Temperature exponent of RCI", flags = ParameterFlags(0x0)
+param "d"
+units = "", desc = "Temperature exponent of VO", flags = ParameterFlags(0x0)
+param "vbe_max"
+units = "", desc = "maximum voltage B-E junction", flags = ParameterFlags(0x0)
+param "vbc_max"
+units = "", desc = "maximum voltage B-C junction", flags = ParameterFlags(0x0)
+param "vce_max"
+units = "", desc = "maximum voltage C-E branch", flags = ParameterFlags(0x0)
+param "pd_max"
+units = "", desc = "maximum device power dissipation", flags = ParameterFlags(0x0)
+param "ic_max"
+units = "", desc = "maximum collector current", flags = ParameterFlags(0x0)
+param "ib_max"
+units = "", desc = "maximum base current", flags = ParameterFlags(0x0)
+param "te_max"
+units = "", desc = "maximum temperature", flags = ParameterFlags(0x0)
+param "rth0"
+units = "", desc = "thermal resistance juntion to ambient", flags = ParameterFlags(0x0)
+
+4 terminals
+node "c" units = "V", runits = "A"
+node "b" units = "V", runits = "A"
+node "e" units = "V", runits = "A"
+node "sub" units = "V", runits = "A"
+node "cx_int" units = "V", runits = "A"
+node "c_int" units = "V", runits = "A"
+node "b_int" units = "V", runits = "A"
+node "e_int" units = "V", runits = "A"
+node "sub_con" units = "V", runits = "A"
+node "xf1" units = "V", runits = "A"
+node "xf2" units = "V", runits = "A"
+node "implicit_equation_0" units = "", runits = ""
+node "implicit_equation_1" units = "", runits = ""
+jacobian (c, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c, cx_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e, e) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sub, sub) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (sub, sub_con) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (cx_int, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (cx_int, cx_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (cx_int, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (cx_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (c_int, b) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (c_int, cx_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c_int, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (c_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c_int, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c_int, xf2) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, cx_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (b_int, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, xf2) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, e) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, xf2) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (e_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sub_con, sub) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (sub_con, sub_con) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (xf1, c_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (xf1, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (xf1, e_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (xf1, xf1) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (xf1, xf2) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (xf2, xf1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (xf2, xf2) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (implicit_equation_0, c_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, b_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, e_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (implicit_equation_1, c_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, b_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+collapsible (cx_int, c)
+collapsible (c_int, cx_int)
+collapsible (b_int, b)
+collapsible (e_int, e)
+collapsible (sub_con, b_int)
+collapsible (sub_con, c_int)
+collapsible (sub, gnd)
+collapsible (xf1, gnd)
+collapsible (xf2, gnd)
+noise "rc" (cx_int, c)
+noise "rb" (b_int, b)
+noise "re" (e_int, e)
+noise "ic" (c_int, e_int)
+noise "ib" (b_int, e_int)
+noise "flicker" (b_int, e_int)
+3 states
+has bound_step false

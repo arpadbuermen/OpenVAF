@@ -1,0 +1,58 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "capacitance", "cap", "c"
+units = "", desc = "Device capacitance", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance operating temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance temperature difference from the rest of the circuit", flags = ParameterFlags(PARA_KIND_INST)
+param "w"
+units = "", desc = "Device width", flags = ParameterFlags(PARA_KIND_INST)
+param "l"
+units = "", desc = "Device length", flags = ParameterFlags(PARA_KIND_INST)
+param "tc1"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "tc2"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(PARA_KIND_INST)
+param "bv_max"
+units = "", desc = "maximum voltage over capacitance", flags = ParameterFlags(PARA_KIND_INST)
+param "scale"
+units = "", desc = "Scale factor", flags = ParameterFlags(PARA_KIND_INST)
+param "model_cap"
+units = "", desc = "Model capacitance", flags = ParameterFlags(0x0)
+param "cj", "cox"
+units = "", desc = "Bottom Capacitance per area", flags = ParameterFlags(0x0)
+param "cjsw", "capsw"
+units = "", desc = "Sidewall capacitance per meter", flags = ParameterFlags(0x0)
+param "defw", "model_w"
+units = "", desc = "Default width", flags = ParameterFlags(0x0)
+param "defl", "model_l"
+units = "", desc = "Default length", flags = ParameterFlags(0x0)
+param "narrow"
+units = "", desc = "width correction factor", flags = ParameterFlags(0x0)
+param "short"
+units = "", desc = "length correction factor", flags = ParameterFlags(0x0)
+param "del"
+units = "", desc = "length and width correction factor", flags = ParameterFlags(0x0)
+param "model_tc1"
+units = "", desc = "First order temp. coefficient", flags = ParameterFlags(0x0)
+param "model_tc2"
+units = "", desc = "Second order temp. coefficient", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "di"
+units = "", desc = "Relative dielectric constant", flags = ParameterFlags(0x0)
+param "thick"
+units = "", desc = "Insulator thickness", flags = ParameterFlags(0x0)
+param "model_bv_max"
+units = "", desc = "maximum voltage over capacitance", flags = ParameterFlags(0x0)
+
+2 terminals
+node "pos" units = "V", runits = "A"
+node "neg" units = "V", runits = "A"
+jacobian (pos, pos) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (pos, neg) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (neg, pos) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (neg, neg) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+0 states
+has bound_step false
