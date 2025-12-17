@@ -328,6 +328,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                     // This fixes dominance violations when chain rule conversions reference
                     // intermediate derivatives computed in the conditional block.
                     if let Some(conversion) = self.live_derivatives.conversions.get(&inst) {
+                        // TODO: maybe make values_to_phi a set for faster contains()
                         let values_to_phi: Vec<_> = conversion
                             .iter()
                             .flat_map(|chain_rule| {
