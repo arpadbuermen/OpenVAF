@@ -1,0 +1,1989 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "l"
+units = "", desc = "Length", flags = ParameterFlags(PARA_KIND_INST)
+param "w"
+units = "", desc = "Width", flags = ParameterFlags(PARA_KIND_INST)
+param "nf"
+units = "", desc = "Number of fingers", flags = ParameterFlags(PARA_KIND_INST)
+param "sa"
+units = "", desc = "distance between  OD edge to poly of one side ", flags = ParameterFlags(PARA_KIND_INST)
+param "sb"
+units = "", desc = "distance between  OD edge to poly of the other side", flags = ParameterFlags(PARA_KIND_INST)
+param "sd"
+units = "", desc = "distance between neighbour fingers", flags = ParameterFlags(PARA_KIND_INST)
+param "sca"
+units = "", desc = "Integral of the first distribution function for scattered well dopant", flags = ParameterFlags(PARA_KIND_INST)
+param "scb"
+units = "", desc = "Integral of the second distribution function for scattered well dopant", flags = ParameterFlags(PARA_KIND_INST)
+param "scc"
+units = "", desc = "Integral of the third distribution function for scattered well dopant", flags = ParameterFlags(PARA_KIND_INST)
+param "sc"
+units = "", desc = "Distance to a single well edge ", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_min"
+units = "", desc = "Minimize either D or S", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "ad"
+units = "", desc = "Drain area", flags = ParameterFlags(PARA_KIND_INST)
+param "as"
+units = "", desc = "Source area", flags = ParameterFlags(PARA_KIND_INST)
+param "pd"
+units = "", desc = "Drain perimeter", flags = ParameterFlags(PARA_KIND_INST)
+param "ps"
+units = "", desc = "Source perimeter", flags = ParameterFlags(PARA_KIND_INST)
+param "nrd"
+units = "", desc = "Number of squares in drain", flags = ParameterFlags(PARA_KIND_INST)
+param "nrs"
+units = "", desc = "Number of squares in source", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_rbdb"
+units = "", desc = "Body resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_rbsb"
+units = "", desc = "Body resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_rbpb"
+units = "", desc = "Body resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_rbps"
+units = "", desc = "Body resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_rbpd"
+units = "", desc = "Body resistance", flags = ParameterFlags(PARA_KIND_INST)
+param "delvto", "delvt0"
+units = "", desc = "Zero bias threshold voltage variation", flags = ParameterFlags(PARA_KIND_INST)
+param "mulu0"
+units = "", desc = "Low field mobility multiplier", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_xgw"
+units = "", desc = "Distance from gate contact center to device edge", flags = ParameterFlags(PARA_KIND_INST)
+param "instance_ngcon"
+units = "", desc = "Number of gate contacts", flags = ParameterFlags(PARA_KIND_INST)
+param "wnflag"
+units = "", desc = "W/NF device flag for bin selection", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_trnqsmod"
+units = "", desc = "Transient NQS model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_acnqsmod"
+units = "", desc = "AC NQS model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_rbodymod"
+units = "", desc = "Distributed body R model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_rgatemod"
+units = "", desc = "Gate resistance model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_geomod"
+units = "", desc = "Geometry dependent parasitics model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "instance_rgeomod"
+units = "", desc = "S/D resistance and contact model selector", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
+param "mult_i"
+units = "", desc = "Variability in current", flags = ParameterFlags(PARA_KIND_INST)
+param "mult_q"
+units = "", desc = "Variability in charge", flags = ParameterFlags(PARA_KIND_INST)
+param "mult_fn"
+units = "", desc = "Variability in flicker noise", flags = ParameterFlags(PARA_KIND_INST)
+param "cvchargemod"
+units = "", desc = "Capacitance Charge model selector", flags = ParameterFlags(PARA_TY_INT)
+param "capmod"
+units = "", desc = "Capacitance model selector", flags = ParameterFlags(PARA_TY_INT)
+param "diomod"
+units = "", desc = "Diode IV model selector", flags = ParameterFlags(PARA_TY_INT)
+param "rdsmod"
+units = "", desc = "Bias-dependent S/D resistance model selector", flags = ParameterFlags(PARA_TY_INT)
+param "trnqsmod"
+units = "", desc = "Transient NQS model selector", flags = ParameterFlags(PARA_TY_INT)
+param "acnqsmod"
+units = "", desc = "AC NQS model selector", flags = ParameterFlags(PARA_TY_INT)
+param "mobmod"
+units = "", desc = "Mobility model selector", flags = ParameterFlags(PARA_TY_INT)
+param "rbodymod"
+units = "", desc = "Distributed body R model selector", flags = ParameterFlags(PARA_TY_INT)
+param "rgatemod"
+units = "", desc = "Gate R model selector", flags = ParameterFlags(PARA_TY_INT)
+param "permod"
+units = "", desc = "Pd and Ps model selector", flags = ParameterFlags(PARA_TY_INT)
+param "geomod"
+units = "", desc = "Geometry dependent parasitics model selector", flags = ParameterFlags(PARA_TY_INT)
+param "fnoimod"
+units = "", desc = "Flicker noise model selector", flags = ParameterFlags(PARA_TY_INT)
+param "tnoimod"
+units = "", desc = "Thermal noise model selector", flags = ParameterFlags(PARA_TY_INT)
+param "mtrlmod"
+units = "", desc = "parameter for non-silicon substrate or metal gate selector", flags = ParameterFlags(PARA_TY_INT)
+param "mtrlcompatmod"
+units = "", desc = "New Material Mod backward compatibility selector", flags = ParameterFlags(PARA_TY_INT)
+param "igcmod"
+units = "", desc = "Gate-to-channel Ig model selector", flags = ParameterFlags(PARA_TY_INT)
+param "igbmod"
+units = "", desc = "Gate-to-body Ig model selector", flags = ParameterFlags(PARA_TY_INT)
+param "tempmod"
+units = "", desc = "Temperature model selector", flags = ParameterFlags(PARA_TY_INT)
+param "gidlmod"
+units = "", desc = "parameter for GIDL selector", flags = ParameterFlags(PARA_TY_INT)
+param "paramchk"
+units = "", desc = "Model parameter checking selector", flags = ParameterFlags(PARA_TY_INT)
+param "binunit"
+units = "", desc = "Bin  unit  selector", flags = ParameterFlags(PARA_TY_INT)
+param "version"
+units = "", desc = "parameter for model version", flags = ParameterFlags(PARA_TY_STR)
+param "eot"
+units = "", desc = "Equivalent gate oxide thickness in meters", flags = ParameterFlags(0x0)
+param "vddeot"
+units = "", desc = "Voltage for extraction of Equivalent gate oxide thickness", flags = ParameterFlags(0x0)
+param "tempeot"
+units = "", desc = " Temperature for extraction of EOT", flags = ParameterFlags(0x0)
+param "leffeot"
+units = "", desc = " Effective length for extraction of EOT", flags = ParameterFlags(0x0)
+param "weffeot"
+units = "", desc = "Effective width for extraction of EOT", flags = ParameterFlags(0x0)
+param "ados"
+units = "", desc = "Charge centroid parameter", flags = ParameterFlags(0x0)
+param "bdos"
+units = "", desc = "Charge centroid parameter", flags = ParameterFlags(0x0)
+param "toxe"
+units = "", desc = "Electrical gate oxide thickness in meters", flags = ParameterFlags(0x0)
+param "toxp"
+units = "", desc = "Physical gate oxide thickness in meters", flags = ParameterFlags(0x0)
+param "toxm"
+units = "", desc = "Gate oxide thickness at which parameters are extracted", flags = ParameterFlags(0x0)
+param "toxref"
+units = "", desc = "Target tox value", flags = ParameterFlags(0x0)
+param "dtox"
+units = "", desc = "Defined as (toxe - toxp) ", flags = ParameterFlags(0x0)
+param "epsrox"
+units = "", desc = "Dielectric constant of the gate oxide relative to vacuum", flags = ParameterFlags(0x0)
+param "cdsc"
+units = "", desc = "Drain/Source and channel coupling capacitance", flags = ParameterFlags(0x0)
+param "cdscb"
+units = "", desc = "Body-bias dependence of cdsc", flags = ParameterFlags(0x0)
+param "cdscd"
+units = "", desc = "Drain-bias dependence of cdsc", flags = ParameterFlags(0x0)
+param "cit"
+units = "", desc = "Interface state capacitance", flags = ParameterFlags(0x0)
+param "nfactor"
+units = "", desc = "Subthreshold swing Coefficient", flags = ParameterFlags(0x0)
+param "xj"
+units = "", desc = "Junction depth in meters", flags = ParameterFlags(0x0)
+param "vsat"
+units = "", desc = "Saturation velocity at tnom", flags = ParameterFlags(0x0)
+param "at"
+units = "", desc = "Temperature coefficient of vsat", flags = ParameterFlags(0x0)
+param "a0"
+units = "", desc = "Non-uniform depletion width effect coefficient.", flags = ParameterFlags(0x0)
+param "ags"
+units = "", desc = "Gate bias  coefficient of Abulk.", flags = ParameterFlags(0x0)
+param "a1"
+units = "", desc = "Non-saturation effect coefficient", flags = ParameterFlags(0x0)
+param "a2"
+units = "", desc = "Non-saturation effect coefficient", flags = ParameterFlags(0x0)
+param "keta"
+units = "", desc = "Body-bias coefficient of non-uniform depletion width effect.", flags = ParameterFlags(0x0)
+param "ketac"
+units = "", desc = "Body-bias coefficient of non-uniform depletion width effect in dynamic evaluation.", flags = ParameterFlags(0x0)
+param "phig"
+units = "", desc = "Work function of gate", flags = ParameterFlags(0x0)
+param "epsrgate"
+units = "", desc = "Dielectric constant of gate relative to vacuum", flags = ParameterFlags(0x0)
+param "easub"
+units = "", desc = "Electron affinity of substrate", flags = ParameterFlags(0x0)
+param "epsrsub"
+units = "", desc = "Dielectric constant of substrate relative to vacuum", flags = ParameterFlags(0x0)
+param "ni0sub"
+units = "", desc = "Intrinsic carrier concentration of substrate at 300.15K", flags = ParameterFlags(0x0)
+param "bg0sub"
+units = "", desc = "Band-gap of substrate at T=0K", flags = ParameterFlags(0x0)
+param "tbgasub"
+units = "", desc = "First parameter of band-gap change due to temperature", flags = ParameterFlags(0x0)
+param "tbgbsub"
+units = "", desc = "Second parameter of band-gap change due to temperature", flags = ParameterFlags(0x0)
+param "nsub"
+units = "", desc = "Substrate doping concentration", flags = ParameterFlags(0x0)
+param "ndep"
+units = "", desc = "Channel doping concentration at the depletion edge", flags = ParameterFlags(0x0)
+param "nsd"
+units = "", desc = "S/D doping concentration", flags = ParameterFlags(0x0)
+param "phin"
+units = "", desc = "Adjusting parameter for surface potential due to non-uniform vertical doping", flags = ParameterFlags(0x0)
+param "ngate"
+units = "", desc = "Poly-gate doping concentration", flags = ParameterFlags(0x0)
+param "gamma1"
+units = "", desc = "Vth body coefficient", flags = ParameterFlags(0x0)
+param "gamma2"
+units = "", desc = "Vth body coefficient", flags = ParameterFlags(0x0)
+param "vbx"
+units = "", desc = "Vth transition body Voltage", flags = ParameterFlags(0x0)
+param "vbm"
+units = "", desc = "Maximum body voltage", flags = ParameterFlags(0x0)
+param "xt"
+units = "", desc = "Doping depth", flags = ParameterFlags(0x0)
+param "k1"
+units = "", desc = "Bulk effect coefficient 1", flags = ParameterFlags(0x0)
+param "kt1"
+units = "", desc = "Temperature coefficient of Vth", flags = ParameterFlags(0x0)
+param "kt1l"
+units = "", desc = "Temperature coefficient of Vth", flags = ParameterFlags(0x0)
+param "kt2"
+units = "", desc = "Body-coefficient of kt1", flags = ParameterFlags(0x0)
+param "k2"
+units = "", desc = "Bulk effect coefficient 2", flags = ParameterFlags(0x0)
+param "k3"
+units = "", desc = "Narrow width effect coefficient", flags = ParameterFlags(0x0)
+param "k3b"
+units = "", desc = "Body effect coefficient of k3", flags = ParameterFlags(0x0)
+param "w0"
+units = "", desc = "Narrow width effect parameter", flags = ParameterFlags(0x0)
+param "dvtp0"
+units = "", desc = "First parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "dvtp1"
+units = "", desc = "Second parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "dvtp2"
+units = "", desc = "3rd parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "dvtp3"
+units = "", desc = "4th parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "dvtp4"
+units = "", desc = "5th parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "dvtp5"
+units = "", desc = "6th parameter for Vth shift due to pocket", flags = ParameterFlags(0x0)
+param "lpe0"
+units = "", desc = "Equivalent length of pocket region at zero bias", flags = ParameterFlags(0x0)
+param "lpeb"
+units = "", desc = "Equivalent length of pocket region accounting for body bias", flags = ParameterFlags(0x0)
+param "dvt0"
+units = "", desc = "Short channel effect coeff. 0", flags = ParameterFlags(0x0)
+param "dvt1"
+units = "", desc = "Short channel effect coeff. 1", flags = ParameterFlags(0x0)
+param "dvt2"
+units = "", desc = "Short channel effect coeff. 2", flags = ParameterFlags(0x0)
+param "dvt0w"
+units = "", desc = "Narrow Width coeff. 0", flags = ParameterFlags(0x0)
+param "dvt1w"
+units = "", desc = "Narrow Width effect coeff. 1", flags = ParameterFlags(0x0)
+param "dvt2w"
+units = "", desc = "Narrow Width effect coeff. 2", flags = ParameterFlags(0x0)
+param "drout"
+units = "", desc = "DIBL coefficient of output resistance", flags = ParameterFlags(0x0)
+param "dsub"
+units = "", desc = "DIBL coefficient in the subthreshold region", flags = ParameterFlags(0x0)
+param "vth0", "vtho"
+units = "", desc = "Threshold voltage", flags = ParameterFlags(0x0)
+param "ua"
+units = "", desc = "Linear gate dependence of mobility", flags = ParameterFlags(0x0)
+param "ua1"
+units = "", desc = "Temperature coefficient of ua", flags = ParameterFlags(0x0)
+param "ub"
+units = "", desc = "Quadratic gate dependence of mobility", flags = ParameterFlags(0x0)
+param "ub1"
+units = "", desc = "Temperature coefficient of ub", flags = ParameterFlags(0x0)
+param "uc"
+units = "", desc = "Body-bias dependence of mobility", flags = ParameterFlags(0x0)
+param "uc1"
+units = "", desc = "Temperature coefficient of uc", flags = ParameterFlags(0x0)
+param "ud"
+units = "", desc = "Coulomb scattering factor of mobility", flags = ParameterFlags(0x0)
+param "ud1"
+units = "", desc = "Temperature coefficient of ud", flags = ParameterFlags(0x0)
+param "up"
+units = "", desc = "Channel length linear factor of mobility", flags = ParameterFlags(0x0)
+param "lp"
+units = "", desc = "Channel length exponential factor of mobility", flags = ParameterFlags(0x0)
+param "u0"
+units = "", desc = "Low-field mobility at Tnom", flags = ParameterFlags(0x0)
+param "eu"
+units = "", desc = "Mobility exponent", flags = ParameterFlags(0x0)
+param "ucs"
+units = "", desc = "Colombic scattering exponent", flags = ParameterFlags(0x0)
+param "ute"
+units = "", desc = "Temperature coefficient of mobility", flags = ParameterFlags(0x0)
+param "ucste"
+units = "", desc = "Temperature coefficient of colombic mobility", flags = ParameterFlags(0x0)
+param "voff"
+units = "", desc = "Threshold voltage offset", flags = ParameterFlags(0x0)
+param "minv"
+units = "", desc = "Fitting parameter for moderate inversion in Vgsteff", flags = ParameterFlags(0x0)
+param "minvcv"
+units = "", desc = "Fitting parameter for moderate inversion in Vgsteffcv", flags = ParameterFlags(0x0)
+param "voffl"
+units = "", desc = "Length dependence parameter for Vth offset", flags = ParameterFlags(0x0)
+param "voffcvl"
+units = "", desc = "Length dependence parameter for Vth offset in CV", flags = ParameterFlags(0x0)
+param "tnom"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "cgso"
+units = "", desc = "Gate-source overlap capacitance per width", flags = ParameterFlags(0x0)
+param "cgdo"
+units = "", desc = "Gate-drain overlap capacitance per width", flags = ParameterFlags(0x0)
+param "cgbo"
+units = "", desc = "Gate-bulk overlap capacitance per length", flags = ParameterFlags(0x0)
+param "xpart"
+units = "", desc = "Channel charge partitioning", flags = ParameterFlags(0x0)
+param "delta"
+units = "", desc = "Effective Vds parameter", flags = ParameterFlags(0x0)
+param "rsh"
+units = "", desc = "Source-drain sheet resistance", flags = ParameterFlags(0x0)
+param "rdsw"
+units = "", desc = "Source-drain resistance per width", flags = ParameterFlags(0x0)
+param "rdswmin"
+units = "", desc = "Source-drain resistance per width at high Vg", flags = ParameterFlags(0x0)
+param "rsw"
+units = "", desc = "Source resistance per width", flags = ParameterFlags(0x0)
+param "rdw"
+units = "", desc = "Drain resistance per width", flags = ParameterFlags(0x0)
+param "rdwmin"
+units = "", desc = "Drain resistance per width at high Vg", flags = ParameterFlags(0x0)
+param "rswmin"
+units = "", desc = "Source resistance per width at high Vg", flags = ParameterFlags(0x0)
+param "prwg"
+units = "", desc = "Gate-bias effect on parasitic resistance ", flags = ParameterFlags(0x0)
+param "prwb"
+units = "", desc = "Body-effect on parasitic resistance ", flags = ParameterFlags(0x0)
+param "prt"
+units = "", desc = "Temperature coefficient of parasitic resistance ", flags = ParameterFlags(0x0)
+param "eta0"
+units = "", desc = "Subthreshold region DIBL coefficient", flags = ParameterFlags(0x0)
+param "etab"
+units = "", desc = "Subthreshold region DIBL coefficient", flags = ParameterFlags(0x0)
+param "pclm"
+units = "", desc = "Channel length modulation Coefficient", flags = ParameterFlags(0x0)
+param "pdiblc1"
+units = "", desc = "Drain-induced barrier lowering coefficient", flags = ParameterFlags(0x0)
+param "pdiblc2"
+units = "", desc = "Drain-induced barrier lowering coefficient", flags = ParameterFlags(0x0)
+param "pdiblcb"
+units = "", desc = "Body-effect on drain-induced barrier lowering", flags = ParameterFlags(0x0)
+param "fprout"
+units = "", desc = "Rout degradation coefficient for pocket devices", flags = ParameterFlags(0x0)
+param "pdits"
+units = "", desc = "Coefficient for drain-induced Vth shifts", flags = ParameterFlags(0x0)
+param "pditsl"
+units = "", desc = "Length dependence of drain-induced Vth shifts", flags = ParameterFlags(0x0)
+param "pditsd"
+units = "", desc = "Vds dependence of drain-induced Vth shifts", flags = ParameterFlags(0x0)
+param "pscbe1"
+units = "", desc = "Substrate current body-effect coefficient", flags = ParameterFlags(0x0)
+param "pscbe2"
+units = "", desc = "Substrate current body-effect coefficient", flags = ParameterFlags(0x0)
+param "pvag"
+units = "", desc = "Gate dependence of output resistance parameter", flags = ParameterFlags(0x0)
+param "jss"
+units = "", desc = "Bottom source junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "jsws"
+units = "", desc = "Isolation edge sidewall source junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "jswgs"
+units = "", desc = "Gate edge source junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "pbs"
+units = "", desc = "Source junction built-in potential", flags = ParameterFlags(0x0)
+param "njs"
+units = "", desc = "Source junction emission coefficient", flags = ParameterFlags(0x0)
+param "xtis"
+units = "", desc = "Source junction current temperature exponent", flags = ParameterFlags(0x0)
+param "mjs"
+units = "", desc = "Source bottom junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "pbsws"
+units = "", desc = "Source sidewall junction capacitance built in potential", flags = ParameterFlags(0x0)
+param "mjsws"
+units = "", desc = "Source sidewall junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "pbswgs"
+units = "", desc = "Source (gate side) sidewall junction capacitance built in potential", flags = ParameterFlags(0x0)
+param "mjswgs"
+units = "", desc = "Source (gate side) sidewall junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "cjs"
+units = "", desc = "Source bottom junction capacitance per unit area", flags = ParameterFlags(0x0)
+param "cjsws"
+units = "", desc = "Source sidewall junction capacitance per unit periphery", flags = ParameterFlags(0x0)
+param "cjswgs"
+units = "", desc = "Source (gate side) sidewall junction capacitance per unit width", flags = ParameterFlags(0x0)
+param "jsd"
+units = "", desc = "Bottom drain junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "jswd"
+units = "", desc = "Isolation edge sidewall drain junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "jswgd"
+units = "", desc = "Gate edge drain junction reverse saturation current density", flags = ParameterFlags(0x0)
+param "pbd"
+units = "", desc = "Drain junction built-in potential", flags = ParameterFlags(0x0)
+param "njd"
+units = "", desc = "Drain junction emission coefficient", flags = ParameterFlags(0x0)
+param "xtid"
+units = "", desc = "Drainjunction current temperature exponent", flags = ParameterFlags(0x0)
+param "mjd"
+units = "", desc = "Drain bottom junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "pbswd"
+units = "", desc = "Drain sidewall junction capacitance built in potential", flags = ParameterFlags(0x0)
+param "mjswd"
+units = "", desc = "Drain sidewall junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "pbswgd"
+units = "", desc = "Drain (gate side) sidewall junction capacitance built in potential", flags = ParameterFlags(0x0)
+param "mjswgd"
+units = "", desc = "Drain (gate side) sidewall junction capacitance grading coefficient", flags = ParameterFlags(0x0)
+param "cjd"
+units = "", desc = "Drain bottom junction capacitance per unit area", flags = ParameterFlags(0x0)
+param "cjswd"
+units = "", desc = "Drain sidewall junction capacitance per unit periphery", flags = ParameterFlags(0x0)
+param "cjswgd"
+units = "", desc = "Drain (gate side) sidewall junction capacitance per unit width", flags = ParameterFlags(0x0)
+param "vfbcv"
+units = "", desc = "Flat Band Voltage parameter for capmod=0 only", flags = ParameterFlags(0x0)
+param "vfb"
+units = "", desc = "Flat Band Voltage", flags = ParameterFlags(0x0)
+param "tpb"
+units = "", desc = "Temperature coefficient of pb", flags = ParameterFlags(0x0)
+param "tcj"
+units = "", desc = "Temperature coefficient of cj", flags = ParameterFlags(0x0)
+param "tpbsw"
+units = "", desc = "Temperature coefficient of pbsw", flags = ParameterFlags(0x0)
+param "tcjsw"
+units = "", desc = "Temperature coefficient of cjsw", flags = ParameterFlags(0x0)
+param "tpbswg"
+units = "", desc = "Temperature coefficient of pbswg", flags = ParameterFlags(0x0)
+param "tcjswg"
+units = "", desc = "Temperature coefficient of cjswg", flags = ParameterFlags(0x0)
+param "acde"
+units = "", desc = "Exponential coefficient for finite charge thickness", flags = ParameterFlags(0x0)
+param "moin"
+units = "", desc = "Coefficient for gate-bias dependent surface potential", flags = ParameterFlags(0x0)
+param "noff"
+units = "", desc = "C-V turn-on/off parameter", flags = ParameterFlags(0x0)
+param "voffcv"
+units = "", desc = "C-V lateral-shift parameter", flags = ParameterFlags(0x0)
+param "dmcg"
+units = "", desc = "Distance of Mid-Contact to Gate edge", flags = ParameterFlags(0x0)
+param "dmci"
+units = "", desc = "Distance of Mid-Contact to Isolation", flags = ParameterFlags(0x0)
+param "dmdg"
+units = "", desc = "Distance of Mid-Diffusion to Gate edge", flags = ParameterFlags(0x0)
+param "dmcgt"
+units = "", desc = "Distance of Mid-Contact to Gate edge in Test structures", flags = ParameterFlags(0x0)
+param "xgw"
+units = "", desc = "Distance from gate contact center to device edge", flags = ParameterFlags(0x0)
+param "xgl"
+units = "", desc = "Variation in Ldrawn", flags = ParameterFlags(0x0)
+param "rshg"
+units = "", desc = "Gate sheet resistance", flags = ParameterFlags(0x0)
+param "ngcon"
+units = "", desc = "Number of gate contacts", flags = ParameterFlags(0x0)
+param "xrcrg1"
+units = "", desc = "First fitting parameter the bias-dependent Rg", flags = ParameterFlags(0x0)
+param "xrcrg2"
+units = "", desc = "Second fitting parameter the bias-dependent Rg", flags = ParameterFlags(0x0)
+param "lambda"
+units = "", desc = " Velocity overshoot parameter", flags = ParameterFlags(0x0)
+param "vtl"
+units = "", desc = " thermal velocity", flags = ParameterFlags(0x0)
+param "lc"
+units = "", desc = " back scattering parameter", flags = ParameterFlags(0x0)
+param "xn"
+units = "", desc = " back scattering parameter", flags = ParameterFlags(0x0)
+param "vfbsdoff"
+units = "", desc = "S/D flatband voltage offset", flags = ParameterFlags(0x0)
+param "tvfbsdoff"
+units = "", desc = "Temperature parameter for vfbsdoff", flags = ParameterFlags(0x0)
+param "tvoff"
+units = "", desc = "Temperature parameter for voff", flags = ParameterFlags(0x0)
+param "tnfactor"
+units = "", desc = "Temperature parameter for nfactor", flags = ParameterFlags(0x0)
+param "teta0"
+units = "", desc = "Temperature parameter for eta0", flags = ParameterFlags(0x0)
+param "tvoffcv"
+units = "", desc = "Temperature parameter for tvoffcv", flags = ParameterFlags(0x0)
+param "lintnoi"
+units = "", desc = "lint offset for noise calculation", flags = ParameterFlags(0x0)
+param "lint"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "ll"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "llc"
+units = "", desc = "Length reduction parameter for CV", flags = ParameterFlags(0x0)
+param "lln"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "lw"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "lwc"
+units = "", desc = "Length reduction parameter for CV", flags = ParameterFlags(0x0)
+param "lwn"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "lwl"
+units = "", desc = "Length reduction parameter", flags = ParameterFlags(0x0)
+param "lwlc"
+units = "", desc = "Length reduction parameter for CV", flags = ParameterFlags(0x0)
+param "lmin"
+units = "", desc = "Minimum length for the model", flags = ParameterFlags(0x0)
+param "lmax"
+units = "", desc = "Maximum length for the model", flags = ParameterFlags(0x0)
+param "wr"
+units = "", desc = "Width dependence of rds", flags = ParameterFlags(0x0)
+param "wint"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "dwg"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "dwb"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "wl"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "wlc"
+units = "", desc = "Width reduction parameter for CV", flags = ParameterFlags(0x0)
+param "wln"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "ww"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "wwc"
+units = "", desc = "Width reduction parameter for CV", flags = ParameterFlags(0x0)
+param "wwn"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "wwl"
+units = "", desc = "Width reduction parameter", flags = ParameterFlags(0x0)
+param "wwlc"
+units = "", desc = "Width reduction parameter for CV", flags = ParameterFlags(0x0)
+param "wmin"
+units = "", desc = "Minimum width for the model", flags = ParameterFlags(0x0)
+param "wmax"
+units = "", desc = "Maximum width for the model", flags = ParameterFlags(0x0)
+param "b0"
+units = "", desc = "Abulk narrow width parameter", flags = ParameterFlags(0x0)
+param "b1"
+units = "", desc = "Abulk narrow width parameter", flags = ParameterFlags(0x0)
+param "cgsl"
+units = "", desc = "New C-V model parameter", flags = ParameterFlags(0x0)
+param "cgdl"
+units = "", desc = "New C-V model parameter", flags = ParameterFlags(0x0)
+param "ckappas"
+units = "", desc = "S/G overlap C-V parameter ", flags = ParameterFlags(0x0)
+param "ckappad"
+units = "", desc = "D/G overlap C-V parameter", flags = ParameterFlags(0x0)
+param "cf"
+units = "", desc = "Fringe capacitance parameter", flags = ParameterFlags(0x0)
+param "clc"
+units = "", desc = "Vdsat parameter for C-V model", flags = ParameterFlags(0x0)
+param "cle"
+units = "", desc = "Vdsat parameter for C-V model", flags = ParameterFlags(0x0)
+param "dwc"
+units = "", desc = "Delta W for C-V model", flags = ParameterFlags(0x0)
+param "dlc"
+units = "", desc = "Delta L for C-V model", flags = ParameterFlags(0x0)
+param "xw"
+units = "", desc = "W offset for channel width due to mask/etch effect", flags = ParameterFlags(0x0)
+param "xl"
+units = "", desc = "L offset for channel length due to mask/etch effect", flags = ParameterFlags(0x0)
+param "dlcig"
+units = "", desc = "Delta L for Ig model", flags = ParameterFlags(0x0)
+param "dlcigd"
+units = "", desc = "Delta L for Ig model drain side", flags = ParameterFlags(0x0)
+param "dwj"
+units = "", desc = "Delta W for S/D junctions", flags = ParameterFlags(0x0)
+param "alpha0"
+units = "", desc = "substrate current model parameter", flags = ParameterFlags(0x0)
+param "alpha1"
+units = "", desc = "substrate current model parameter", flags = ParameterFlags(0x0)
+param "beta0"
+units = "", desc = "substrate current model parameter", flags = ParameterFlags(0x0)
+param "agidl"
+units = "", desc = "Pre-exponential constant for GIDL", flags = ParameterFlags(0x0)
+param "bgidl"
+units = "", desc = "Exponential constant for GIDL", flags = ParameterFlags(0x0)
+param "cgidl"
+units = "", desc = "Parameter for body-bias dependence of GIDL", flags = ParameterFlags(0x0)
+param "rgidl"
+units = "", desc = "GIDL vg parameter", flags = ParameterFlags(0x0)
+param "kgidl"
+units = "", desc = "GIDL vb parameter", flags = ParameterFlags(0x0)
+param "fgidl"
+units = "", desc = "GIDL vb parameter", flags = ParameterFlags(0x0)
+param "egidl"
+units = "", desc = "Fitting parameter for Bandbending", flags = ParameterFlags(0x0)
+param "agisl"
+units = "", desc = "Pre-exponential constant for GISL", flags = ParameterFlags(0x0)
+param "bgisl"
+units = "", desc = "Exponential constant for GISL", flags = ParameterFlags(0x0)
+param "cgisl"
+units = "", desc = "Parameter for body-bias dependence of GISL", flags = ParameterFlags(0x0)
+param "rgisl"
+units = "", desc = "GISL vg parameter", flags = ParameterFlags(0x0)
+param "kgisl"
+units = "", desc = "GISL vb parameter", flags = ParameterFlags(0x0)
+param "fgisl"
+units = "", desc = "GISL vb parameter", flags = ParameterFlags(0x0)
+param "egisl"
+units = "", desc = "Fitting parameter for Bandbending", flags = ParameterFlags(0x0)
+param "aigc"
+units = "", desc = "Parameter for Igc", flags = ParameterFlags(0x0)
+param "bigc"
+units = "", desc = "Parameter for Igc", flags = ParameterFlags(0x0)
+param "cigc"
+units = "", desc = "Parameter for Igc", flags = ParameterFlags(0x0)
+param "aigsd"
+units = "", desc = "Parameter for Igs,d", flags = ParameterFlags(0x0)
+param "bigsd"
+units = "", desc = "Parameter for Igs,d", flags = ParameterFlags(0x0)
+param "cigsd"
+units = "", desc = "Parameter for Igs,d", flags = ParameterFlags(0x0)
+param "aigs"
+units = "", desc = "Parameter for Igs", flags = ParameterFlags(0x0)
+param "bigs"
+units = "", desc = "Parameter for Igs", flags = ParameterFlags(0x0)
+param "cigs"
+units = "", desc = "Parameter for Igs", flags = ParameterFlags(0x0)
+param "aigd"
+units = "", desc = "Parameter for Igd", flags = ParameterFlags(0x0)
+param "bigd"
+units = "", desc = "Parameter for Igd", flags = ParameterFlags(0x0)
+param "cigd"
+units = "", desc = "Parameter for Igd", flags = ParameterFlags(0x0)
+param "aigbacc"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "bigbacc"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "cigbacc"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "aigbinv"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "bigbinv"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "cigbinv"
+units = "", desc = "Parameter for Igb", flags = ParameterFlags(0x0)
+param "nigc"
+units = "", desc = "Parameter for Igc slope", flags = ParameterFlags(0x0)
+param "nigbinv"
+units = "", desc = "Parameter for Igbinv slope", flags = ParameterFlags(0x0)
+param "nigbacc"
+units = "", desc = "Parameter for Igbacc slope", flags = ParameterFlags(0x0)
+param "ntox"
+units = "", desc = "Exponent for Tox ratio", flags = ParameterFlags(0x0)
+param "eigbinv"
+units = "", desc = "Parameter for the Si bandgap for Igbinv", flags = ParameterFlags(0x0)
+param "pigcd"
+units = "", desc = "Parameter for Igc partition", flags = ParameterFlags(0x0)
+param "poxedge"
+units = "", desc = "Factor for the gate edge Tox", flags = ParameterFlags(0x0)
+param "ijthdfwd"
+units = "", desc = "Forward drain diode forward limiting current", flags = ParameterFlags(0x0)
+param "ijthsfwd"
+units = "", desc = "Forward source diode forward limiting current", flags = ParameterFlags(0x0)
+param "ijthdrev"
+units = "", desc = "Reverse drain diode forward limiting current", flags = ParameterFlags(0x0)
+param "ijthsrev"
+units = "", desc = "Reverse source diode forward limiting current", flags = ParameterFlags(0x0)
+param "xjbvd"
+units = "", desc = "Fitting parameter for drain diode breakdown current", flags = ParameterFlags(0x0)
+param "xjbvs"
+units = "", desc = "Fitting parameter for source diode breakdown current", flags = ParameterFlags(0x0)
+param "bvd"
+units = "", desc = "Drain diode breakdown voltage", flags = ParameterFlags(0x0)
+param "bvs"
+units = "", desc = "Source diode breakdown voltage", flags = ParameterFlags(0x0)
+param "jtss"
+units = "", desc = "Source bottom trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtsd"
+units = "", desc = "Drain bottom trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtssws"
+units = "", desc = "Source STI sidewall trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtsswd"
+units = "", desc = "Drain STI sidewall trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtsswgs"
+units = "", desc = "Source gate-edge sidewall trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtsswgd"
+units = "", desc = "Drain gate-edge sidewall trap-assisted saturation current density", flags = ParameterFlags(0x0)
+param "jtweff"
+units = "", desc = "TAT current width dependance", flags = ParameterFlags(0x0)
+param "njts"
+units = "", desc = "Non-ideality factor for bottom junction", flags = ParameterFlags(0x0)
+param "njtssw"
+units = "", desc = "Non-ideality factor for STI sidewall junction", flags = ParameterFlags(0x0)
+param "njtsswg"
+units = "", desc = "Non-ideality factor for gate-edge sidewall junction", flags = ParameterFlags(0x0)
+param "njtsd"
+units = "", desc = "Non-ideality factor for bottom junction drain side", flags = ParameterFlags(0x0)
+param "njtsswd"
+units = "", desc = "Non-ideality factor for STI sidewall junction drain side", flags = ParameterFlags(0x0)
+param "njtsswgd"
+units = "", desc = "Non-ideality factor for gate-edge sidewall junction drain side", flags = ParameterFlags(0x0)
+param "xtss"
+units = "", desc = "Power dependence of JTSS on temperature", flags = ParameterFlags(0x0)
+param "xtsd"
+units = "", desc = "Power dependence of JTSD on temperature", flags = ParameterFlags(0x0)
+param "xtssws"
+units = "", desc = "Power dependence of JTSSWS on temperature", flags = ParameterFlags(0x0)
+param "xtsswd"
+units = "", desc = "Power dependence of JTSSWD on temperature", flags = ParameterFlags(0x0)
+param "xtsswgs"
+units = "", desc = "Power dependence of JTSSWGS on temperature", flags = ParameterFlags(0x0)
+param "xtsswgd"
+units = "", desc = "Power dependence of JTSSWGD on temperature", flags = ParameterFlags(0x0)
+param "tnjts"
+units = "", desc = "Temperature coefficient for NJTS", flags = ParameterFlags(0x0)
+param "tnjtssw"
+units = "", desc = "Temperature coefficient for NJTSSW", flags = ParameterFlags(0x0)
+param "tnjtsswg"
+units = "", desc = "Temperature coefficient for NJTSSWG", flags = ParameterFlags(0x0)
+param "tnjtsd"
+units = "", desc = "Temperature coefficient for NJTSD", flags = ParameterFlags(0x0)
+param "tnjtsswd"
+units = "", desc = "Temperature coefficient for NJTSSWD", flags = ParameterFlags(0x0)
+param "tnjtsswgd"
+units = "", desc = "Temperature coefficient for NJTSSWGD", flags = ParameterFlags(0x0)
+param "vtss"
+units = "", desc = "Source bottom trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "vtsd"
+units = "", desc = "Drain bottom trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "vtssws"
+units = "", desc = "Source STI sidewall trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "vtsswd"
+units = "", desc = "Drain STI sidewall trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "vtsswgs"
+units = "", desc = "Source gate-edge sidewall trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "vtsswgd"
+units = "", desc = "Drain gate-edge sidewall trap-assisted voltage dependent parameter", flags = ParameterFlags(0x0)
+param "gbmin"
+units = "", desc = "Minimum body conductance", flags = ParameterFlags(0x0)
+param "rbdb"
+units = "", desc = "Resistance between bNode and dbNode", flags = ParameterFlags(0x0)
+param "rbpb"
+units = "", desc = "Resistance between bNodePrime and bNode", flags = ParameterFlags(0x0)
+param "rbsb"
+units = "", desc = "Resistance between bNode and sbNode", flags = ParameterFlags(0x0)
+param "rbps"
+units = "", desc = "Resistance between bNodePrime and sbNode", flags = ParameterFlags(0x0)
+param "rbpd"
+units = "", desc = "Resistance between bNodePrime and bNode", flags = ParameterFlags(0x0)
+param "rbps0"
+units = "", desc = "Body resistance RBPS scaling", flags = ParameterFlags(0x0)
+param "rbpsl"
+units = "", desc = "Body resistance RBPS L scaling", flags = ParameterFlags(0x0)
+param "rbpsw"
+units = "", desc = "Body resistance RBPS W scaling", flags = ParameterFlags(0x0)
+param "rbpsnf"
+units = "", desc = "Body resistance RBPS NF scaling", flags = ParameterFlags(0x0)
+param "rbpd0"
+units = "", desc = "Body resistance RBPD scaling", flags = ParameterFlags(0x0)
+param "rbpdl"
+units = "", desc = "Body resistance RBPD L scaling", flags = ParameterFlags(0x0)
+param "rbpdw"
+units = "", desc = "Body resistance RBPD W scaling", flags = ParameterFlags(0x0)
+param "rbpdnf"
+units = "", desc = "Body resistance RBPD NF scaling", flags = ParameterFlags(0x0)
+param "rbpbx0"
+units = "", desc = "Body resistance RBPBX  scaling", flags = ParameterFlags(0x0)
+param "rbpbxl"
+units = "", desc = "Body resistance RBPBX L scaling", flags = ParameterFlags(0x0)
+param "rbpbxw"
+units = "", desc = "Body resistance RBPBX W scaling", flags = ParameterFlags(0x0)
+param "rbpbxnf"
+units = "", desc = "Body resistance RBPBX NF scaling", flags = ParameterFlags(0x0)
+param "rbpby0"
+units = "", desc = "Body resistance RBPBY  scaling", flags = ParameterFlags(0x0)
+param "rbpbyl"
+units = "", desc = "Body resistance RBPBY L scaling", flags = ParameterFlags(0x0)
+param "rbpbyw"
+units = "", desc = "Body resistance RBPBY W scaling", flags = ParameterFlags(0x0)
+param "rbpbynf"
+units = "", desc = "Body resistance RBPBY NF scaling", flags = ParameterFlags(0x0)
+param "rbsbx0"
+units = "", desc = "Body resistance RBSBX  scaling", flags = ParameterFlags(0x0)
+param "rbsby0"
+units = "", desc = "Body resistance RBSBY  scaling", flags = ParameterFlags(0x0)
+param "rbdbx0"
+units = "", desc = "Body resistance RBDBX  scaling", flags = ParameterFlags(0x0)
+param "rbdby0"
+units = "", desc = "Body resistance RBDBY  scaling", flags = ParameterFlags(0x0)
+param "rbsdbxl"
+units = "", desc = "Body resistance RBSDBX L scaling", flags = ParameterFlags(0x0)
+param "rbsdbxw"
+units = "", desc = "Body resistance RBSDBX W scaling", flags = ParameterFlags(0x0)
+param "rbsdbxnf"
+units = "", desc = "Body resistance RBSDBX NF scaling", flags = ParameterFlags(0x0)
+param "rbsdbyl"
+units = "", desc = "Body resistance RBSDBY L scaling", flags = ParameterFlags(0x0)
+param "rbsdbyw"
+units = "", desc = "Body resistance RBSDBY W scaling", flags = ParameterFlags(0x0)
+param "rbsdbynf"
+units = "", desc = "Body resistance RBSDBY NF scaling", flags = ParameterFlags(0x0)
+param "lcdsc"
+units = "", desc = "Length dependence of cdsc", flags = ParameterFlags(0x0)
+param "lcdscb"
+units = "", desc = "Length dependence of cdscb", flags = ParameterFlags(0x0)
+param "lcdscd"
+units = "", desc = "Length dependence of cdscd", flags = ParameterFlags(0x0)
+param "lcit"
+units = "", desc = "Length dependence of cit", flags = ParameterFlags(0x0)
+param "lnfactor"
+units = "", desc = "Length dependence of nfactor", flags = ParameterFlags(0x0)
+param "lxj"
+units = "", desc = "Length dependence of xj", flags = ParameterFlags(0x0)
+param "lvsat"
+units = "", desc = "Length dependence of vsat", flags = ParameterFlags(0x0)
+param "lat"
+units = "", desc = "Length dependence of at", flags = ParameterFlags(0x0)
+param "la0"
+units = "", desc = "Length dependence of a0", flags = ParameterFlags(0x0)
+param "lags"
+units = "", desc = "Length dependence of ags", flags = ParameterFlags(0x0)
+param "la1"
+units = "", desc = "Length dependence of a1", flags = ParameterFlags(0x0)
+param "la2"
+units = "", desc = "Length dependence of a2", flags = ParameterFlags(0x0)
+param "lketa"
+units = "", desc = "Length dependence of keta", flags = ParameterFlags(0x0)
+param "lketac"
+units = "", desc = "Length dependence of ketac", flags = ParameterFlags(0x0)
+param "lnsub"
+units = "", desc = "Length dependence of nsub", flags = ParameterFlags(0x0)
+param "lndep"
+units = "", desc = "Length dependence of ndep", flags = ParameterFlags(0x0)
+param "lnsd"
+units = "", desc = "Length dependence of nsd", flags = ParameterFlags(0x0)
+param "lphin"
+units = "", desc = "Length dependence of phin", flags = ParameterFlags(0x0)
+param "lngate"
+units = "", desc = "Length dependence of ngate", flags = ParameterFlags(0x0)
+param "lgamma1"
+units = "", desc = "Length dependence of gamma1", flags = ParameterFlags(0x0)
+param "lgamma2"
+units = "", desc = "Length dependence of gamma2", flags = ParameterFlags(0x0)
+param "lvbx"
+units = "", desc = "Length dependence of vbx", flags = ParameterFlags(0x0)
+param "lvbm"
+units = "", desc = "Length dependence of vbm", flags = ParameterFlags(0x0)
+param "lxt"
+units = "", desc = "Length dependence of xt", flags = ParameterFlags(0x0)
+param "lk1"
+units = "", desc = "Length dependence of k1", flags = ParameterFlags(0x0)
+param "lkt1"
+units = "", desc = "Length dependence of kt1", flags = ParameterFlags(0x0)
+param "lkt1l"
+units = "", desc = "Length dependence of kt1l", flags = ParameterFlags(0x0)
+param "lkt2"
+units = "", desc = "Length dependence of kt2", flags = ParameterFlags(0x0)
+param "lk2"
+units = "", desc = "Length dependence of k2", flags = ParameterFlags(0x0)
+param "lk3"
+units = "", desc = "Length dependence of k3", flags = ParameterFlags(0x0)
+param "lk3b"
+units = "", desc = "Length dependence of k3b", flags = ParameterFlags(0x0)
+param "lw0"
+units = "", desc = "Length dependence of w0", flags = ParameterFlags(0x0)
+param "ldvtp0"
+units = "", desc = "Length dependence of dvtp0", flags = ParameterFlags(0x0)
+param "ldvtp1"
+units = "", desc = "Length dependence of dvtp1", flags = ParameterFlags(0x0)
+param "ldvtp2"
+units = "", desc = "Length dependence of dvtp2", flags = ParameterFlags(0x0)
+param "ldvtp3"
+units = "", desc = "Length dependence of dvtp3", flags = ParameterFlags(0x0)
+param "ldvtp4"
+units = "", desc = "Length dependence of dvtp4", flags = ParameterFlags(0x0)
+param "ldvtp5"
+units = "", desc = "Length dependence of dvtp5", flags = ParameterFlags(0x0)
+param "llpe0"
+units = "", desc = "Length dependence of lpe0", flags = ParameterFlags(0x0)
+param "llpeb"
+units = "", desc = "Length dependence of lpeb", flags = ParameterFlags(0x0)
+param "ldvt0"
+units = "", desc = "Length dependence of dvt0", flags = ParameterFlags(0x0)
+param "ldvt1"
+units = "", desc = "Length dependence of dvt1", flags = ParameterFlags(0x0)
+param "ldvt2"
+units = "", desc = "Length dependence of dvt2", flags = ParameterFlags(0x0)
+param "ldvt0w"
+units = "", desc = "Length dependence of dvt0w", flags = ParameterFlags(0x0)
+param "ldvt1w"
+units = "", desc = "Length dependence of dvt1w", flags = ParameterFlags(0x0)
+param "ldvt2w"
+units = "", desc = "Length dependence of dvt2w", flags = ParameterFlags(0x0)
+param "ldrout"
+units = "", desc = "Length dependence of drout", flags = ParameterFlags(0x0)
+param "ldsub"
+units = "", desc = "Length dependence of dsub", flags = ParameterFlags(0x0)
+param "lvth0", "lvtho"
+units = "", desc = "Length dependence of vto", flags = ParameterFlags(0x0)
+param "lua"
+units = "", desc = "Length dependence of ua", flags = ParameterFlags(0x0)
+param "lua1"
+units = "", desc = "Length dependence of ua1", flags = ParameterFlags(0x0)
+param "lub"
+units = "", desc = "Length dependence of ub", flags = ParameterFlags(0x0)
+param "lub1"
+units = "", desc = "Length dependence of ub1", flags = ParameterFlags(0x0)
+param "luc"
+units = "", desc = "Length dependence of uc", flags = ParameterFlags(0x0)
+param "luc1"
+units = "", desc = "Length dependence of uc1", flags = ParameterFlags(0x0)
+param "lud"
+units = "", desc = "Length dependence of ud", flags = ParameterFlags(0x0)
+param "lud1"
+units = "", desc = "Length dependence of ud1", flags = ParameterFlags(0x0)
+param "lup"
+units = "", desc = "Length dependence of up", flags = ParameterFlags(0x0)
+param "llp"
+units = "", desc = "Length dependence of lp", flags = ParameterFlags(0x0)
+param "lu0"
+units = "", desc = "Length dependence of u0", flags = ParameterFlags(0x0)
+param "lute"
+units = "", desc = "Length dependence of ute", flags = ParameterFlags(0x0)
+param "lucste"
+units = "", desc = "Length dependence of ucste", flags = ParameterFlags(0x0)
+param "lvoff"
+units = "", desc = "Length dependence of voff", flags = ParameterFlags(0x0)
+param "lminv"
+units = "", desc = "Length dependence of minv", flags = ParameterFlags(0x0)
+param "lminvcv"
+units = "", desc = "Length dependence of minvcv", flags = ParameterFlags(0x0)
+param "ldelta"
+units = "", desc = "Length dependence of delta", flags = ParameterFlags(0x0)
+param "lrdsw"
+units = "", desc = "Length dependence of rdsw ", flags = ParameterFlags(0x0)
+param "lrsw"
+units = "", desc = "Length dependence of rsw", flags = ParameterFlags(0x0)
+param "lrdw"
+units = "", desc = "Length dependence of rdw", flags = ParameterFlags(0x0)
+param "lprwg"
+units = "", desc = "Length dependence of prwg ", flags = ParameterFlags(0x0)
+param "lprwb"
+units = "", desc = "Length dependence of prwb ", flags = ParameterFlags(0x0)
+param "lprt"
+units = "", desc = "Length dependence of prt ", flags = ParameterFlags(0x0)
+param "leta0"
+units = "", desc = "Length dependence of eta0", flags = ParameterFlags(0x0)
+param "letab"
+units = "", desc = "Length dependence of etab", flags = ParameterFlags(0x0)
+param "lpclm"
+units = "", desc = "Length dependence of pclm", flags = ParameterFlags(0x0)
+param "lpdiblc1"
+units = "", desc = "Length dependence of pdiblc1", flags = ParameterFlags(0x0)
+param "lpdiblc2"
+units = "", desc = "Length dependence of pdiblc2", flags = ParameterFlags(0x0)
+param "lpdiblcb"
+units = "", desc = "Length dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "lfprout"
+units = "", desc = "Length dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "lpdits"
+units = "", desc = "Length dependence of pdits", flags = ParameterFlags(0x0)
+param "lpditsd"
+units = "", desc = "Length dependence of pditsd", flags = ParameterFlags(0x0)
+param "lpscbe1"
+units = "", desc = "Length dependence of pscbe1", flags = ParameterFlags(0x0)
+param "lpscbe2"
+units = "", desc = "Length dependence of pscbe2", flags = ParameterFlags(0x0)
+param "lpvag"
+units = "", desc = "Length dependence of pvag", flags = ParameterFlags(0x0)
+param "lwr"
+units = "", desc = "Length dependence of wr", flags = ParameterFlags(0x0)
+param "ldwg"
+units = "", desc = "Length dependence of dwg", flags = ParameterFlags(0x0)
+param "ldwb"
+units = "", desc = "Length dependence of dwb", flags = ParameterFlags(0x0)
+param "lb0"
+units = "", desc = "Length dependence of b0", flags = ParameterFlags(0x0)
+param "lb1"
+units = "", desc = "Length dependence of b1", flags = ParameterFlags(0x0)
+param "lcgsl"
+units = "", desc = "Length dependence of cgsl", flags = ParameterFlags(0x0)
+param "lcgdl"
+units = "", desc = "Length dependence of cgdl", flags = ParameterFlags(0x0)
+param "lckappas"
+units = "", desc = "Length dependence of ckappas", flags = ParameterFlags(0x0)
+param "lckappad"
+units = "", desc = "Length dependence of ckappad", flags = ParameterFlags(0x0)
+param "lcf"
+units = "", desc = "Length dependence of cf", flags = ParameterFlags(0x0)
+param "lclc"
+units = "", desc = "Length dependence of clc", flags = ParameterFlags(0x0)
+param "lcle"
+units = "", desc = "Length dependence of cle", flags = ParameterFlags(0x0)
+param "lalpha0"
+units = "", desc = "Length dependence of alpha0", flags = ParameterFlags(0x0)
+param "lalpha1"
+units = "", desc = "Length dependence of alpha1", flags = ParameterFlags(0x0)
+param "lbeta0"
+units = "", desc = "Length dependence of beta0", flags = ParameterFlags(0x0)
+param "lagidl"
+units = "", desc = "Length dependence of agidl", flags = ParameterFlags(0x0)
+param "lbgidl"
+units = "", desc = "Length dependence of bgidl", flags = ParameterFlags(0x0)
+param "lcgidl"
+units = "", desc = "Length dependence of cgidl", flags = ParameterFlags(0x0)
+param "lrgidl"
+units = "", desc = "Length dependence of rgidl", flags = ParameterFlags(0x0)
+param "lkgidl"
+units = "", desc = "Length dependence of kgidl", flags = ParameterFlags(0x0)
+param "lfgidl"
+units = "", desc = "Length dependence of fgidl", flags = ParameterFlags(0x0)
+param "legidl"
+units = "", desc = "Length dependence of egidl", flags = ParameterFlags(0x0)
+param "lagisl"
+units = "", desc = "Length dependence of agisl", flags = ParameterFlags(0x0)
+param "lbgisl"
+units = "", desc = "Length dependence of bgisl", flags = ParameterFlags(0x0)
+param "lcgisl"
+units = "", desc = "Length dependence of cgisl", flags = ParameterFlags(0x0)
+param "lrgisl"
+units = "", desc = "Length dependence of rgisl", flags = ParameterFlags(0x0)
+param "lkgisl"
+units = "", desc = "Length dependence of kgisl", flags = ParameterFlags(0x0)
+param "lfgisl"
+units = "", desc = "Length dependence of fgisl", flags = ParameterFlags(0x0)
+param "legisl"
+units = "", desc = "Length dependence of egisl", flags = ParameterFlags(0x0)
+param "laigc"
+units = "", desc = "Length dependence of aigc", flags = ParameterFlags(0x0)
+param "lbigc"
+units = "", desc = "Length dependence of bigc", flags = ParameterFlags(0x0)
+param "lcigc"
+units = "", desc = "Length dependence of cigc", flags = ParameterFlags(0x0)
+param "laigsd"
+units = "", desc = "Length dependence of aigsd", flags = ParameterFlags(0x0)
+param "lbigsd"
+units = "", desc = "Length dependence of bigsd", flags = ParameterFlags(0x0)
+param "lcigsd"
+units = "", desc = "Length dependence of cigsd", flags = ParameterFlags(0x0)
+param "laigs"
+units = "", desc = "Length dependence of aigs", flags = ParameterFlags(0x0)
+param "lbigs"
+units = "", desc = "Length dependence of bigs", flags = ParameterFlags(0x0)
+param "lcigs"
+units = "", desc = "Length dependence of cigs", flags = ParameterFlags(0x0)
+param "laigd"
+units = "", desc = "Length dependence of aigd", flags = ParameterFlags(0x0)
+param "lbigd"
+units = "", desc = "Length dependence of bigd", flags = ParameterFlags(0x0)
+param "lcigd"
+units = "", desc = "Length dependence of cigd", flags = ParameterFlags(0x0)
+param "laigbacc"
+units = "", desc = "Length dependence of aigbacc", flags = ParameterFlags(0x0)
+param "lbigbacc"
+units = "", desc = "Length dependence of bigbacc", flags = ParameterFlags(0x0)
+param "lcigbacc"
+units = "", desc = "Length dependence of cigbacc", flags = ParameterFlags(0x0)
+param "laigbinv"
+units = "", desc = "Length dependence of aigbinv", flags = ParameterFlags(0x0)
+param "lbigbinv"
+units = "", desc = "Length dependence of bigbinv", flags = ParameterFlags(0x0)
+param "lcigbinv"
+units = "", desc = "Length dependence of cigbinv", flags = ParameterFlags(0x0)
+param "lnigc"
+units = "", desc = "Length dependence of nigc", flags = ParameterFlags(0x0)
+param "lnigbinv"
+units = "", desc = "Length dependence of nigbinv", flags = ParameterFlags(0x0)
+param "lnigbacc"
+units = "", desc = "Length dependence of nigbacc", flags = ParameterFlags(0x0)
+param "lntox"
+units = "", desc = "Length dependence of ntox", flags = ParameterFlags(0x0)
+param "leigbinv"
+units = "", desc = "Length dependence for eigbinv", flags = ParameterFlags(0x0)
+param "lpigcd"
+units = "", desc = "Length dependence for pigcd", flags = ParameterFlags(0x0)
+param "lpoxedge"
+units = "", desc = "Length dependence for poxedge", flags = ParameterFlags(0x0)
+param "lvfbcv"
+units = "", desc = "Length dependence of vfbcv", flags = ParameterFlags(0x0)
+param "lvfb"
+units = "", desc = "Length dependence of vfb", flags = ParameterFlags(0x0)
+param "lacde"
+units = "", desc = "Length dependence of acde", flags = ParameterFlags(0x0)
+param "lmoin"
+units = "", desc = "Length dependence of moin", flags = ParameterFlags(0x0)
+param "lnoff"
+units = "", desc = "Length dependence of noff", flags = ParameterFlags(0x0)
+param "lvoffcv"
+units = "", desc = "Length dependence of voffcv", flags = ParameterFlags(0x0)
+param "lxrcrg1"
+units = "", desc = "Length dependence of xrcrg1", flags = ParameterFlags(0x0)
+param "lxrcrg2"
+units = "", desc = "Length dependence of xrcrg2", flags = ParameterFlags(0x0)
+param "llambda"
+units = "", desc = "Length dependence of lambda", flags = ParameterFlags(0x0)
+param "lvtl"
+units = "", desc = " Length dependence of vtl", flags = ParameterFlags(0x0)
+param "lxn"
+units = "", desc = " Length dependence of xn", flags = ParameterFlags(0x0)
+param "leu"
+units = "", desc = " Length dependence of eu", flags = ParameterFlags(0x0)
+param "lucs"
+units = "", desc = "Length dependence of lucs", flags = ParameterFlags(0x0)
+param "lvfbsdoff"
+units = "", desc = "Length dependence of vfbsdoff", flags = ParameterFlags(0x0)
+param "ltvfbsdoff"
+units = "", desc = "Length dependence of tvfbsdoff", flags = ParameterFlags(0x0)
+param "ltvoff"
+units = "", desc = "Length dependence of tvoff", flags = ParameterFlags(0x0)
+param "ltnfactor"
+units = "", desc = "Length dependence of tnfactor", flags = ParameterFlags(0x0)
+param "lteta0"
+units = "", desc = "Length dependence of teta0", flags = ParameterFlags(0x0)
+param "ltvoffcv"
+units = "", desc = "Length dependence of tvoffcv", flags = ParameterFlags(0x0)
+param "wcdsc"
+units = "", desc = "Width dependence of cdsc", flags = ParameterFlags(0x0)
+param "wcdscb"
+units = "", desc = "Width dependence of cdscb", flags = ParameterFlags(0x0)
+param "wcdscd"
+units = "", desc = "Width dependence of cdscd", flags = ParameterFlags(0x0)
+param "wcit"
+units = "", desc = "Width dependence of cit", flags = ParameterFlags(0x0)
+param "wnfactor"
+units = "", desc = "Width dependence of nfactor", flags = ParameterFlags(0x0)
+param "wxj"
+units = "", desc = "Width dependence of xj", flags = ParameterFlags(0x0)
+param "wvsat"
+units = "", desc = "Width dependence of vsat", flags = ParameterFlags(0x0)
+param "wat"
+units = "", desc = "Width dependence of at", flags = ParameterFlags(0x0)
+param "wa0"
+units = "", desc = "Width dependence of a0", flags = ParameterFlags(0x0)
+param "wags"
+units = "", desc = "Width dependence of ags", flags = ParameterFlags(0x0)
+param "wa1"
+units = "", desc = "Width dependence of a1", flags = ParameterFlags(0x0)
+param "wa2"
+units = "", desc = "Width dependence of a2", flags = ParameterFlags(0x0)
+param "wketa"
+units = "", desc = "Width dependence of keta", flags = ParameterFlags(0x0)
+param "wketac"
+units = "", desc = "Width dependence of ketac", flags = ParameterFlags(0x0)
+param "wnsub"
+units = "", desc = "Width dependence of nsub", flags = ParameterFlags(0x0)
+param "wndep"
+units = "", desc = "Width dependence of ndep", flags = ParameterFlags(0x0)
+param "wnsd"
+units = "", desc = "Width dependence of nsd", flags = ParameterFlags(0x0)
+param "wphin"
+units = "", desc = "Width dependence of phin", flags = ParameterFlags(0x0)
+param "wngate"
+units = "", desc = "Width dependence of ngate", flags = ParameterFlags(0x0)
+param "wgamma1"
+units = "", desc = "Width dependence of gamma1", flags = ParameterFlags(0x0)
+param "wgamma2"
+units = "", desc = "Width dependence of gamma2", flags = ParameterFlags(0x0)
+param "wvbx"
+units = "", desc = "Width dependence of vbx", flags = ParameterFlags(0x0)
+param "wvbm"
+units = "", desc = "Width dependence of vbm", flags = ParameterFlags(0x0)
+param "wxt"
+units = "", desc = "Width dependence of xt", flags = ParameterFlags(0x0)
+param "wk1"
+units = "", desc = "Width dependence of k1", flags = ParameterFlags(0x0)
+param "wkt1"
+units = "", desc = "Width dependence of kt1", flags = ParameterFlags(0x0)
+param "wkt1l"
+units = "", desc = "Width dependence of kt1l", flags = ParameterFlags(0x0)
+param "wkt2"
+units = "", desc = "Width dependence of kt2", flags = ParameterFlags(0x0)
+param "wk2"
+units = "", desc = "Width dependence of k2", flags = ParameterFlags(0x0)
+param "wk3"
+units = "", desc = "Width dependence of k3", flags = ParameterFlags(0x0)
+param "wk3b"
+units = "", desc = "Width dependence of k3b", flags = ParameterFlags(0x0)
+param "ww0"
+units = "", desc = "Width dependence of w0", flags = ParameterFlags(0x0)
+param "wdvtp0"
+units = "", desc = "Width dependence of dvtp0", flags = ParameterFlags(0x0)
+param "wdvtp1"
+units = "", desc = "Width dependence of dvtp1", flags = ParameterFlags(0x0)
+param "wdvtp2"
+units = "", desc = "Width dependence of dvtp2", flags = ParameterFlags(0x0)
+param "wdvtp3"
+units = "", desc = "Width dependence of dvtp3", flags = ParameterFlags(0x0)
+param "wdvtp4"
+units = "", desc = "Width dependence of dvtp4", flags = ParameterFlags(0x0)
+param "wdvtp5"
+units = "", desc = "Width dependence of dvtp5", flags = ParameterFlags(0x0)
+param "wlpe0"
+units = "", desc = "Width dependence of lpe0", flags = ParameterFlags(0x0)
+param "wlpeb"
+units = "", desc = "Width dependence of lpeb", flags = ParameterFlags(0x0)
+param "wdvt0"
+units = "", desc = "Width dependence of dvt0", flags = ParameterFlags(0x0)
+param "wdvt1"
+units = "", desc = "Width dependence of dvt1", flags = ParameterFlags(0x0)
+param "wdvt2"
+units = "", desc = "Width dependence of dvt2", flags = ParameterFlags(0x0)
+param "wdvt0w"
+units = "", desc = "Width dependence of dvt0w", flags = ParameterFlags(0x0)
+param "wdvt1w"
+units = "", desc = "Width dependence of dvt1w", flags = ParameterFlags(0x0)
+param "wdvt2w"
+units = "", desc = "Width dependence of dvt2w", flags = ParameterFlags(0x0)
+param "wdrout"
+units = "", desc = "Width dependence of drout", flags = ParameterFlags(0x0)
+param "wdsub"
+units = "", desc = "Width dependence of dsub", flags = ParameterFlags(0x0)
+param "wvth0", "wvtho"
+units = "", desc = "Width dependence of vto", flags = ParameterFlags(0x0)
+param "wua"
+units = "", desc = "Width dependence of ua", flags = ParameterFlags(0x0)
+param "wua1"
+units = "", desc = "Width dependence of ua1", flags = ParameterFlags(0x0)
+param "wub"
+units = "", desc = "Width dependence of ub", flags = ParameterFlags(0x0)
+param "wub1"
+units = "", desc = "Width dependence of ub1", flags = ParameterFlags(0x0)
+param "wuc"
+units = "", desc = "Width dependence of uc", flags = ParameterFlags(0x0)
+param "wuc1"
+units = "", desc = "Width dependence of uc1", flags = ParameterFlags(0x0)
+param "wud"
+units = "", desc = "Width dependence of ud", flags = ParameterFlags(0x0)
+param "wud1"
+units = "", desc = "Width dependence of ud1", flags = ParameterFlags(0x0)
+param "wup"
+units = "", desc = "Width dependence of up", flags = ParameterFlags(0x0)
+param "wlp"
+units = "", desc = "Width dependence of lp", flags = ParameterFlags(0x0)
+param "wu0"
+units = "", desc = "Width dependence of u0", flags = ParameterFlags(0x0)
+param "wute"
+units = "", desc = "Width dependence of ute", flags = ParameterFlags(0x0)
+param "wucste"
+units = "", desc = "Width dependence of ucste", flags = ParameterFlags(0x0)
+param "wvoff"
+units = "", desc = "Width dependence of voff", flags = ParameterFlags(0x0)
+param "wminv"
+units = "", desc = "Width dependence of minv", flags = ParameterFlags(0x0)
+param "wminvcv"
+units = "", desc = "Width dependence of minvcv", flags = ParameterFlags(0x0)
+param "wdelta"
+units = "", desc = "Width dependence of delta", flags = ParameterFlags(0x0)
+param "wrdsw"
+units = "", desc = "Width dependence of rdsw ", flags = ParameterFlags(0x0)
+param "wrsw"
+units = "", desc = "Width dependence of rsw", flags = ParameterFlags(0x0)
+param "wrdw"
+units = "", desc = "Width dependence of rdw", flags = ParameterFlags(0x0)
+param "wprwg"
+units = "", desc = "Width dependence of prwg ", flags = ParameterFlags(0x0)
+param "wprwb"
+units = "", desc = "Width dependence of prwb ", flags = ParameterFlags(0x0)
+param "wprt"
+units = "", desc = "Width dependence of prt", flags = ParameterFlags(0x0)
+param "weta0"
+units = "", desc = "Width dependence of eta0", flags = ParameterFlags(0x0)
+param "wetab"
+units = "", desc = "Width dependence of etab", flags = ParameterFlags(0x0)
+param "wpclm"
+units = "", desc = "Width dependence of pclm", flags = ParameterFlags(0x0)
+param "wpdiblc1"
+units = "", desc = "Width dependence of pdiblc1", flags = ParameterFlags(0x0)
+param "wpdiblc2"
+units = "", desc = "Width dependence of pdiblc2", flags = ParameterFlags(0x0)
+param "wpdiblcb"
+units = "", desc = "Width dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "wfprout"
+units = "", desc = "Width dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "wpdits"
+units = "", desc = "Width dependence of pdits", flags = ParameterFlags(0x0)
+param "wpditsd"
+units = "", desc = "Width dependence of pditsd", flags = ParameterFlags(0x0)
+param "wpscbe1"
+units = "", desc = "Width dependence of pscbe1", flags = ParameterFlags(0x0)
+param "wpscbe2"
+units = "", desc = "Width dependence of pscbe2", flags = ParameterFlags(0x0)
+param "wpvag"
+units = "", desc = "Width dependence of pvag", flags = ParameterFlags(0x0)
+param "wwr"
+units = "", desc = "Width dependence of wr", flags = ParameterFlags(0x0)
+param "wdwg"
+units = "", desc = "Width dependence of dwg", flags = ParameterFlags(0x0)
+param "wdwb"
+units = "", desc = "Width dependence of dwb", flags = ParameterFlags(0x0)
+param "wb0"
+units = "", desc = "Width dependence of b0", flags = ParameterFlags(0x0)
+param "wb1"
+units = "", desc = "Width dependence of b1", flags = ParameterFlags(0x0)
+param "wcgsl"
+units = "", desc = "Width dependence of cgsl", flags = ParameterFlags(0x0)
+param "wcgdl"
+units = "", desc = "Width dependence of cgdl", flags = ParameterFlags(0x0)
+param "wckappas"
+units = "", desc = "Width dependence of ckappas", flags = ParameterFlags(0x0)
+param "wckappad"
+units = "", desc = "Width dependence of ckappad", flags = ParameterFlags(0x0)
+param "wcf"
+units = "", desc = "Width dependence of cf", flags = ParameterFlags(0x0)
+param "wclc"
+units = "", desc = "Width dependence of clc", flags = ParameterFlags(0x0)
+param "wcle"
+units = "", desc = "Width dependence of cle", flags = ParameterFlags(0x0)
+param "walpha0"
+units = "", desc = "Width dependence of alpha0", flags = ParameterFlags(0x0)
+param "walpha1"
+units = "", desc = "Width dependence of alpha1", flags = ParameterFlags(0x0)
+param "wbeta0"
+units = "", desc = "Width dependence of beta0", flags = ParameterFlags(0x0)
+param "wagidl"
+units = "", desc = "Width dependence of agidl", flags = ParameterFlags(0x0)
+param "wbgidl"
+units = "", desc = "Width dependence of bgidl", flags = ParameterFlags(0x0)
+param "wcgidl"
+units = "", desc = "Width dependence of cgidl", flags = ParameterFlags(0x0)
+param "wrgidl"
+units = "", desc = "Width dependence of rgidl", flags = ParameterFlags(0x0)
+param "wkgidl"
+units = "", desc = "Width dependence of kgidl", flags = ParameterFlags(0x0)
+param "wfgidl"
+units = "", desc = "Width dependence of fgidl", flags = ParameterFlags(0x0)
+param "wegidl"
+units = "", desc = "Width dependence of egidl", flags = ParameterFlags(0x0)
+param "wagisl"
+units = "", desc = "Width dependence of agisl", flags = ParameterFlags(0x0)
+param "wbgisl"
+units = "", desc = "Width dependence of bgisl", flags = ParameterFlags(0x0)
+param "wcgisl"
+units = "", desc = "Width dependence of cgisl", flags = ParameterFlags(0x0)
+param "wrgisl"
+units = "", desc = "Width dependence of rgisl", flags = ParameterFlags(0x0)
+param "wkgisl"
+units = "", desc = "Width dependence of kgisl", flags = ParameterFlags(0x0)
+param "wfgisl"
+units = "", desc = "Width dependence of fgisl", flags = ParameterFlags(0x0)
+param "wegisl"
+units = "", desc = "Width dependence of egisl", flags = ParameterFlags(0x0)
+param "waigc"
+units = "", desc = "Width dependence of aigc", flags = ParameterFlags(0x0)
+param "wbigc"
+units = "", desc = "Width dependence of bigc", flags = ParameterFlags(0x0)
+param "wcigc"
+units = "", desc = "Width dependence of cigc", flags = ParameterFlags(0x0)
+param "waigsd"
+units = "", desc = "Width dependence of aigsd", flags = ParameterFlags(0x0)
+param "wbigsd"
+units = "", desc = "Width dependence of bigsd", flags = ParameterFlags(0x0)
+param "wcigsd"
+units = "", desc = "Width dependence of cigsd", flags = ParameterFlags(0x0)
+param "waigs"
+units = "", desc = "Width dependence of aigs", flags = ParameterFlags(0x0)
+param "wbigs"
+units = "", desc = "Width dependence of bigs", flags = ParameterFlags(0x0)
+param "wcigs"
+units = "", desc = "Width dependence of cigs", flags = ParameterFlags(0x0)
+param "waigd"
+units = "", desc = "Width dependence of aigd", flags = ParameterFlags(0x0)
+param "wbigd"
+units = "", desc = "Width dependence of bigd", flags = ParameterFlags(0x0)
+param "wcigd"
+units = "", desc = "Width dependence of cigd", flags = ParameterFlags(0x0)
+param "waigbacc"
+units = "", desc = "Width dependence of aigbacc", flags = ParameterFlags(0x0)
+param "wbigbacc"
+units = "", desc = "Width dependence of bigbacc", flags = ParameterFlags(0x0)
+param "wcigbacc"
+units = "", desc = "Width dependence of cigbacc", flags = ParameterFlags(0x0)
+param "waigbinv"
+units = "", desc = "Width dependence of aigbinv", flags = ParameterFlags(0x0)
+param "wbigbinv"
+units = "", desc = "Width dependence of bigbinv", flags = ParameterFlags(0x0)
+param "wcigbinv"
+units = "", desc = "Width dependence of cigbinv", flags = ParameterFlags(0x0)
+param "wnigc"
+units = "", desc = "Width dependence of nigc", flags = ParameterFlags(0x0)
+param "wnigbinv"
+units = "", desc = "Width dependence of nigbinv", flags = ParameterFlags(0x0)
+param "wnigbacc"
+units = "", desc = "Width dependence of nigbacc", flags = ParameterFlags(0x0)
+param "wntox"
+units = "", desc = "Width dependence of ntox", flags = ParameterFlags(0x0)
+param "weigbinv"
+units = "", desc = "Width dependence for eigbinv", flags = ParameterFlags(0x0)
+param "wpigcd"
+units = "", desc = "Width dependence for pigcd", flags = ParameterFlags(0x0)
+param "wpoxedge"
+units = "", desc = "Width dependence for poxedge", flags = ParameterFlags(0x0)
+param "wvfbcv"
+units = "", desc = "Width dependence of vfbcv", flags = ParameterFlags(0x0)
+param "wvfb"
+units = "", desc = "Width dependence of vfb", flags = ParameterFlags(0x0)
+param "wacde"
+units = "", desc = "Width dependence of acde", flags = ParameterFlags(0x0)
+param "wmoin"
+units = "", desc = "Width dependence of moin", flags = ParameterFlags(0x0)
+param "wnoff"
+units = "", desc = "Width dependence of noff", flags = ParameterFlags(0x0)
+param "wvoffcv"
+units = "", desc = "Width dependence of voffcv", flags = ParameterFlags(0x0)
+param "wxrcrg1"
+units = "", desc = "Width dependence of xrcrg1", flags = ParameterFlags(0x0)
+param "wxrcrg2"
+units = "", desc = "Width dependence of xrcrg2", flags = ParameterFlags(0x0)
+param "wlambda"
+units = "", desc = "Width dependence of lambda", flags = ParameterFlags(0x0)
+param "wvtl"
+units = "", desc = "Width dependence of vtl", flags = ParameterFlags(0x0)
+param "wxn"
+units = "", desc = "Width dependence of xn", flags = ParameterFlags(0x0)
+param "weu"
+units = "", desc = "Width dependence of eu", flags = ParameterFlags(0x0)
+param "wucs"
+units = "", desc = "Width dependence of ucs", flags = ParameterFlags(0x0)
+param "wvfbsdoff"
+units = "", desc = "Width dependence of vfbsdoff", flags = ParameterFlags(0x0)
+param "wtvfbsdoff"
+units = "", desc = "Width dependence of tvfbsdoff", flags = ParameterFlags(0x0)
+param "wtvoff"
+units = "", desc = "Width dependence of tvoff", flags = ParameterFlags(0x0)
+param "wtnfactor"
+units = "", desc = "Width dependence of tnfactor", flags = ParameterFlags(0x0)
+param "wteta0"
+units = "", desc = "Width dependence of teta0", flags = ParameterFlags(0x0)
+param "wtvoffcv"
+units = "", desc = "Width dependence of tvoffcv", flags = ParameterFlags(0x0)
+param "pcdsc"
+units = "", desc = "Cross-term dependence of cdsc", flags = ParameterFlags(0x0)
+param "pcdscb"
+units = "", desc = "Cross-term dependence of cdscb", flags = ParameterFlags(0x0)
+param "pcdscd"
+units = "", desc = "Cross-term dependence of cdscd", flags = ParameterFlags(0x0)
+param "pcit"
+units = "", desc = "Cross-term dependence of cit", flags = ParameterFlags(0x0)
+param "pnfactor"
+units = "", desc = "Cross-term dependence of nfactor", flags = ParameterFlags(0x0)
+param "pxj"
+units = "", desc = "Cross-term dependence of xj", flags = ParameterFlags(0x0)
+param "pvsat"
+units = "", desc = "Cross-term dependence of vsat", flags = ParameterFlags(0x0)
+param "pat"
+units = "", desc = "Cross-term dependence of at", flags = ParameterFlags(0x0)
+param "pa0"
+units = "", desc = "Cross-term dependence of a0", flags = ParameterFlags(0x0)
+param "pags"
+units = "", desc = "Cross-term dependence of ags", flags = ParameterFlags(0x0)
+param "pa1"
+units = "", desc = "Cross-term dependence of a1", flags = ParameterFlags(0x0)
+param "pa2"
+units = "", desc = "Cross-term dependence of a2", flags = ParameterFlags(0x0)
+param "pketa"
+units = "", desc = "Cross-term dependence of keta", flags = ParameterFlags(0x0)
+param "pketac"
+units = "", desc = "Cross-term dependence of ketac", flags = ParameterFlags(0x0)
+param "pnsub"
+units = "", desc = "Cross-term dependence of nsub", flags = ParameterFlags(0x0)
+param "pndep"
+units = "", desc = "Cross-term dependence of ndep", flags = ParameterFlags(0x0)
+param "pnsd"
+units = "", desc = "Cross-term dependence of nsd", flags = ParameterFlags(0x0)
+param "pphin"
+units = "", desc = "Cross-term dependence of phin", flags = ParameterFlags(0x0)
+param "pngate"
+units = "", desc = "Cross-term dependence of ngate", flags = ParameterFlags(0x0)
+param "pgamma1"
+units = "", desc = "Cross-term dependence of gamma1", flags = ParameterFlags(0x0)
+param "pgamma2"
+units = "", desc = "Cross-term dependence of gamma2", flags = ParameterFlags(0x0)
+param "pvbx"
+units = "", desc = "Cross-term dependence of vbx", flags = ParameterFlags(0x0)
+param "pvbm"
+units = "", desc = "Cross-term dependence of vbm", flags = ParameterFlags(0x0)
+param "pxt"
+units = "", desc = "Cross-term dependence of xt", flags = ParameterFlags(0x0)
+param "pk1"
+units = "", desc = "Cross-term dependence of k1", flags = ParameterFlags(0x0)
+param "pkt1"
+units = "", desc = "Cross-term dependence of kt1", flags = ParameterFlags(0x0)
+param "pkt1l"
+units = "", desc = "Cross-term dependence of kt1l", flags = ParameterFlags(0x0)
+param "pkt2"
+units = "", desc = "Cross-term dependence of kt2", flags = ParameterFlags(0x0)
+param "pk2"
+units = "", desc = "Cross-term dependence of k2", flags = ParameterFlags(0x0)
+param "pk3"
+units = "", desc = "Cross-term dependence of k3", flags = ParameterFlags(0x0)
+param "pk3b"
+units = "", desc = "Cross-term dependence of k3b", flags = ParameterFlags(0x0)
+param "pw0"
+units = "", desc = "Cross-term dependence of w0", flags = ParameterFlags(0x0)
+param "pdvtp0"
+units = "", desc = "Cross-term dependence of dvtp0", flags = ParameterFlags(0x0)
+param "pdvtp1"
+units = "", desc = "Cross-term dependence of dvtp1", flags = ParameterFlags(0x0)
+param "pdvtp2"
+units = "", desc = "Cross-term dependence of dvtp2", flags = ParameterFlags(0x0)
+param "pdvtp3"
+units = "", desc = "Cross-term dependence of dvtp3", flags = ParameterFlags(0x0)
+param "pdvtp4"
+units = "", desc = "Cross-term dependence of dvtp4", flags = ParameterFlags(0x0)
+param "pdvtp5"
+units = "", desc = "Cross-term dependence of dvtp5", flags = ParameterFlags(0x0)
+param "plpe0"
+units = "", desc = "Cross-term dependence of lpe0", flags = ParameterFlags(0x0)
+param "plpeb"
+units = "", desc = "Cross-term dependence of lpeb", flags = ParameterFlags(0x0)
+param "pdvt0"
+units = "", desc = "Cross-term dependence of dvt0", flags = ParameterFlags(0x0)
+param "pdvt1"
+units = "", desc = "Cross-term dependence of dvt1", flags = ParameterFlags(0x0)
+param "pdvt2"
+units = "", desc = "Cross-term dependence of dvt2", flags = ParameterFlags(0x0)
+param "pdvt0w"
+units = "", desc = "Cross-term dependence of dvt0w", flags = ParameterFlags(0x0)
+param "pdvt1w"
+units = "", desc = "Cross-term dependence of dvt1w", flags = ParameterFlags(0x0)
+param "pdvt2w"
+units = "", desc = "Cross-term dependence of dvt2w", flags = ParameterFlags(0x0)
+param "pdrout"
+units = "", desc = "Cross-term dependence of drout", flags = ParameterFlags(0x0)
+param "pdsub"
+units = "", desc = "Cross-term dependence of dsub", flags = ParameterFlags(0x0)
+param "pvth0", "pvtho"
+units = "", desc = "Cross-term dependence of vto", flags = ParameterFlags(0x0)
+param "pua"
+units = "", desc = "Cross-term dependence of ua", flags = ParameterFlags(0x0)
+param "pua1"
+units = "", desc = "Cross-term dependence of ua1", flags = ParameterFlags(0x0)
+param "pub"
+units = "", desc = "Cross-term dependence of ub", flags = ParameterFlags(0x0)
+param "pub1"
+units = "", desc = "Cross-term dependence of ub1", flags = ParameterFlags(0x0)
+param "puc"
+units = "", desc = "Cross-term dependence of uc", flags = ParameterFlags(0x0)
+param "puc1"
+units = "", desc = "Cross-term dependence of uc1", flags = ParameterFlags(0x0)
+param "pud"
+units = "", desc = "Cross-term dependence of ud", flags = ParameterFlags(0x0)
+param "pud1"
+units = "", desc = "Cross-term dependence of ud1", flags = ParameterFlags(0x0)
+param "pup"
+units = "", desc = "Cross-term dependence of up", flags = ParameterFlags(0x0)
+param "plp"
+units = "", desc = "Cross-term dependence of lp", flags = ParameterFlags(0x0)
+param "pu0"
+units = "", desc = "Cross-term dependence of u0", flags = ParameterFlags(0x0)
+param "pute"
+units = "", desc = "Cross-term dependence of ute", flags = ParameterFlags(0x0)
+param "pucste"
+units = "", desc = "Cross-term dependence of ucste", flags = ParameterFlags(0x0)
+param "pvoff"
+units = "", desc = "Cross-term dependence of voff", flags = ParameterFlags(0x0)
+param "pminv"
+units = "", desc = "Cross-term dependence of minv", flags = ParameterFlags(0x0)
+param "pminvcv"
+units = "", desc = "Cross-term dependence of minvcv", flags = ParameterFlags(0x0)
+param "pdelta"
+units = "", desc = "Cross-term dependence of delta", flags = ParameterFlags(0x0)
+param "prdsw"
+units = "", desc = "Cross-term dependence of rdsw ", flags = ParameterFlags(0x0)
+param "prsw"
+units = "", desc = "Cross-term dependence of rsw", flags = ParameterFlags(0x0)
+param "prdw"
+units = "", desc = "Cross-term dependence of rdw", flags = ParameterFlags(0x0)
+param "pprwg"
+units = "", desc = "Cross-term dependence of prwg ", flags = ParameterFlags(0x0)
+param "pprwb"
+units = "", desc = "Cross-term dependence of prwb ", flags = ParameterFlags(0x0)
+param "pprt"
+units = "", desc = "Cross-term dependence of prt ", flags = ParameterFlags(0x0)
+param "peta0"
+units = "", desc = "Cross-term dependence of eta0", flags = ParameterFlags(0x0)
+param "petab"
+units = "", desc = "Cross-term dependence of etab", flags = ParameterFlags(0x0)
+param "ppclm"
+units = "", desc = "Cross-term dependence of pclm", flags = ParameterFlags(0x0)
+param "ppdiblc1"
+units = "", desc = "Cross-term dependence of pdiblc1", flags = ParameterFlags(0x0)
+param "ppdiblc2"
+units = "", desc = "Cross-term dependence of pdiblc2", flags = ParameterFlags(0x0)
+param "ppdiblcb"
+units = "", desc = "Cross-term dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "pfprout"
+units = "", desc = "Cross-term dependence of pdiblcb", flags = ParameterFlags(0x0)
+param "ppdits"
+units = "", desc = "Cross-term dependence of pdits", flags = ParameterFlags(0x0)
+param "ppditsd"
+units = "", desc = "Cross-term dependence of pditsd", flags = ParameterFlags(0x0)
+param "ppscbe1"
+units = "", desc = "Cross-term dependence of pscbe1", flags = ParameterFlags(0x0)
+param "ppscbe2"
+units = "", desc = "Cross-term dependence of pscbe2", flags = ParameterFlags(0x0)
+param "ppvag"
+units = "", desc = "Cross-term dependence of pvag", flags = ParameterFlags(0x0)
+param "pwr"
+units = "", desc = "Cross-term dependence of wr", flags = ParameterFlags(0x0)
+param "pdwg"
+units = "", desc = "Cross-term dependence of dwg", flags = ParameterFlags(0x0)
+param "pdwb"
+units = "", desc = "Cross-term dependence of dwb", flags = ParameterFlags(0x0)
+param "pb0"
+units = "", desc = "Cross-term dependence of b0", flags = ParameterFlags(0x0)
+param "pb1"
+units = "", desc = "Cross-term dependence of b1", flags = ParameterFlags(0x0)
+param "pcgsl"
+units = "", desc = "Cross-term dependence of cgsl", flags = ParameterFlags(0x0)
+param "pcgdl"
+units = "", desc = "Cross-term dependence of cgdl", flags = ParameterFlags(0x0)
+param "pckappas"
+units = "", desc = "Cross-term dependence of ckappas", flags = ParameterFlags(0x0)
+param "pckappad"
+units = "", desc = "Cross-term dependence of ckappad", flags = ParameterFlags(0x0)
+param "pcf"
+units = "", desc = "Cross-term dependence of cf", flags = ParameterFlags(0x0)
+param "pclc"
+units = "", desc = "Cross-term dependence of clc", flags = ParameterFlags(0x0)
+param "pcle"
+units = "", desc = "Cross-term dependence of cle", flags = ParameterFlags(0x0)
+param "palpha0"
+units = "", desc = "Cross-term dependence of alpha0", flags = ParameterFlags(0x0)
+param "palpha1"
+units = "", desc = "Cross-term dependence of alpha1", flags = ParameterFlags(0x0)
+param "pbeta0"
+units = "", desc = "Cross-term dependence of beta0", flags = ParameterFlags(0x0)
+param "pagidl"
+units = "", desc = "Cross-term dependence of agidl", flags = ParameterFlags(0x0)
+param "pbgidl"
+units = "", desc = "Cross-term dependence of bgidl", flags = ParameterFlags(0x0)
+param "pcgidl"
+units = "", desc = "Cross-term dependence of cgidl", flags = ParameterFlags(0x0)
+param "prgidl"
+units = "", desc = "Cross-term dependence of rgidl", flags = ParameterFlags(0x0)
+param "pkgidl"
+units = "", desc = "Cross-term dependence of kgidl", flags = ParameterFlags(0x0)
+param "pfgidl"
+units = "", desc = "Cross-term dependence of fgidl", flags = ParameterFlags(0x0)
+param "pegidl"
+units = "", desc = "Cross-term dependence of egidl", flags = ParameterFlags(0x0)
+param "pagisl"
+units = "", desc = "Cross-term dependence of agisl", flags = ParameterFlags(0x0)
+param "pbgisl"
+units = "", desc = "Cross-term dependence of bgisl", flags = ParameterFlags(0x0)
+param "pcgisl"
+units = "", desc = "Cross-term dependence of cgisl", flags = ParameterFlags(0x0)
+param "pegisl"
+units = "", desc = "Cross-term dependence of egisl", flags = ParameterFlags(0x0)
+param "prgisl"
+units = "", desc = "Cross-term dependence of rgisl", flags = ParameterFlags(0x0)
+param "pkgisl"
+units = "", desc = "Cross-term dependence of kgisl", flags = ParameterFlags(0x0)
+param "pfgisl"
+units = "", desc = "Cross-term dependence of fgisl", flags = ParameterFlags(0x0)
+param "paigc"
+units = "", desc = "Cross-term dependence of aigc", flags = ParameterFlags(0x0)
+param "pbigc"
+units = "", desc = "Cross-term dependence of bigc", flags = ParameterFlags(0x0)
+param "pcigc"
+units = "", desc = "Cross-term dependence of cigc", flags = ParameterFlags(0x0)
+param "paigsd"
+units = "", desc = "Cross-term dependence of aigsd", flags = ParameterFlags(0x0)
+param "pbigsd"
+units = "", desc = "Cross-term dependence of bigsd", flags = ParameterFlags(0x0)
+param "pcigsd"
+units = "", desc = "Cross-term dependence of cigsd", flags = ParameterFlags(0x0)
+param "paigs"
+units = "", desc = "Cross-term dependence of aigs", flags = ParameterFlags(0x0)
+param "pbigs"
+units = "", desc = "Cross-term dependence of bigs", flags = ParameterFlags(0x0)
+param "pcigs"
+units = "", desc = "Cross-term dependence of cigs", flags = ParameterFlags(0x0)
+param "paigd"
+units = "", desc = "Cross-term dependence of aigd", flags = ParameterFlags(0x0)
+param "pbigd"
+units = "", desc = "Cross-term dependence of bigd", flags = ParameterFlags(0x0)
+param "pcigd"
+units = "", desc = "Cross-term dependence of cigd", flags = ParameterFlags(0x0)
+param "paigbacc"
+units = "", desc = "Cross-term dependence of aigbacc", flags = ParameterFlags(0x0)
+param "pbigbacc"
+units = "", desc = "Cross-term dependence of bigbacc", flags = ParameterFlags(0x0)
+param "pcigbacc"
+units = "", desc = "Cross-term dependence of cigbacc", flags = ParameterFlags(0x0)
+param "paigbinv"
+units = "", desc = "Cross-term dependence of aigbinv", flags = ParameterFlags(0x0)
+param "pbigbinv"
+units = "", desc = "Cross-term dependence of bigbinv", flags = ParameterFlags(0x0)
+param "pcigbinv"
+units = "", desc = "Cross-term dependence of cigbinv", flags = ParameterFlags(0x0)
+param "pnigc"
+units = "", desc = "Cross-term dependence of nigc", flags = ParameterFlags(0x0)
+param "pnigbinv"
+units = "", desc = "Cross-term dependence of nigbinv", flags = ParameterFlags(0x0)
+param "pnigbacc"
+units = "", desc = "Cross-term dependence of nigbacc", flags = ParameterFlags(0x0)
+param "pntox"
+units = "", desc = "Cross-term dependence of ntox", flags = ParameterFlags(0x0)
+param "peigbinv"
+units = "", desc = "Cross-term dependence for eigbinv", flags = ParameterFlags(0x0)
+param "ppigcd"
+units = "", desc = "Cross-term dependence for pigcd", flags = ParameterFlags(0x0)
+param "ppoxedge"
+units = "", desc = "Cross-term dependence for poxedge", flags = ParameterFlags(0x0)
+param "pvfbcv"
+units = "", desc = "Cross-term dependence of vfbcv", flags = ParameterFlags(0x0)
+param "pvfb"
+units = "", desc = "Cross-term dependence of vfb", flags = ParameterFlags(0x0)
+param "pacde"
+units = "", desc = "Cross-term dependence of acde", flags = ParameterFlags(0x0)
+param "pmoin"
+units = "", desc = "Cross-term dependence of moin", flags = ParameterFlags(0x0)
+param "pnoff"
+units = "", desc = "Cross-term dependence of noff", flags = ParameterFlags(0x0)
+param "pvoffcv"
+units = "", desc = "Cross-term dependence of voffcv", flags = ParameterFlags(0x0)
+param "pxrcrg1"
+units = "", desc = "Cross-term dependence of xrcrg1", flags = ParameterFlags(0x0)
+param "pxrcrg2"
+units = "", desc = "Cross-term dependence of xrcrg2", flags = ParameterFlags(0x0)
+param "plambda"
+units = "", desc = "Cross-term dependence of lambda", flags = ParameterFlags(0x0)
+param "pvtl"
+units = "", desc = "Cross-term dependence of vtl", flags = ParameterFlags(0x0)
+param "pxn"
+units = "", desc = "Cross-term dependence of xn", flags = ParameterFlags(0x0)
+param "peu"
+units = "", desc = "Cross-term dependence of eu", flags = ParameterFlags(0x0)
+param "pucs"
+units = "", desc = "Cross-term dependence of ucs", flags = ParameterFlags(0x0)
+param "pvfbsdoff"
+units = "", desc = "Cross-term dependence of vfbsdoff", flags = ParameterFlags(0x0)
+param "ptvfbsdoff"
+units = "", desc = "Cross-term dependence of tvfbsdoff", flags = ParameterFlags(0x0)
+param "ptvoff"
+units = "", desc = "Cross-term dependence of tvoff", flags = ParameterFlags(0x0)
+param "ptnfactor"
+units = "", desc = "Cross-term dependence of tnfactor", flags = ParameterFlags(0x0)
+param "pteta0"
+units = "", desc = "Cross-term dependence of teta0", flags = ParameterFlags(0x0)
+param "ptvoffcv"
+units = "", desc = "Cross-term dependence of tvoffcv", flags = ParameterFlags(0x0)
+param "saref"
+units = "", desc = "Reference distance between OD edge to poly of one side", flags = ParameterFlags(0x0)
+param "sbref"
+units = "", desc = "Reference distance between OD edge to poly of the other side", flags = ParameterFlags(0x0)
+param "wlod"
+units = "", desc = "Width parameter for stress effect", flags = ParameterFlags(0x0)
+param "ku0"
+units = "", desc = "Mobility degradation/enhancement coefficient for LOD", flags = ParameterFlags(0x0)
+param "kvsat"
+units = "", desc = "Saturation velocity degradation/enhancement parameter for LOD", flags = ParameterFlags(0x0)
+param "kvth0"
+units = "", desc = "Threshold degradation/enhancement parameter for LOD", flags = ParameterFlags(0x0)
+param "tku0"
+units = "", desc = "Temperature coefficient of KU0", flags = ParameterFlags(0x0)
+param "llodku0"
+units = "", desc = "Length parameter for u0 LOD effect", flags = ParameterFlags(0x0)
+param "wlodku0"
+units = "", desc = "Width parameter for u0 LOD effect", flags = ParameterFlags(0x0)
+param "llodvth"
+units = "", desc = "Length parameter for vth LOD effect", flags = ParameterFlags(0x0)
+param "wlodvth"
+units = "", desc = "Width parameter for vth LOD effect", flags = ParameterFlags(0x0)
+param "lku0"
+units = "", desc = "Length dependence of ku0", flags = ParameterFlags(0x0)
+param "wku0"
+units = "", desc = "Width dependence of ku0", flags = ParameterFlags(0x0)
+param "pku0"
+units = "", desc = "Cross-term dependence of ku0", flags = ParameterFlags(0x0)
+param "lkvth0"
+units = "", desc = "Length dependence of kvth0", flags = ParameterFlags(0x0)
+param "wkvth0"
+units = "", desc = "Width dependence of kvth0", flags = ParameterFlags(0x0)
+param "pkvth0"
+units = "", desc = "Cross-term dependence of kvth0", flags = ParameterFlags(0x0)
+param "stk2"
+units = "", desc = "K2 shift factor related to stress effect on vth", flags = ParameterFlags(0x0)
+param "lodk2"
+units = "", desc = "K2 shift modification factor for stress effect", flags = ParameterFlags(0x0)
+param "steta0"
+units = "", desc = "eta0 shift factor related to stress effect on vth", flags = ParameterFlags(0x0)
+param "lodeta0"
+units = "", desc = "eta0 shift modification factor for stress effect", flags = ParameterFlags(0x0)
+param "web"
+units = "", desc = "Coefficient for SCB", flags = ParameterFlags(0x0)
+param "wec"
+units = "", desc = "Coefficient for SCC", flags = ParameterFlags(0x0)
+param "kvth0we"
+units = "", desc = "Threshold shift factor for well proximity effect", flags = ParameterFlags(0x0)
+param "k2we"
+units = "", desc = " K2 shift factor for well proximity effect ", flags = ParameterFlags(0x0)
+param "ku0we"
+units = "", desc = " Mobility degradation factor for well proximity effect ", flags = ParameterFlags(0x0)
+param "scref"
+units = "", desc = " Reference distance to calculate SCA, SCB and SCC", flags = ParameterFlags(0x0)
+param "wpemod"
+units = "", desc = " Flag for WPE model (WPEMOD=1 to activate this model) ", flags = ParameterFlags(0x0)
+param "lkvth0we"
+units = "", desc = "Length dependence of kvth0we", flags = ParameterFlags(0x0)
+param "lk2we"
+units = "", desc = " Length dependence of k2we ", flags = ParameterFlags(0x0)
+param "lku0we"
+units = "", desc = " Length dependence of ku0we ", flags = ParameterFlags(0x0)
+param "wkvth0we"
+units = "", desc = "Width dependence of kvth0we", flags = ParameterFlags(0x0)
+param "wk2we"
+units = "", desc = " Width dependence of k2we ", flags = ParameterFlags(0x0)
+param "wku0we"
+units = "", desc = " Width dependence of ku0we ", flags = ParameterFlags(0x0)
+param "pkvth0we"
+units = "", desc = "Cross-term dependence of kvth0we", flags = ParameterFlags(0x0)
+param "pk2we"
+units = "", desc = " Cross-term dependence of k2we ", flags = ParameterFlags(0x0)
+param "pku0we"
+units = "", desc = " Cross-term dependence of ku0we ", flags = ParameterFlags(0x0)
+param "noia"
+units = "", desc = "Flicker noise parameter", flags = ParameterFlags(0x0)
+param "noib"
+units = "", desc = "Flicker noise parameter", flags = ParameterFlags(0x0)
+param "noic"
+units = "", desc = "Flicker noise parameter", flags = ParameterFlags(0x0)
+param "tnoia"
+units = "", desc = "Thermal noise parameter", flags = ParameterFlags(0x0)
+param "tnoib"
+units = "", desc = "Thermal noise parameter", flags = ParameterFlags(0x0)
+param "tnoic"
+units = "", desc = "Thermal noise parameter", flags = ParameterFlags(0x0)
+param "rnoia"
+units = "", desc = "Thermal noise coefficient", flags = ParameterFlags(0x0)
+param "rnoib"
+units = "", desc = "Thermal noise coefficient", flags = ParameterFlags(0x0)
+param "rnoic"
+units = "", desc = "Thermal noise coefficient", flags = ParameterFlags(0x0)
+param "gidlclamp"
+units = "", desc = "gidl clamp value", flags = ParameterFlags(0x0)
+param "idovvds"
+units = "", desc = "noise clamping limit parameter", flags = ParameterFlags(0x0)
+param "ntnoi"
+units = "", desc = "Thermal noise parameter", flags = ParameterFlags(0x0)
+param "em"
+units = "", desc = "Flicker noise parameter", flags = ParameterFlags(0x0)
+param "ef"
+units = "", desc = "Flicker noise frequency exponent", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "Flicker noise exponent", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "Flicker noise coefficient", flags = ParameterFlags(0x0)
+param "vgs_max"
+units = "", desc = "maximum voltage G-S branch", flags = ParameterFlags(0x0)
+param "vgd_max"
+units = "", desc = "maximum voltage G-D branch", flags = ParameterFlags(0x0)
+param "vgb_max"
+units = "", desc = "maximum voltage G-B branch", flags = ParameterFlags(0x0)
+param "vds_max"
+units = "", desc = "maximum voltage D-S branch", flags = ParameterFlags(0x0)
+param "vbs_max"
+units = "", desc = "maximum voltage B-S branch", flags = ParameterFlags(0x0)
+param "vbd_max"
+units = "", desc = "maximum voltage B-D branch", flags = ParameterFlags(0x0)
+param "vgsr_max"
+units = "", desc = "maximum voltage G-S branch", flags = ParameterFlags(0x0)
+param "vgdr_max"
+units = "", desc = "maximum voltage G-D branch", flags = ParameterFlags(0x0)
+param "vgbr_max"
+units = "", desc = "maximum voltage G-B branch", flags = ParameterFlags(0x0)
+param "vbsr_max"
+units = "", desc = "maximum voltage B-S branch", flags = ParameterFlags(0x0)
+param "vbdr_max"
+units = "", desc = "maximum voltage B-D branch", flags = ParameterFlags(0x0)
+param "type"
+units = "", desc = "N-type (1) or P-type (-1)", flags = ParameterFlags(PARA_TY_INT)
+
+4 terminals
+node "d" units = "V", runits = "A"
+node "g" units = "V", runits = "A"
+node "s" units = "V", runits = "A"
+node "b" units = "V", runits = "A"
+node "d_int" units = "V", runits = "A"
+node "g_int" units = "V", runits = "A"
+node "gmid_int" units = "V", runits = "A"
+node "s_int" units = "V", runits = "A"
+node "b_int" units = "V", runits = "A"
+node "db_int" units = "V", runits = "A"
+node "sb_int" units = "V", runits = "A"
+node "q_int" units = "V", runits = "A"
+node "noise_int" units = "V", runits = "A"
+node(flow) "flow(noise_br_c)" units = "A", runits = "A"
+node(flow) "flow(noise_br_i)" units = "A", runits = "A"
+jacobian (d, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, gmid_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, db_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b, sb_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, gmid_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (d_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, db_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (d_int, q_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, flow(noise_br_c)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (d_int, flow(noise_br_i)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g_int, gmid_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (g_int, q_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (g_int, flow(noise_br_c)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (gmid_int, g) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (gmid_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (gmid_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (gmid_int, gmid_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (gmid_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (gmid_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, s) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, gmid_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (s_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, db_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (s_int, sb_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (s_int, q_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, flow(noise_br_c)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (s_int, flow(noise_br_i)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (b_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, gmid_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (b_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, db_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (b_int, sb_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (db_int, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (db_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (db_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (db_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (db_int, db_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (sb_int, b) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sb_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (sb_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (sb_int, sb_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (q_int, d_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (q_int, g_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (q_int, s_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (q_int, b_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (q_int, q_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (noise_int, noise_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (noise_int, flow(noise_br_c)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (noise_int, flow(noise_br_i)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(noise_br_c), d_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (flow(noise_br_c), g_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (flow(noise_br_c), s_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (flow(noise_br_c), b_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (flow(noise_br_c), noise_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (flow(noise_br_c), flow(noise_br_c)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (flow(noise_br_i), flow(noise_br_i)) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+collapsible (d_int, d)
+collapsible (s_int, s)
+collapsible (g_int, g)
+collapsible (gmid_int, g)
+collapsible (sb_int, b)
+collapsible (b_int, sb_int)
+collapsible (db_int, b_int)
+collapsible (q_int, gnd)
+collapsible (noise_int, gnd)
+collapsible (flow(noise_br_c), gnd)
+collapsible (flow(noise_br_i), gnd)
+noise "rd" (d_int, d)
+noise "rs" (s_int, s)
+noise "rg" (g_int, g)
+noise "rg" (gmid_int, g)
+noise "rbsb" (sb_int, b)
+noise "rbps" (b_int, sb_int)
+noise "rbpd" (db_int, b_int)
+noise "rbdb" (b, db_int)
+noise "rbpb" (b, b_int)
+noise "igb" (g_int, b_int)
+noise "id" (d_int, s_int)
+noise "flicker" (d_int, s_int)
+noise "igs" (g_int, s_int)
+noise "igd" (g_int, d_int)
+noise "corl" (flow(noise_br_i), gnd)
+9 states
+has bound_step false

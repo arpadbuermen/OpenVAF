@@ -1,0 +1,166 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "temp"
+units = "", desc = "Instance temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "dtemp"
+units = "", desc = "Instance delta temperature", flags = ParameterFlags(PARA_KIND_INST)
+param "area"
+units = "", desc = "Area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "pj", "perim"
+units = "", desc = "Perimeter factor", flags = ParameterFlags(PARA_KIND_INST)
+param "w"
+units = "", desc = "Diode width", flags = ParameterFlags(PARA_KIND_INST)
+param "l"
+units = "", desc = "Diode length", flags = ParameterFlags(PARA_KIND_INST)
+param "lm"
+units = "", desc = "Length of metal capacitor (level=3)", flags = ParameterFlags(PARA_KIND_INST)
+param "lp"
+units = "", desc = "Length of polysilicon capacitor (level=3)", flags = ParameterFlags(PARA_KIND_INST)
+param "wm"
+units = "", desc = "Width of metal capacitor (level=3)", flags = ParameterFlags(PARA_KIND_INST)
+param "wp"
+units = "", desc = "Width of polysilicon capacitor (level=3)", flags = ParameterFlags(PARA_KIND_INST)
+param "level"
+units = "", desc = "Diode level selector", flags = ParameterFlags(PARA_TY_INT)
+param "is", "js"
+units = "", desc = "Saturation current", flags = ParameterFlags(0x0)
+param "jsw", "isw"
+units = "", desc = "Sidewall Saturation current", flags = ParameterFlags(0x0)
+param "tnom", "tref"
+units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
+param "rs"
+units = "", desc = "Ohmic resistance", flags = ParameterFlags(0x0)
+param "trs", "trs1"
+units = "", desc = "Ohmic resistance 1st order temp. coeff.", flags = ParameterFlags(0x0)
+param "trs2"
+units = "", desc = "Ohmic resistance 2nd order temp. coeff.", flags = ParameterFlags(0x0)
+param "n"
+units = "", desc = "Emission Coefficient", flags = ParameterFlags(0x0)
+param "ns"
+units = "", desc = "Sidewall emission Coefficient", flags = ParameterFlags(0x0)
+param "tt"
+units = "", desc = "Transit Time", flags = ParameterFlags(0x0)
+param "ttt1"
+units = "", desc = "Transit Time 1st order temp. coeff.", flags = ParameterFlags(0x0)
+param "ttt2"
+units = "", desc = "Transit Time 2nd order temp. coeff.", flags = ParameterFlags(0x0)
+param "cjo", "cj0", "cj"
+units = "", desc = "Junction capacitance", flags = ParameterFlags(0x0)
+param "vj", "pb"
+units = "", desc = "Junction potential", flags = ParameterFlags(0x0)
+param "m", "mj"
+units = "", desc = "Grading coefficient", flags = ParameterFlags(0x0)
+param "tm1"
+units = "", desc = "Grading coefficient 1st temp. coeff.", flags = ParameterFlags(0x0)
+param "tm2"
+units = "", desc = "Grading coefficient 2nd temp. coeff.", flags = ParameterFlags(0x0)
+param "cjp", "cjsw"
+units = "", desc = "Sidewall junction capacitance", flags = ParameterFlags(0x0)
+param "php", "vjsw"
+units = "", desc = "Sidewall junction potential", flags = ParameterFlags(0x0)
+param "mjsw"
+units = "", desc = "Sidewall Grading coefficient", flags = ParameterFlags(0x0)
+param "ikf", "ik"
+units = "", desc = "Forward Knee current", flags = ParameterFlags(0x0)
+param "ikr"
+units = "", desc = "Reverse Knee current", flags = ParameterFlags(0x0)
+param "nbv", "nz"
+units = "", desc = "Breakdown Emission Coefficient", flags = ParameterFlags(0x0)
+param "model_area"
+units = "", desc = "Area factor", flags = ParameterFlags(0x0)
+param "model_pj"
+units = "", desc = "Perimeter factor", flags = ParameterFlags(0x0)
+param "tlev"
+units = "", desc = "Diode temperature equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "tlevc"
+units = "", desc = "Diode temperature equation selector", flags = ParameterFlags(PARA_TY_INT)
+param "eg"
+units = "", desc = "Activation energy", flags = ParameterFlags(0x0)
+param "gap1"
+units = "", desc = "First bandgap correction factor", flags = ParameterFlags(0x0)
+param "gap2"
+units = "", desc = "Second bandgap correction factor", flags = ParameterFlags(0x0)
+param "xti"
+units = "", desc = "Saturation current temperature exp.", flags = ParameterFlags(0x0)
+param "cta", "ctc"
+units = "", desc = "Area junction temperature coefficient", flags = ParameterFlags(0x0)
+param "ctp"
+units = "", desc = "Perimeter junction capacitance temperature coefficient", flags = ParameterFlags(0x0)
+param "tpb", "tvj"
+units = "", desc = "Area junction potential temperature coefficient", flags = ParameterFlags(0x0)
+param "tphp"
+units = "", desc = "Perimeter junction potential temperature coefficient", flags = ParameterFlags(0x0)
+param "jtun"
+units = "", desc = "Tunneling saturation current", flags = ParameterFlags(0x0)
+param "jtunsw"
+units = "", desc = "Tunneling sidewall saturation current", flags = ParameterFlags(0x0)
+param "ntun"
+units = "", desc = "Tunneling emission coefficient", flags = ParameterFlags(0x0)
+param "xtitun"
+units = "", desc = "Tunneling saturation current exponential", flags = ParameterFlags(0x0)
+param "keg"
+units = "", desc = "EG correction factor for tunneling", flags = ParameterFlags(0x0)
+param "kf"
+units = "", desc = "flicker noise coefficient", flags = ParameterFlags(0x0)
+param "af"
+units = "", desc = "flicker noise exponent", flags = ParameterFlags(0x0)
+param "fc"
+units = "", desc = "Forward bias junction fit parameter", flags = ParameterFlags(0x0)
+param "fcs"
+units = "", desc = "Forward bias sidewall junction fit parameter", flags = ParameterFlags(0x0)
+param "bv", "vb", "vrb", "var"
+units = "", desc = "Reverse breakdown voltage", flags = ParameterFlags(0x0)
+param "ibv", "ib"
+units = "", desc = "Current at reverse breakdown voltage", flags = ParameterFlags(0x0)
+param "tcv", "tbv1"
+units = "", desc = "Reverse breakdown voltage temperature coefficient", flags = ParameterFlags(0x0)
+param "isr"
+units = "", desc = "Recombination saturation current", flags = ParameterFlags(0x0)
+param "nr"
+units = "", desc = "Recombination current emission coefficient", flags = ParameterFlags(0x0)
+param "fv_max"
+units = "", desc = "maximum voltage in forward direction", flags = ParameterFlags(0x0)
+param "bv_max"
+units = "", desc = "maximum voltage in reverse direction", flags = ParameterFlags(0x0)
+param "id_max"
+units = "", desc = "maximum current", flags = ParameterFlags(0x0)
+param "te_max"
+units = "", desc = "temperature", flags = ParameterFlags(0x0)
+param "pd_max"
+units = "", desc = "maximum power dissipation", flags = ParameterFlags(0x0)
+param "model_lm"
+units = "", desc = "Length of metal capacitor (level=3)", flags = ParameterFlags(0x0)
+param "model_lp"
+units = "", desc = "Length of polysilicon capacitor (level=3)", flags = ParameterFlags(0x0)
+param "model_wm"
+units = "", desc = "Width of metal capacitor (level=3)", flags = ParameterFlags(0x0)
+param "model_wp"
+units = "", desc = "Width of polysilicon capacitor (level=3)", flags = ParameterFlags(0x0)
+param "xom"
+units = "", desc = "Thickness of the metal to bulk oxide (level=3)", flags = ParameterFlags(0x0)
+param "xoi"
+units = "", desc = "Thickness of the polysilicon to bulk oxide (level=3)", flags = ParameterFlags(0x0)
+param "xm"
+units = "", desc = "Masking and etching effects in metal (level=3)", flags = ParameterFlags(0x0)
+param "xp"
+units = "", desc = "Masking and etching effects in polysilicon (level=3)", flags = ParameterFlags(0x0)
+param "xw"
+units = "", desc = "Masking and etching effects (level=3)", flags = ParameterFlags(0x0)
+
+2 terminals
+node "a" units = "V", runits = "A"
+node "c" units = "V", runits = "A"
+node "a_int" units = "V", runits = "A"
+jacobian (a, a) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (a, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (c, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (a_int, a) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (a_int, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (a_int, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+collapsible (a_int, a)
+noise "rs" (a_int, a)
+noise "id" (a_int, c)
+noise "flicker" (a_int, c)
+1 states
+has bound_step false

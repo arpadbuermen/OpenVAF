@@ -1,0 +1,45 @@
+param "$mfactor"
+units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
+param "area"
+units = "", desc = "Device area factor", flags = ParameterFlags(PARA_KIND_INST)
+param "Is"
+units = "A", desc = "Saturation current", flags = ParameterFlags(0x0)
+param "N"
+units = "", desc = "Emission coefficient", flags = ParameterFlags(0x0)
+param "Rs"
+units = "Ohm", desc = "Ohmic resistance", flags = ParameterFlags(0x0)
+param "BV"
+units = "V", desc = "Reverse breakdown voltage", flags = ParameterFlags(0x0)
+param "IBV"
+units = "A", desc = "Reverse breakdown current", flags = ParameterFlags(0x0)
+param "XTI"
+units = "", desc = "Saturation current temperature exponent", flags = ParameterFlags(0x0)
+param "EG"
+units = "eV", desc = "Activation energy", flags = ParameterFlags(0x0)
+param "Tnom"
+units = "C", desc = "Parameter extraction temperature", flags = ParameterFlags(0x0)
+param "Cjo"
+units = "F", desc = "Zero-bias junction capacitance", flags = ParameterFlags(0x0)
+param "Vj"
+units = "V", desc = "Junction potential", flags = ParameterFlags(0x0)
+param "M"
+units = "", desc = "Grading coefficient", flags = ParameterFlags(0x0)
+param "FC"
+units = "", desc = "Forward bias junction fit parameter", flags = ParameterFlags(0x0)
+param "TT"
+units = "s", desc = "Transit time", flags = ParameterFlags(0x0)
+
+2 terminals
+node "A" units = "V", runits = "A"
+node "C" units = "V", runits = "A"
+node "CI" units = "V", runits = "A"
+jacobian (A, A) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (A, CI) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (C, C) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (C, CI) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (CI, A) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+jacobian (CI, C) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (CI, CI) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT)
+collapsible (CI, C)
+0 states
+has bound_step false
