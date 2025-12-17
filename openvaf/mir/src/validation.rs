@@ -28,10 +28,14 @@ impl Function {
                         let edge_def = self.dfg.value_def(edge_val);
                         if let Some(arg_def) = edge_def.inst() {
                             if let Some(edge_val_bb) = self.layout.inst_block(arg_def) {
-                                if !dom_tree.dominates(edge_bb, edge_val_bb) {
-                                    eprintln!("{edge_val} doesn't dominate use ({edge_val_bb} !dom {edge_bb})");
-                                    valid_inst = false;
-                                }
+                                // if !dom_tree.dominates(edge_bb, edge_val_bb) {
+                                //     eprintln!("{edge_val} doesn't dominate use ({edge_val_bb} !dom {edge_bb})");
+                                //     valid_inst = false;
+                                // }
+                                assert!(
+                                    dom_tree.dominates(edge_bb, edge_val_bb),
+                                    "{edge_val} doesn't dominate use ({edge_val_bb} !dom {edge_bb})"
+                                );
                             }
                         } else {
                             assert!(edge_def != ValueDef::Invalid, "invalid argument {edge_val}");
@@ -49,9 +53,15 @@ impl Function {
                                         .position(|inst| inst == arg_inst)
                                         .unwrap();
                                     assert!(arg_seq_num < seq_num, "{arg} doesn't dominate use");
-                                } else if !dom_tree.dominates(bb, arg_bb) {
-                                    eprintln!("{arg} doesn't dominate use ({arg_bb} !dom {bb})");
-                                    valid_inst = false;
+                                } else {
+                                    // if !dom_tree.dominates(bb, arg_bb) {
+                                    //     eprintln!("{arg} doesn't dominate use ({arg_bb} !dom {bb})");
+                                    //     valid_inst = false;
+                                    // }
+                                    assert!(
+                                        dom_tree.dominates(bb, arg_bb),
+                                        "{arg} doesn't dominate use ({arg_bb} !dom {bb})"
+                                    );
                                 }
                             }
                         } else {
