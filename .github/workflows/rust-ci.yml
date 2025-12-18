@@ -205,7 +205,7 @@ jobs:
         cargo test --release --package mir_llvm ${{ matrix.cargo_features }}
 
     - name: Run integration tests
-      run: cargo test --release --package openvaf-driver --test integration ${{ matrix.cargo_features }}
+      run: cargo test --release --package openvaf --test integration ${{ matrix.cargo_features }}
 
   msys2-build-test:
     strategy:
