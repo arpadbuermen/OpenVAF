@@ -2,9 +2,11 @@ use std::mem;
 
 use basedb::lints::LintRegistry;
 use basedb::{AstIdMap, ErasedAstId, LintAttrs};
-use syntax::ast::{self, ArgListOwner, AttrIter, AttrsOwner, FunctionRef};
-use syntax::name::AsName;
-use syntax::AstPtr;
+use syntax::ast::{self, ArgListOwner, AssignOp, AttrIter, AttrsOwner, BinaryOp, FunctionRef};
+use syntax::name::{AsName, Name};
+use syntax::{AstNode, AstPtr};
+
+use crate::item_tree::{ItemTree, Module, ModuleInstItem, ModuleItem};
 
 // use tracing::debug;
 use super::{Body, BodySourceMap};

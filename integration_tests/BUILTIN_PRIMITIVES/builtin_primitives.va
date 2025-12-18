@@ -1,0 +1,16 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module builtin_primitives(p, n);
+    inout p, n;
+    electrical p, n, mid;
+
+    parameter real R1 = 1e3;
+    parameter real R2 = 2e3;
+    parameter real C1 = 1e-12;
+
+    // Use builtin primitives (lowered to contribution statements)
+    resistor #(.r(R1)) r1 (p, mid);
+    capacitor #(.c(C1)) c1 (p, mid);
+    resistor #(.r(R2)) r2 (mid, n);
+endmodule

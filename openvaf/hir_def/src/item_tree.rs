@@ -26,7 +26,6 @@ use ordered_float::OrderedFloat;
 use stdx::impl_from_typed;
 use syntax::ast::{self, BlockStmt, NameRef};
 use syntax::name::Name;
-use syntax::ConstExprValue;
 use syntax::{AstNode, AstPtr, ConstExprValue};
 use typed_index_collections::TiVec;
 
@@ -431,8 +430,9 @@ pub struct ModuleInstItem {
     pub name: Name,
     /// Module type being instantiated (e.g., "resistor")
     pub module_name: Name,
-    /// Parameter overrides (e.g., [("r", "rwire")])
-    pub param_assignments: Vec<(Name, Name)>,
+    /// Parameter overrides with AST pointers to value expressions
+    /// (e.g., [("r", AstPtr to expr "rwire")])
+    pub param_assignments: Vec<(Name, AstPtr<ast::Expr>)>,
     /// Port connections (node names in order)
     pub port_connections: Vec<Name>,
     /// AST node reference

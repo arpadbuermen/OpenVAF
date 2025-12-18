@@ -6,7 +6,7 @@ use basedb::{AstId, AstIdMap, FileId};
 use ordered_float::OrderedFloat;
 use syntax::ast::{self, ParamRef, PathSegmentKind};
 use syntax::name::{kw, AsIdent, AsName};
-use syntax::{match_ast, AstNode, ConstExprValue, WalkEvent};
+use syntax::{match_ast, AstNode, AstPtr, ConstExprValue, WalkEvent};
 use typed_index_collections::TiVec;
 
 use super::{
