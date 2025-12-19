@@ -1,9 +1,11 @@
+use std::hash::BuildHasherDefault;
 use std::iter::once;
 use std::mem::take;
 
 use hir::Node;
 use indexmap::IndexMap;
 use mir::{Const, InstructionData, Opcode, Value, ValueDef, FALSE, F_ZERO};
+use rustc_hash::FxHasher;
 
 use crate::topology::Builder;
 use crate::util::{add, update_optbarrier};
@@ -56,7 +58,7 @@ enum CandidateKind {
 }
 
 impl Builder<'_> {
-    /// explores all `candidates` to extract the noise network
+    /// Explores all `candidates` to extract the noise network
     fn solve(&mut self, candidates: &mut Vec<Candidate>) {
         loop {
             let mut changed = false;
@@ -82,7 +84,7 @@ impl Builder<'_> {
                     }
                     changed = true;
                 } else if let Some(node) = candidate.as_node() {
-                    self.topology.small_signal_vals.remove(&node);
+                    self.topology.small_signal_vals.swap_remove(&node);
                 }
                 set == FlatSet::Bottom
             });
@@ -305,7 +307,8 @@ impl Builder<'_> {
     }
 
     fn collect_candidates(&mut self) -> Vec<Candidate> {
-        let mut nodes = IndexMap::with_capacity_and_hasher(32, ahash::RandomState::new());
+        let mut nodes =
+            IndexMap::with_capacity_and_hasher(32, BuildHasherDefault::<FxHasher>::default());
         let mut candidates = Vec::new();
         for (_, (&branch, contributes)) in self.topology.branches() {
             let (hi, lo) = branch.nodes(self.db);

@@ -97,7 +97,7 @@ impl<'a, 'll> CodegenCx<'a, 'll> {
         variadic: bool,
     ) -> (&'ll Type, &'ll Value) {
         let fn_ty =
-            if variadic { self.ty_variadic_func(&[], ret) } else { self.ty_func(args, ret) };
+            if variadic { self.ty_variadic_func(args, ret) } else { self.ty_func(args, ret) };
         let f = self.get_func_by_name(name).unwrap_or_else(|| self.declare_ext_fn(name, fn_ty));
         self.intrinsics.borrow_mut().insert(name, (fn_ty, f));
         (fn_ty, f)

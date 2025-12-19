@@ -221,3 +221,39 @@ fn psp103() {
 
     assert(src);
 }
+
+/// Regression test for issue #30: Small signal analysis with constant offset
+///
+/// This test verifies that when a contribution has a constant offset (like V(pn1) - 1),
+/// the node is NOT incorrectly marked as a small signal value. The buggy algorithm
+/// speculatively added all candidate nodes to small_signal_vals before analysis,
+/// which caused V(pn2) to incorrectly see V(pn1) as a small signal value during
+/// its evaluation, leading to V(pn2) being incorrectly marked as small signal.
+///
+/// The correct behavior is:
+/// - V(pn1) - 1 has a constant term, so pn1 is NOT small signal
+/// - V(pn2) - V(pn1) depends on pn1 which is NOT small signal, so pn2 is also NOT small signal
+/// - Therefore small_signal_vals should be empty
+#[test]
+fn constant_offset_not_small_signal() {
+    let src = indoc! {r#"
+        `include "disciplines.vams"
+        module constant_offset_not_small_signal(inout pn1, inout pn2);
+            electrical pn1, pn2;
+            analog begin
+                I(pn1) <+ V(pn1) - 1;
+                I(pn2) <+ V(pn2) - V(pn1);
+            end
+        endmodule
+    "#};
+
+    let (_, topology, _) = compile(src);
+    // The bug would incorrectly add V(pn2) to small_signal_vals because during
+    // evaluation it would see V(pn1) as "speculatively" in the set.
+    // The correct behavior is that neither node should be in small_signal_vals.
+    assert!(
+        topology.small_signal_vals.is_empty(),
+        "small_signal_vals should be empty but contains {:?}",
+        topology.small_signal_vals
+    );
+}
