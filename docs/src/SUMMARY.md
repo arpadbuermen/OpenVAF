@@ -19,3 +19,7 @@
 - [FAQ](./help/faq.md)
 - [Available Compact Models](./help/compact_models.md)
 - [Contributing and Support](./help/contributing.md)
+
+# Developer Guide
+
+- [Testing](./developer/testing.md)
