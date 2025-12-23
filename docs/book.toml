@@ -1,0 +1,13 @@
+[book]
+title = "OpenVAF Documentation"
+authors = ["OpenVAF Contributors"]
+description = "A modern Verilog-A compiler that delivers reliability, speed and performance."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/arpadbuermen/OpenVAF"
+edit-url-template = "https://github.com/arpadbuermen/OpenVAF/edit/master/docs/src/{path}"
