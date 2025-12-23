@@ -43,21 +43,12 @@ jobs:
         echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
 
-    - name: Generate coverage report
-      run: cargo llvm-cov --release --lcov --output-path lcov.info
+    - name: Generate HTML coverage report
+      run: cargo llvm-cov --release --html
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: lcov.info
-        fail_ci_if_error: false
-        verbose: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-    - name: Upload coverage artifact
+    - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: lcov.info
+        path: target/llvm-cov/html
         retention-days: 30
