@@ -22,4 +22,5 @@
 
 # Developer Guide
 
+- [Codebase Overview](./developer/codebase.md)
 - [Testing](./developer/testing.md)
