@@ -12,12 +12,9 @@ The project is a fork of Pascal Kuthe's original OpenVAF compiler, maintained by
 
 ### Prerequisites
 - **Rust toolchain**: Install with profile "complete"
-- **LLVM**: Supports versions 18, 19, 20, 21 (default: 21)
-- **Environment variable**: Set `LLVM_SYS_XXX_PREFIX` based on version:
-  - LLVM 18.1: `LLVM_SYS_181_PREFIX`
-  - LLVM 19.1: `LLVM_SYS_191_PREFIX`
-  - LLVM 20.1: `LLVM_SYS_201_PREFIX`
-  - LLVM 21.1: `LLVM_SYS_211_PREFIX` (default)
+- **LLVM 21**: Install via package manager:
+  - macOS: `brew install llvm`
+  - Ubuntu: Use apt.llvm.org script (see CI workflow)
 
 ### Building the Compiler
 ```bash
