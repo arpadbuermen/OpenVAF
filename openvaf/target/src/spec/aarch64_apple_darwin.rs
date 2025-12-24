@@ -9,9 +9,19 @@ pub fn target() -> Target {
         vec![
             "-arch".to_string(),
             "arm64".to_string(),
+            "-platform_version".to_string(),
+            "macos".to_string(),
+            "11.0".to_string(),
+            "11.0".to_string(),
             "-undefined".to_string(),
             "dynamic_lookup".to_string(),
         ],
+    );
+
+    // Link against libSystem which provides dyld_stub_binder
+    base.post_link_args.insert(
+        LinkerFlavor::Ld64,
+        vec!["-lSystem".to_string()],
     );
 
     Target {

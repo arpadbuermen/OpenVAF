@@ -44,6 +44,9 @@ impl CmpOps {
     }
 }
 
+// Instance parameter value in eval() is read always from instance, even if it is not given in the instance (bad)
+// Instance parameter value in instance setup is read from instance, if not available there then it is read from model
+// Storing the default values is performed in setup.rs at MIR->IR translation.
 impl HirInterner {
     pub fn insert_param_init(
         &mut self,
@@ -82,6 +85,7 @@ impl HirInterner {
 
             let (then_src, else_src) = ctx.make_cond(param_given, |ctx, param_given| {
                 if param_given {
+                    // Builds the if block for the case when param is given
                     if build_stores {
                         let exit = ctx.create_block();
                         let mut ctx = BodyLoweringCtx { ctx, body: body.borrow(), path: "" };
@@ -107,6 +111,7 @@ impl HirInterner {
                     }
                     param_val
                 } else {
+                    // Builds the else block for the case when param is not given
                     let default_val = ctx.lower_expr_body(body.borrow(), 0);
                     if build_stores {
                         let exit = ctx.create_block();
