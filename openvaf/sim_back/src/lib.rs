@@ -189,7 +189,6 @@ impl<'a> CompiledModule<'a> {
         cx.compute_cfg();
         let gvn = cx.optimize(OptimiziationStage::PostDerivative);
         dae_system.sparsify(&mut cx);
-
         debug_assert!(cx.func.validate());
 
         // Instance setup MIR - a copy of module MIR where only those instructions

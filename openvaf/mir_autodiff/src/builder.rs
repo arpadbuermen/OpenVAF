@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
 use std::ops::Range;
 
 use ahash::AHashMap;
@@ -8,6 +10,7 @@ use mir::{
     Block, Function, Inst, InstructionData, Opcode, SourceLoc, Unknown, Value, F_LOG10_E, F_ONE,
     F_TWO, F_ZERO,
 };
+use rustc_hash::FxHasher;
 use stdx::iter::zip;
 use stdx::packed_option::{PackedOption, ReservedValue};
 
@@ -22,8 +25,8 @@ pub fn build_derivatives(
     intern: &mut DerivativeIntern,
     live_derivatives: &LiveDerivatives,
     post_order: &[Block],
-) -> AHashMap<(Value, Unknown), Value> {
-    let derivative_values: AHashMap<(Value, Unknown), Value> =
+) -> HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>> {
+    let derivative_values: HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>> =
         intern.unknowns.iter_enumerated().map(|(unknown, &val)| ((val, unknown), F_ONE)).collect();
 
     let mut known_values = BitSet::new_empty(func.dfg.num_values());
@@ -56,7 +59,7 @@ pub(crate) struct DerivativeBuilder<'a, 'u> {
     live_derivatives: &'a LiveDerivatives,
     intern: &'a mut DerivativeIntern<'u>,
 
-    derivative_values: AHashMap<(Value, Unknown), Value>,
+    derivative_values: HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>>,
     known_values: BitSet<Value>,
     dst: (Inst, SourceLoc),
     new_block: Option<Block>,
@@ -320,6 +323,59 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                         self.derivative_values.insert((prev_order, unknown), val);
                     }
 
+                    // Before calling insert_conversions, ensure any derivative values it will
+                    // access that are defined in calculate_derivative_block have phi nodes.
+                    // This fixes dominance violations when chain rule conversions reference
+                    // intermediate derivatives computed in the conditional block.
+                    if let Some(conversion) = self.live_derivatives.conversions.get(&inst) {
+                        // TODO: maybe make values_to_phi a set for faster contains()
+                        let values_to_phi: Vec<_> = conversion
+                            .iter()
+                            .flat_map(|chain_rule| {
+                                let outer =
+                                    self.derivative_of(chain_rule.val, chain_rule.outer_derivative);
+                                let inner = self.derivative_of(
+                                    chain_rule.inner_derivative.0,
+                                    chain_rule.inner_derivative.1,
+                                );
+                                [outer, inner]
+                            })
+                            .filter(|&val| {
+                                if val == F_ZERO {
+                                    return false;
+                                }
+                                // Check if value is defined in calculate_derivative_block
+                                if let Some(def_inst) = self.func.dfg.value_def(val).inst() {
+                                    self.func.layout.inst_block(def_inst)
+                                        == Some(calculate_derivative_block)
+                                } else {
+                                    false
+                                }
+                            })
+                            .collect();
+
+                        // Create phis for these values and update derivative_values
+                        // We need to find the keys that map to these values
+                        let entries_to_update: Vec<_> = self
+                            .derivative_values
+                            .iter()
+                            .filter_map(|(&key, &val)| {
+                                if values_to_phi.contains(&val) {
+                                    Some((key, val))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
+                        for (key, val) in entries_to_update {
+                            let checked_val = self
+                                .ins()
+                                .phi(&[(old_block, F_ZERO), (calculate_derivative_block, val)]);
+                            self.derivative_values.insert(key, checked_val);
+                        }
+                    }
+
                     self.insert_conversions(inst);
                     self.new_block.take();
                 }
@@ -448,7 +504,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
 
     fn derivative_of_(
         intern: &DerivativeIntern,
-        derivative_values: &AHashMap<(Value, Unknown), Value>,
+        derivative_values: &HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>>,
         mut val: Value,
         derivative: Derivative,
     ) -> Value {
