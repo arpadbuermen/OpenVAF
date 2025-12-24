@@ -23,12 +23,37 @@ fn main() {
     let src_file = osdi_dir.join("stdlib.c");
 
     // Use clang from LLVM prefix environment variables (check newest first)
+    // Fall back to Homebrew LLVM on macOS, then system clang
     let clang_path = tracked_env_var_os("LLVM_SYS_211_PREFIX")
         .or_else(|| tracked_env_var_os("LLVM_SYS_201_PREFIX"))
         .or_else(|| tracked_env_var_os("LLVM_SYS_191_PREFIX"))
         .or_else(|| tracked_env_var_os("LLVM_SYS_181_PREFIX"))
         .map(|prefix| Path::new(&prefix).join("bin/clang"))
         .and_then(|path| path.exists().then_some(path))
+        .or_else(|| {
+            // Try Homebrew LLVM paths on macOS
+            #[cfg(target_os = "macos")]
+            {
+                // Check HOMEBREW_PREFIX first, then common default locations
+                if let Some(prefix) = tracked_env_var_os("HOMEBREW_PREFIX") {
+                    let p = Path::new(&prefix).join("opt/llvm/bin/clang");
+                    if p.exists() {
+                        return Some(p);
+                    }
+                }
+                let homebrew_paths = [
+                    "/opt/homebrew/opt/llvm/bin/clang", // Apple Silicon
+                    "/usr/local/opt/llvm/bin/clang",    // Intel Mac
+                ];
+                for path in homebrew_paths {
+                    let p = Path::new(path);
+                    if p.exists() {
+                        return Some(p.to_path_buf());
+                    }
+                }
+            }
+            None
+        })
         .map(|path| path.display().to_string())
         .unwrap_or_else(|| "clang".to_string());
 
