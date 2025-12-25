@@ -1,0 +1,183 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 23.5.0)'
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install LLVM 18
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
+        sudo apt-get install -y llvm-18 llvm-18-dev libclang-18-dev
+
+    - name: Set LLVM environment variables
+      run: |
+        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> "$GITHUB_ENV"
+        echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> "$GITHUB_ENV"
+
+    - name: Build release
+      run: cargo build --release --profile opt
+
+    - name: Package
+      run: |
+        mkdir -p dist
+        cp target/opt/openvaf-r dist/
+        cd dist
+        tar -czvf openvaf-linux-x86_64.tar.gz openvaf-r
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openvaf-linux-x86_64
+        path: dist/openvaf-linux-x86_64.tar.gz
+
+  build-macos-arm64:
+    runs-on: macos-14  # ARM64
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: brew install llvm@18
+
+    - name: Set LLVM environment variables
+      run: |
+        echo "$(brew --prefix llvm@18)/bin" >> "$GITHUB_PATH"
+        echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)" >> "$GITHUB_ENV"
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build release
+      run: cargo build --release --profile opt
+
+    - name: Package
+      run: |
+        mkdir -p dist
+        cp target/opt/openvaf-r dist/
+        cd dist
+        tar -czvf openvaf-macos-arm64.tar.gz openvaf-r
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openvaf-macos-arm64
+        path: dist/openvaf-macos-arm64.tar.gz
+
+  build-macos-x86_64:
+    runs-on: macos-15-intel  # Intel (macos-13 is retired)
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: brew install llvm@18
+
+    - name: Set LLVM environment variables
+      run: |
+        echo "$(brew --prefix llvm@18)/bin" >> "$GITHUB_PATH"
+        echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)" >> "$GITHUB_ENV"
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build release
+      run: cargo build --release --profile opt
+
+    - name: Package
+      run: |
+        mkdir -p dist
+        cp target/opt/openvaf-r dist/
+        cd dist
+        tar -czvf openvaf-macos-x86_64.tar.gz openvaf-r
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openvaf-macos-x86_64
+        path: dist/openvaf-macos-x86_64.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: base-devel git ca-certificates
+        pacboy: >-
+          clang:p
+          llvm:p
+          rust:p
+          cc:p
+          python:p
+
+    - name: Configure Cargo to use CLI Git
+      shell: bash
+      run: |
+        mkdir -p .cargo
+        echo '[net]' > .cargo/config.toml
+        echo 'git-fetch-with-cli = true' >> .cargo/config.toml
+
+    - name: Build release
+      shell: msys2 {0}
+      run: cargo build --release --profile opt
+
+    - name: Package
+      shell: msys2 {0}
+      run: |
+        mkdir -p dist
+        cp target/opt/openvaf-r.exe dist/
+        cd dist
+        7z a openvaf-windows-x86_64.zip openvaf-r.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: openvaf-windows-x86_64
+        path: dist/openvaf-windows-x86_64.zip
+
+  release:
+    needs: [build-linux, build-macos-arm64, build-macos-x86_64, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          artifacts/openvaf-linux-x86_64/openvaf-linux-x86_64.tar.gz
+          artifacts/openvaf-macos-arm64/openvaf-macos-arm64.tar.gz
+          artifacts/openvaf-macos-x86_64/openvaf-macos-x86_64.tar.gz
+          artifacts/openvaf-windows-x86_64/openvaf-windows-x86_64.zip
+        draft: true
+        generate_release_notes: true
