@@ -78,7 +78,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             &*model,
                             &*llbuilder,
                         );
-                        let exp = &*self.load_eval_output(
+                        let exp = self.load_eval_output(
                             eval_outputs.args[1],
                             &*inst,
                             &*model,
@@ -90,7 +90,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                             .unwrap_or_else(|| unreachable!("intrinsic {} not found", name));
 
                         let freq_val = freq as *const llvm_sys::LLVMValue as *mut _;
-                        let exp_val = &*exp as *const llvm_sys::LLVMValue as *mut _;
+                        let exp_val = exp as *const llvm_sys::LLVMValue as *mut _;
                         let mut call_args: [llvm_sys::prelude::LLVMValueRef; 2] =
                             [freq_val, exp_val];
                         let args_ptr = call_args.as_mut_ptr();
@@ -516,7 +516,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     module.dae_system.num_reactive
                 }
             };
-            let dest_ty = cx.ty_array(cx.ty_double(), len as u32);
+            let dest_ty = cx.ty_array(cx.ty_double(), len);
 
             let mut pos: u32 = 0;
             for entry in module.dae_system.jacobian.keys() {
@@ -541,7 +541,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                         NonNull::new_unchecked(llbuilder).as_ref(),
                         res,
                     );
-                    pos = pos + 1;
+                    pos += 1;
                 }
             }
 

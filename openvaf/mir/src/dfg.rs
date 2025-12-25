@@ -86,7 +86,7 @@ impl DataFlowGraph {
     }
 
     /// Returns an object that displays `inst`.
-    pub fn display_inst(&self, inst: Inst) -> DisplayInst {
+    pub fn display_inst(&self, inst: Inst) -> DisplayInst<'_> {
         DisplayInst(self, inst)
     }
 
@@ -168,7 +168,7 @@ impl DataFlowGraph {
     }
 
     /// Get an iterator over all values.
-    pub fn values(&self) -> impl Iterator<Item = Value> + ExactSizeIterator {
+    pub fn values(&self) -> impl ExactSizeIterator<Item = Value> {
         self.values.iter()
     }
 
@@ -320,7 +320,7 @@ impl DataFlowGraph {
         match self.insts[inst] {
             InstructionData::Branch { .. }
             | InstructionData::Jump { .. }
-            | InstructionData::Exit { .. } => keep_branches,
+            | InstructionData::Exit => keep_branches,
             InstructionData::Call { func_ref, .. } => self.signatures[func_ref].has_sideeffects,
             _ => false,
         }
@@ -379,7 +379,7 @@ impl DataFlowGraph {
     //     self.insts.operands_mut(inst)
     // }
 
-    pub fn replace(&mut self, inst: Inst) -> ReplaceBuilder {
+    pub fn replace(&mut self, inst: Inst) -> ReplaceBuilder<'_> {
         ReplaceBuilder::new(self, inst)
     }
 }

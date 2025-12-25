@@ -219,9 +219,9 @@ pub fn nda_arrays(
                 DOMAIN_NOT_GIVEN
             },
             attr_start: fi1,
-            num_flow_attr: (fi2 - fi1) as u32,
-            num_potential_attr: (pi2 - pi1) as u32,
-            num_user_attr: (i2 - i1) as u32,
+            num_flow_attr: (fi2 - fi1),
+            num_potential_attr: (pi2 - pi1),
+            num_user_attr: (i2 - i1),
         });
     }
     (nature_vec, discipline_vec, attr_vec)

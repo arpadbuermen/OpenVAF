@@ -3,7 +3,6 @@ use std::iter::once;
 
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_def::db::HirDefDB;
-use hir_def::ndatable::NDATable;
 use hir_lower::CurrentKind;
 use lasso::{Rodeo, Spur};
 use llvm_sys::core::{
@@ -254,7 +253,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 .intern
                 .params
                 .get_index(param)
-                .map_or(true, |(kind, _)| !kind.op_dependent()),
+                .is_none_or(|(kind, _)| !kind.op_dependent()),
             ValueDef::Const(_) => true,
             ValueDef::Invalid => unreachable!(),
         }
@@ -320,7 +319,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             .dae_system
             .model_inputs
             .iter()
-            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1).into(), node_2: (*node2).into() })
+            .map(|(node1, node2)| OsdiNodePair { node_1: (*node1), node_2: (*node2) })
             .collect()
     }
 

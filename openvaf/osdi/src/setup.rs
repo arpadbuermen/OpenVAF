@@ -261,9 +261,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         let exit_bb = *postorder
             .iter()
             .find(|bb| {
-                func.layout
-                    .last_inst(**bb)
-                    .map_or(true, |term| !func.dfg.insts[term].is_terminator())
+                func.layout.last_inst(**bb).is_none_or(|term| !func.dfg.insts[term].is_terminator())
             })
             .unwrap();
 
@@ -619,15 +617,12 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
             let bb = func.layout.inst_block(inst).unwrap();
             builder.select_bb_before_terminator(bb);
             unsafe {
-                match builder.values[val] {
-                    BuilderVal::Undef => {
-                        // Unconditional $fatal() eliminates some values so that
-                        // the corresponding cache entries are left undefined.
-                        // Avoid panic in get() and emit a warning.
-                        println!("Warning: setup MIR {} undefined in cache", val);
-                        continue;
-                    }
-                    _ => {}
+                if let BuilderVal::Undef = builder.values[val] {
+                    // Unconditional $fatal() eliminates some values so that
+                    // the corresponding cache entries are left undefined.
+                    // Avoid panic in get() and emit a warning.
+                    println!("Warning: setup MIR {} undefined in cache", val);
+                    continue;
                 }
                 let val = builder.values[val].get(&builder);
                 inst_data.store_cache_slot(module, builder.llbuilder, slot, instance, val)

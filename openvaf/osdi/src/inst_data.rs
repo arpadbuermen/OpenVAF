@@ -75,7 +75,7 @@ impl EvalOutput {
                         kind,
                         ParamKind::Param { .. }
                             | ParamKind::ParamSysFun { .. }
-                            | ParamKind::Temperature { .. }
+                            | ParamKind::Temperature
                     ) {
                         return EvalOutput::Param(param);
                     }
@@ -242,9 +242,12 @@ impl<'ll> OsdiInstanceData<'ll> {
             .sys_fun_alias
             .keys()
             .map(|param| (OsdiInstanceParam::Builtin(*param), ty_f64));
-        let user_inst_params = module.info.params.iter().filter_map(|(param, info)| {
-            info.is_instance.then(|| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)))
-        });
+        let user_inst_params = module
+            .info
+            .params
+            .iter()
+            .filter(|&(param, info)| info.is_instance)
+            .map(|(param, info)| (OsdiInstanceParam::User(*param), lltype(&param.ty(db), cx)));
         let mut params = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         params.extend(builtin_inst_params.chain(alias_inst_params).chain(user_inst_params));
 
@@ -1282,7 +1285,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     | ParamKind::Current(_)
                     | ParamKind::PortConnected { .. }
                     | ParamKind::ParamGiven { .. }
-                    | ParamKind::EnableIntegration { .. }
+                    | ParamKind::EnableIntegration
                     | ParamKind::Abstime
                     | ParamKind::EnableLim
                     | ParamKind::PrevState(_)
