@@ -32,7 +32,7 @@ pub(crate) fn validate(root: &SyntaxNode, errors: &mut Vec<SyntaxError>) {
 
 fn validate_param(param_decl: ast::ParamDecl, errors: &mut Vec<SyntaxError>) {
     let range_allowed =
-        param_decl.ty().map_or(true, |ty| ty.integer_token().is_some() | ty.real_token().is_some());
+        param_decl.ty().is_none_or(|ty| ty.integer_token().is_some() | ty.real_token().is_some());
     if range_allowed {
         return;
     }
@@ -139,7 +139,7 @@ fn is_valid_inf_position(s: SyntaxNode) -> bool {
     if s.kind() == SyntaxKind::RANGE {
         return true;
     }
-    if s.parent().map_or(false, |parent| parent.kind() == SyntaxKind::RANGE) {
+    if s.parent().is_some_and(|parent| parent.kind() == SyntaxKind::RANGE) {
         if let Some(expr) = ast::PrefixExpr::cast(s) {
             if matches!(expr.op_kind(), Some(ast::UnaryOp::Neg) | None) {
                 return true;
@@ -150,7 +150,7 @@ fn is_valid_inf_position(s: SyntaxNode) -> bool {
 }
 
 fn validate_nature_attr(attr: ast::NatureAttr, errors: &mut Vec<SyntaxError>) {
-    if attr.name().map_or(false, |name| name.text() == "units") {
+    if attr.name().is_some_and(|name| name.text() == "units") {
         if let Some(Expr::Literal(literal)) = attr.val() {
             if !matches!(literal.kind(), LiteralKind::String(_)) {
                 errors.push(SyntaxError::UnitsExpectedStringLiteral {
@@ -163,7 +163,7 @@ fn validate_nature_attr(attr: ast::NatureAttr, errors: &mut Vec<SyntaxError>) {
 
 fn validate_literal(literal: ast::Literal, errors: &mut Vec<SyntaxError>) {
     if literal.kind() == ast::LiteralKind::Inf
-        && !literal.syntax.parent().map_or(true, is_valid_inf_position)
+        && !literal.syntax.parent().is_none_or(is_valid_inf_position)
     {
         errors.push(SyntaxError::IllegalInfToken { range: literal.syntax().text_range() });
     }
@@ -280,18 +280,18 @@ fn validate_name(name: Name, errors: &mut Vec<SyntaxError>) {
         let p = parent.as_ref();
 
         let compat = match ident.text() {
-            kw::raw::units if p.map_or(false, |p| p.kind() == SyntaxKind::ATTR) => return,
+            kw::raw::units if p.is_some_and(|p| p.kind() == SyntaxKind::ATTR) => return,
             kw::raw::units
             | kw::raw::idt_nature
             | kw::raw::ddt_nature
             | kw::raw::abstol
             | kw::raw::access
-                if p.map_or(false, |p| p.kind() == SyntaxKind::NATURE_ATTR) =>
+                if p.is_some_and(|p| p.kind() == SyntaxKind::NATURE_ATTR) =>
             {
                 return
             }
             kw::raw::domain | kw::raw::potential | kw::raw::flow
-                if p.map_or(false, |p| p.kind() == SyntaxKind::DISCIPLINE_ATTR) =>
+                if p.is_some_and(|p| p.kind() == SyntaxKind::DISCIPLINE_ATTR) =>
             {
                 return
             }
@@ -316,7 +316,7 @@ fn validate_branch_decl(decl: ast::BranchDecl, errors: &mut Vec<SyntaxError>) {
                 match arg {
                     ast::Expr::PortFlow(_) => (),
                     ast::Expr::PathExpr(path)
-                        if path.path().map_or(true, |path| path.qualifier().is_none()) => {}
+                        if path.path().is_none_or(|path| path.qualifier().is_none()) => {}
                     _ => errors.push(SyntaxError::IllegalBranchNodeExpr {
                         single: true,
                         illegal_nodes: vec![arg.syntax().text_range()],

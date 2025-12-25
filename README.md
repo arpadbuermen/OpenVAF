@@ -52,6 +52,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Natures, disciplines, and the corresponding attributes exposed in OSDI API. 
 - Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
 - $bound_step() fixed. 
+- Initalization of instance parameters from model defaults now works. 
 
 
 # What about binaries? 
@@ -72,26 +73,26 @@ If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch an
 ## Setting up the dependencies under Debian Bookworm
 
 Everything was tested under Debian 13. First, install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
-```
+```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 During installation select "Customize installation" and set profile to "complete". 
 
 Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8). Unpack them (this creates directory `llvm-project-llvmorg-18.1.8`) and create a build directory and decide where you want to install LLVM. Type 
-```
-cmake -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
+```bash
+cmake -S path_to_souces/llvm -B path_to_build_dir -DCMAKE_INSTALL_PREFIX=LLVM_install_directory -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
 
 Enter the build directory and type
-```
-make -j <number of processors to use>
+```bash
+make -j number_of_processors_to_use
 make install
 ```
 
 Set up the environment by adding the following to `.bashrc`
-```
-export LLVM_SYS_181_PREFIX=<LLVM install directory>
-export PATH=<LLVM install directory>/bin:$PATH
+```bash
+export LLVM_SYS_181_PREFIX=LLVM_install_directory
+export PATH=LLVM_install_directory/bin:$PATH
 ```
 
 Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
@@ -106,29 +107,64 @@ Install Visual Studio 2022 Community Edition. Make sure you install CMake Tools 
 Build LLVM and Clang. Download [LLVM 18.1.8 sources](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8) sources (get the .zip file). Unpack the sources (this creates directory `llvm-project-llvmorg-18.1.8`). Create a build directory and decide where you want to install LLVM. 
 
 Start Visual Studio x64 native command prompt. Run CMake, use Ninja as build system. Do not use default (nmake) because for me it always built the Debug version, even when I specified Release. 
-```
-cmake -G Ninja -S <path to souces>/llvm -B <path to build dir> -DCMAKE_INSTALL_PREFIX=<LLVM install directory> -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
+```bash
+cmake -G Ninja -S path_to_sources/llvm -B path_to_build_dir -DCMAKE_INSTALL_PREFIX=LLVM_install_directory -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" -DLLVM_ENABLE_PROJECTS="llvm;clang;lld"
 ```
 Enter build directory and run Ninja (build and install)
-```
+```bash
 ninja 
 ninja install 
 ```
 
-Add the LLVM binary directory (`<LLVM install directory>\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `<LLVM install directory>`. 
+Add the LLVM binary directory (`LLVM_install_directory\bin`) to the PATH. Set the `LLVM_SYS_181_PREFIX` environmental variable to `LLVM_install_directory`.
 
-Restart command prompt. Now you are good to go. 
+Restart command prompt. Now you are good to go.
+
+## Setting up the dependencies under macOS
+
+Install Homebrew if not already installed, then install LLVM 18:
+```bash
+brew install llvm@18
+```
+
+Install Rust if not already installed:
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+During installation select "Customize installation" and set profile to "complete".
+
+**Option 1: Use xtask (recommended)** - No additional setup needed. The `cargo xtask cargo-build` command automatically detects LLVM via `HOMEBREW_PREFIX`.
+
+**Option 2: Manual environment setup** - set the following before building:
+```bash
+export LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)
+export PATH="$(brew --prefix llvm@18)/bin:$PATH"
+```
+
+Now you are good to go.
 
 
 ## Building
 
-To build the release version (`target/release/openvaf-r`), type
+### Quick Build (macOS only)
+
+On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
+```bash
+cargo xtask cargo-build --release
 ```
+
+This will auto-configure LLVM 18 paths and build the release version.
+
+### Manual Build
+
+To build the release version (`target/release/openvaf-r`), type
+```bash
 cargo build --release --bin openvaf-r
 ```
 
 To build the debug version (`target/debug/openvaf-r`), type
-```
+```bash
 cargo build --bin openvaf-r
 ```
 
@@ -141,21 +177,49 @@ The debug configuration disables rayon running the .osdi file build process in p
 
 # Running tests with cargo
 
-Pascal has set up a test suite for OpenVAF. To run the tests on the debug version of the binary type
+Pascal has set up a test suite for OpenVAF.
 
-    cargo test
+## Quick Test (macOS only)
+
+On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
+```bash
+cargo xtask cargo-test --release
+```
+
+This will auto-configure LLVM 18 paths and run all tests.
+
+## Manual Testing
+
+To run the tests on the debug version of the binary type
+```bash
+cargo test
+```
 
 To run the tests on the release version type
+```bash
+cargo test --release
+```
 
-    cargo test --release
+By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g.
+```bash
+RUN_SLOW_TESTS=1 cargo test
+```
 
-By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g. 
+## Integration Tests
 
-    RUN_SLOW_TESTS=1 cargo test 
+Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM, etc.) and verify the generated OSDI libraries. These tests are disabled by default but can be enabled with:
+```bash
+RUN_DEV_TESTS=1 cargo test --release --test integration
+```
 
-Your changes may fail some tests although they are correct. Consider the case you changed the MIR generator. The expected test results assume MIR is generated the way Pascal did it. If you are sure your changes are correct you can update the expected values (stored in `openvaf/test_data` as files ending with .snap). To do this set the `UPDATE_EXPECT` variable 1, e.g. 
+On macOS with LLVM 18, all integration tests should pass.
 
-    UPDATE_EXPECT=1 cargo test
+## Updating Expected Test Results
+
+Your changes may fail some tests although they are correct. Consider the case you changed the MIR generator. The expected test results assume MIR is generated the way Pascal did it. If you are sure your changes are correct you can update the expected values (stored in `openvaf/test_data` as files ending with .snap). To do this set the `UPDATE_EXPECT` variable 1, e.g.
+```bash
+UPDATE_EXPECT=1 cargo test
+```
 
 Unfortunately not all expected results are in .snap files. Some are hard-coded in the test sources, e.g. see `openvaf/mir_autodiff/src/builder/tests.rs`. You will have to update these expected values manually. 
 
@@ -167,6 +231,8 @@ Kudos to Pascal Kuthe for the great work he did.
 Geoffrey Coram and Dietmar Warning are authors of several bugfixes included in OpenVAF-reloaded. 
 
 Kreijstal ported OpenVAF to LLVM18. 
+
+Rob Taylor contributed CI improvements and MACOS support. 
 
 
 # Copyright

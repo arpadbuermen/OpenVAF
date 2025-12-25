@@ -167,6 +167,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 );
                 LLVMPositionBuilderAtEnd(llbuilder, bb);
                 // construct case constant, add case with building block bb
+                // instance parameter IDs are 0..num_instance_params-1
                 let case = cx.const_unsigned_int(param_idx as u32);
 
                 LLVMAddCase(switch_model, NonNull::from(case).as_ptr(), bb);
@@ -213,6 +214,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 );
                 LLVMPositionBuilderAtEnd(llbuilder, bb);
                 // construct case constant, add case with building block bb
+                // model parameter IDs are num_instance_params..num_instance_params+num_model_params-1
+                // num_model_params == model_data.params.len() counts only model parameters
                 let case = cx.const_unsigned_int((inst_data.params.len() + param_idx) as u32);
                 LLVMAddCase(switch_model, NonNull::from(case).as_ptr(), bb);
 

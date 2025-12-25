@@ -1,8 +1,10 @@
+use std::hash::BuildHasherDefault;
 use std::mem::{replace, take};
 
 use bitset::{BitSet, HybridBitSet, SparseBitSet};
 use indexmap::IndexMap;
 use mir::{Block, DominatorTree, Function, Inst, Opcode, Unknown, Value, ValueDef};
+use rustc_hash::FxHasher;
 
 use crate::intern::{Derivative, DerivativeInfo, DerivativeIntern};
 use crate::{zero_derivative, ChainRule, LiveDerivatives};
@@ -24,7 +26,7 @@ struct SubGraphExplorer<'a, 'b> {
     saved_insts: i32,
     completed_subgraphs: Vec<HybridBitSet<Unknown>>,
 
-    derivative_map: IndexMap<Derivative, (Derivative, Derivative), ahash::RandomState>,
+    derivative_map: IndexMap<Derivative, (Derivative, Derivative), BuildHasherDefault<FxHasher>>,
 }
 
 impl<'a, 'b> SubGraphExplorer<'a, 'b> {
@@ -230,7 +232,7 @@ impl<'a, 'b> SubGraphExplorer<'a, 'b> {
         inner_derivative_val: Value,
         extra_inst: &mut u32,
     ) {
-        let val = if let Some(val) = self.func.dfg.inst_results(inst).get(0) {
+        let val = if let Some(val) = self.func.dfg.inst_results(inst).first() {
             *val
         } else {
             return;

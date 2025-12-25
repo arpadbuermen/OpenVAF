@@ -5,10 +5,12 @@ authors = ["DSPOM"]
 edition = "2021"
 license="GPL-3.0"
 
-
 [lib]
 doctest = false
 
+[lints]
+workspace = true
+
 [dependencies]
 indexmap = "2.0"
-ahash = "0.8"
+rustc-hash = "2.0"

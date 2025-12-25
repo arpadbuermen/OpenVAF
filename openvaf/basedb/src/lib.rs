@@ -5,7 +5,7 @@ mod lint_attrs;
 pub mod lints;
 
 use std::fs;
-use std::intrinsics::transmute;
+use std::mem::transmute;
 use std::sync::Arc;
 
 pub use ast_id_map::{AstId, AstIdMap, ErasedAstId};

@@ -1,7 +1,3 @@
-use std::mem::replace;
-use std::vec;
-
-use ahash::AHashMap;
 use bitset::BitSet;
 use hir::{BranchWrite, CompilationDB, Node, ParamSysFun};
 use hir_lower::{CurrentKind, HirInterner, ImplicitEquation, ParamKind};
@@ -13,6 +9,11 @@ use mir::{
     Value, FALSE, F_ONE, F_ZERO, TRUE,
 };
 use mir_autodiff::auto_diff;
+use rustc_hash::FxHasher;
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
+use std::mem::replace;
+use std::vec;
 use typed_index_collections::TiVec;
 
 use crate::context::Context;
@@ -122,7 +123,7 @@ impl<'a> Builder<'a> {
 
     pub(super) fn with_small_signal_network(
         mut self,
-        small_signal_parameters: IndexSet<Value, ahash::RandomState>,
+        small_signal_parameters: IndexSet<Value, BuildHasherDefault<FxHasher>>,
     ) -> Self {
         self.system.small_signal_parameters = small_signal_parameters;
         self
@@ -160,8 +161,8 @@ impl<'a> Builder<'a> {
         for (_, &kind, _) in self.intern.live_params(&self.cursor.func.dfg) {
             match kind {
                 ParamKind::Voltage { hi, lo } => {
-                    let mut ih = std::u32::MAX;
-                    let mut il = std::u32::MAX;
+                    let mut ih = u32::MAX;
+                    let mut il = u32::MAX;
                     let uh = SimUnknownKind::KirchoffLaw(hi);
                     if let Some(uh) = self.system.unknowns.index(&uh) {
                         ih = u32::from(uh);
@@ -172,7 +173,7 @@ impl<'a> Builder<'a> {
                             il = u32::from(ul);
                         }
                     }
-                    if ih != std::u32::MAX && il != std::u32::MAX {
+                    if ih != u32::MAX && il != u32::MAX {
                         self.system.model_inputs.push((ih, il));
                     }
                 }
@@ -184,7 +185,7 @@ impl<'a> Builder<'a> {
                         _ => {
                             let u = SimUnknownKind::Current(cur_kind);
                             if let Some(u) = self.system.unknowns.index(&u) {
-                                self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                                self.system.model_inputs.push((u32::from(u), u32::MAX));
                             }
                         }
                     }
@@ -192,7 +193,7 @@ impl<'a> Builder<'a> {
                 ParamKind::ImplicitUnknown(ieq_kind) => {
                     let u = SimUnknownKind::Implicit(ieq_kind);
                     if let Some(u) = self.system.unknowns.index(&u) {
-                        self.system.model_inputs.push((u32::from(u), std::u32::MAX));
+                        self.system.model_inputs.push((u32::from(u), u32::MAX));
                     }
                 }
                 _ => {}
@@ -206,11 +207,11 @@ impl<'a> Builder<'a> {
         let mut nreact: u32 = 0;
         for key in self.system.jacobian.keys() {
             if self.system.jacobian[key].resist != F_ZERO {
-                nres = nres + 1;
+                nres += 1;
             }
 
             if self.system.jacobian[key].react != F_ZERO {
-                nreact = nreact + 1;
+                nreact += 1;
             }
         }
         (nres, nreact)
@@ -219,7 +220,7 @@ impl<'a> Builder<'a> {
     fn build_lim_rhs(
         &mut self,
         derivative_info: &KnownDerivatives,
-        derivatives: AHashMap<(Value, Unknown), Value>,
+        derivatives: HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>>,
     ) {
         for residual in &mut self.system.residual {
             for (state, (unchanged, lim_vals)) in self.intern.lim_state.iter_enumerated() {
@@ -272,7 +273,7 @@ impl<'a> Builder<'a> {
         &mut self,
         sim_unknown_reads: &[(ParamKind, Value)],
         derivative_info: &KnownDerivatives,
-        derivatives: &AHashMap<(Value, Unknown), Value>,
+        derivatives: &HashMap<(Value, Unknown), Value, BuildHasherDefault<FxHasher>>,
     ) {
         self.system.jacobian =
             TiVec::with_capacity(self.system.unknowns.len() * self.system.unknowns.len());

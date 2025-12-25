@@ -27,3 +27,7 @@ pyo3-build-config = { version = "0.19", features = ["resolve-config"] }
 
 default = ["static"]
 static = ["verilogae_ffi/static"]
+
+[lints.rust]
+# Python version cfg flags are set by pyo3-build-config
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(Py_3_8)', 'cfg(Py_3_10)', 'cfg(cross_compile)'] }

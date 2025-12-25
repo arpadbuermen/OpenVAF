@@ -29,20 +29,20 @@ pub static mut NUMPY_API: Option<PyArrayNew> = None;
 pub static mut NUMPY_CDOUBLE_DESCR: *mut PyObject = std::ptr::null_mut();
 pub static mut NUMPY_INT_DESCR: *mut PyObject = std::ptr::null_mut();
 
-pub static mut PATHLIB_PATH: *mut PyTypeObject = 0 as *mut PyTypeObject;
+pub static mut PATHLIB_PATH: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
 // pub static mut STR_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut INT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut FLOAT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut LIST_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut DICT_TYPE: *mut PyTypeObject = 0 as *mut PyTypeObject;
-pub static mut ARRAY_STRUCT_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut EMPTY_UNICODE: *mut PyObject = 0 as *mut PyObject;
+pub static mut INT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut FLOAT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut LIST_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut DICT_TYPE: *mut PyTypeObject = std::ptr::null_mut::<PyTypeObject>();
+pub static mut ARRAY_STRUCT_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut EMPTY_UNICODE: *mut PyObject = std::ptr::null_mut::<PyObject>();
 // Internted arguments so that kwargs check are simple pointer comparisons
-pub static mut MODULE_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut VFS_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut VOLTAGES_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut CURRENTS_STR: *mut PyObject = 0 as *mut PyObject;
-pub static mut TEMPERATURE_STR: *mut PyObject = 0 as *mut PyObject;
+pub static mut MODULE_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut VFS_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut VOLTAGES_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut CURRENTS_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
+pub static mut TEMPERATURE_STR: *mut PyObject = std::ptr::null_mut::<PyObject>();
 
 static INIT: Once = Once::new();
 

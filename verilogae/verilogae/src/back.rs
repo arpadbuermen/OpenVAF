@@ -419,9 +419,7 @@ impl CodegenCtx<'_, '_> {
         let exit_bb = *postorder
             .iter()
             .find(|bb| {
-                func.layout
-                    .last_inst(**bb)
-                    .map_or(true, |term| !func.dfg.insts[term].is_terminator())
+                func.layout.last_inst(**bb).is_none_or(|term| !func.dfg.insts[term].is_terminator())
             })
             .unwrap();
 
@@ -456,10 +454,10 @@ impl CodegenCtx<'_, '_> {
         for param in &intern.params.raw {
             match *param.0 {
                 ParamKind::Voltage { hi, lo } => {
-                    self.literals.get_or_intern(&voltage_name(db, hi, lo));
+                    self.literals.get_or_intern(voltage_name(db, hi, lo));
                 }
                 ParamKind::Current(kind) => {
-                    self.literals.get_or_intern(&current_name(db, kind));
+                    self.literals.get_or_intern(current_name(db, kind));
                 }
                 _ => (),
             }

@@ -18,18 +18,8 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 pub fn handle_dump(panic_info: &PanicHookInfo) -> Option<PathBuf> {
     let mut expl = String::new();
 
-    #[cfg(feature = "nightly")]
-    let message = panic_info.message().map(|m| format!("{}", m));
-
-    #[cfg(not(feature = "nightly"))]
-    let message = match (
-        panic_info.payload().downcast_ref::<&str>(),
-        panic_info.payload().downcast_ref::<String>(),
-    ) {
-        (Some(s), _) => Some(s.to_string()),
-        (_, Some(s)) => Some(s.to_string()),
-        (None, None) => None,
-    };
+    // PanicHookInfo::payload_as_str() was stabilized in Rust 1.91
+    let message = panic_info.payload_as_str().map(|s| s.to_string());
 
     let cause = match message {
         Some(m) => m,

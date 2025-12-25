@@ -22,13 +22,20 @@ fn main() {
     let osdi_dir = stdx::project_root().join("openvaf").join("osdi");
     let src_file = osdi_dir.join("stdlib.c");
 
+    // Use clang from LLVM_SYS_181_PREFIX if available
+    let clang_path = tracked_env_var_os("LLVM_SYS_181_PREFIX")
+        .map(|prefix| Path::new(&prefix).join("bin/clang"))
+        .and_then(|path| path.exists().then_some(path))
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|| "clang".to_string());
+
     sh.change_dir(osdi_dir);
     for file in sh.read_dir("header").unwrap() {
-        if file.extension().map_or(true, |ext| ext != "h")
+        if file.extension().is_none_or(|ext| ext != "h")
             || !file
                 .file_stem()
                 .and_then(|name| name.to_str())
-                .map_or(false, |name| name.starts_with("osdi_"))
+                .is_some_and(|name| name.starts_with("osdi_"))
         {
             continue;
         }
@@ -41,13 +48,13 @@ fn main() {
         for target in get_targets() {
             let target_name = &target.llvm_target;
             let out_file =
-                Path::new(&out_dir).join(&format!("stdlib_{version_str}_{target_name}.bc"));
+                Path::new(&out_dir).join(format!("stdlib_{version_str}_{target_name}.bc"));
             if no_gen {
                 sh.write_file(out_file, []).expect("failed to write dummy file");
             } else {
                 println!("cargo:rerun-if-changed={}", file.display());
 
-                let mut cmd = cmd!(sh, "clang -emit-llvm -O3 -D{def_name} -DNO_STD -o {out_file} -c {src_file} -target {target_name}");
+                let mut cmd = cmd!(sh, "{clang_path} -emit-llvm -O3 -D{def_name} -DNO_STD -o {out_file} -c {src_file} -target {target_name}");
                 if !target.options.is_like_windows {
                     cmd = cmd.arg("-fPIC");
                 }
