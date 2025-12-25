@@ -258,7 +258,7 @@ impl<'a> SimplifyCfg<'a> {
                 .layout
                 .block_insts(bb)
                 .next()
-                .map_or(false, |inst| self.func.dfg.insts[inst].is_phi())
+                .is_some_and(|inst| self.func.dfg.insts[inst].is_phi())
         {
             return false;
         }
@@ -505,7 +505,7 @@ impl<'a> SimplifyCfg<'a> {
                             // the value depends on the predecessor (its a phi)
 
                             let can_merge = self.func.dfg.phi_edges(&src_phi).all(|(bb, val)| {
-                                self.func.dfg.phi_edge_val(&phi, bb).map_or(true, |it| it == val)
+                                self.func.dfg.phi_edge_val(&phi, bb).is_none_or(|it| it == val)
                             });
                             if can_merge {
                                 continue;
@@ -520,7 +520,7 @@ impl<'a> SimplifyCfg<'a> {
                 let can_merge = self
                     .cfg
                     .pred_iter(src)
-                    .all(|bb| self.func.dfg.phi_edge_val(&phi, bb).map_or(true, |it| it == val));
+                    .all(|bb| self.func.dfg.phi_edge_val(&phi, bb).is_none_or(|it| it == val));
 
                 if !can_merge {
                     return;
@@ -625,7 +625,7 @@ impl<'a> SimplifyCfg<'a> {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     fn simplify_bb(&mut self, bb: Block) {
@@ -655,7 +655,7 @@ impl<'a> SimplifyCfg<'a> {
         // Blocks with Branch terminator that lead into an empty block with an Exit terminator.
         // The branch terminator is replaced with a Jump to the non-exit block
         // If both destinations are empty exit blocks, jump to else block
-        if let Some(terminator) = self.func.layout.block_insts(bb).last() {
+        if let Some(terminator) = self.func.layout.block_insts(bb).next_back() {
             if let InstructionData::Branch { then_dst, else_dst, .. } =
                 self.func.dfg.insts[terminator]
             {

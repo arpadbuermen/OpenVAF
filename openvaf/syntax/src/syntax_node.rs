@@ -47,9 +47,8 @@ impl RevSyntaxNodeChildren {
 impl Iterator for RevSyntaxNodeChildren {
     type Item = SyntaxNode;
     fn next(&mut self) -> Option<SyntaxNode> {
-        self.next.take().map(|next| {
+        self.next.take().inspect(|next| {
             self.next = next.prev_sibling();
-            next
         })
     }
 }

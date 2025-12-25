@@ -108,7 +108,7 @@ impl<I: From<usize>, K, V> TiMap<I, K, V> {
         self.iter().enumerate().map(|(index, val)| (index.into(), val))
     }
 
-    pub fn keys(&self) -> impl Iterator<Item = I> + ExactSizeIterator {
+    pub fn keys(&self) -> impl ExactSizeIterator<Item = I> {
         (0..self.len()).map(|i| i.into())
     }
 }

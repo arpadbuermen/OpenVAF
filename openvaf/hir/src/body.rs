@@ -108,11 +108,7 @@ impl<'a> BodyRef<'a> {
             hir_def::Expr::UnaryOp { expr, op } => {
                 // UnaryOp
                 match op {
-                    UnaryOp::Neg => match self.as_literalint(expr) {
-                        // Neg
-                        Some(ii) => Some(-ii), // Neg Int literal
-                        _ => None,             // Neg anything else
-                    },
+                    UnaryOp::Neg => self.as_literalint(expr).map(|ii| -ii),
                     _ => None, // Other UnaryOp
                 }
             }

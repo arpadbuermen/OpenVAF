@@ -577,7 +577,7 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 //     Handle $mfactor at a lower level.
                 // let mfactor = self.ctx.use_param(ParamKind::ParamSysFun(ParamSysFun::mfactor));
                 // return self.ctx.ins().fdiv(res, mfactor);
-                return res;
+                res
             }
             BuiltIn::potential => {
                 match_signature! {
@@ -595,7 +595,7 @@ impl BodyLoweringCtx<'_, '_, '_> {
                 const Q: f64 = 1.602176565e-19;
 
                 let fac = self.ctx.fconst(KB / Q);
-                let temp = match args.get(0) {
+                let temp = match args.first() {
                     Some(temp) => self.lower_expr(*temp),
                     None => self.ctx.use_param(ParamKind::Temperature),
                 };

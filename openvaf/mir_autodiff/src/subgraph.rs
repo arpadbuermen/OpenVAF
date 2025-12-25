@@ -232,7 +232,7 @@ impl<'a, 'b> SubGraphExplorer<'a, 'b> {
         inner_derivative_val: Value,
         extra_inst: &mut u32,
     ) {
-        let val = if let Some(val) = self.func.dfg.inst_results(inst).get(0) {
+        let val = if let Some(val) = self.func.dfg.inst_results(inst).first() {
             *val
         } else {
             return;

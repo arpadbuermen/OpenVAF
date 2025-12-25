@@ -38,7 +38,7 @@ fn format_float(bits: u64, w: u8, t: u8, f: &mut Formatter) -> fmt::Result {
     let emin = 1 - bias; // Minimum exponent.
 
     // How many hexadecimal digits are needed for the trailing significand?
-    let digits = (t + 3) / 4;
+    let digits = t.div_ceil(4);
     // Trailing significand left-aligned in `digits` hexadecimal digits.
     let left_t_bits = t_bits << (4 * digits - t);
 

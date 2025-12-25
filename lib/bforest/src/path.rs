@@ -37,7 +37,7 @@ impl<F: Forest> std::fmt::Debug for Path<F> {
 impl<F: Forest> Copy for Path<F> {}
 
 #[allow(unknown_lints)]
-#[allow(clippy::incorrect_clone_impl_on_copy_type)]
+#[allow(clippy::non_canonical_clone_impl)]
 impl<F: Forest> Clone for Path<F> {
     fn clone(&self) -> Self {
         Self { size: self.size, node: self.node, entry: self.entry, unused: self.unused }

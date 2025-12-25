@@ -1,6 +1,5 @@
 use bitset::BitSet;
 
-use crate::flowgraph::Successors;
 use crate::{Block, ControlFlowGraph};
 use smallvec::SmallVec;
 
