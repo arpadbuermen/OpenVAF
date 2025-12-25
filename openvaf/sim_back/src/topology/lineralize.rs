@@ -224,7 +224,7 @@ impl<'a> super::Builder<'a> {
         };
 
         let val_visisted =
-            |val| func.dfg.value_def(val).inst().map_or(false, |inst| visisted.contains(inst));
+            |val| func.dfg.value_def(val).inst().is_some_and(|inst| visisted.contains(inst));
         let mut contributes = Vec::new();
         for &inst in postorder.iter() {
             match func.dfg.insts[inst] {
@@ -336,7 +336,7 @@ impl<'a> super::Builder<'a> {
                         } else if self
                             .topology
                             .as_contribution(val)
-                            .map_or(false, |it| !it.is_reactive())
+                            .is_some_and(|it| !it.is_reactive())
                         {
                             contributes.push((val, F_ZERO))
                         } else {

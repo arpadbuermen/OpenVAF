@@ -92,7 +92,7 @@ pub fn parse_real_fmt_spec(
                 _ => {
                     err = Some(InferenceDiagnostic::InvalidFmtSpecifierChar {
                         fmt_lit: fmt_expr,
-                        lit_range: TextRange::new(off.try_into().unwrap(), end.try_into().unwrap()),
+                        lit_range: TextRange::new(off.try_into().unwrap(), end.into()),
                         err_char: c,
                         candidates: state.candidates(),
                     });
@@ -104,7 +104,7 @@ pub fn parse_real_fmt_spec(
         } else {
             err = Some(InferenceDiagnostic::InvalidFmtSpecifierEnd {
                 fmt_lit: fmt_expr,
-                lit_range: TextRange::new(start.try_into().unwrap(), end.try_into().unwrap()),
+                lit_range: TextRange::new(start.into(), end.into()),
             });
             break;
         }

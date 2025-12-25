@@ -21,11 +21,11 @@ use crate::types::AsType;
 use crate::{LocalFunctionArgId, LocalNodeId, Path, Type};
 
 fn is_input(direction: &Option<ast::Direction>) -> bool {
-    direction.as_ref().map_or(false, |it| it.input_token().is_some() || it.inout_token().is_some())
+    direction.as_ref().is_some_and(|it| it.input_token().is_some() || it.inout_token().is_some())
 }
 
 fn is_output(direction: &Option<ast::Direction>) -> bool {
-    direction.as_ref().map_or(false, |it| it.output_token().is_some() || it.inout_token().is_some())
+    direction.as_ref().is_some_and(|it| it.output_token().is_some() || it.inout_token().is_some())
 }
 
 pub(super) struct Ctx {
@@ -421,7 +421,7 @@ impl Ctx {
         let discipline = decl.discipline().map(|it| it.as_name());
         let direction = decl.direction();
 
-        let is_gnd = decl.net_type_token().map_or(false, |it| it.text() == kw::raw::ground);
+        let is_gnd = decl.net_type_token().is_some_and(|it| it.text() == kw::raw::ground);
         let ast_id = self.source_ast_id_map.ast_id(&decl);
         for (name_idx, name) in decl.names().enumerate() {
             let name = name.as_name();
@@ -459,7 +459,7 @@ impl Ctx {
         let discipline = decl.discipline().map(|it| it.as_name());
         let ast_id = self.source_ast_id_map.ast_id(&decl);
 
-        let is_gnd = decl.net_type_token().map_or(false, |it| it.text() == kw::raw::ground);
+        let is_gnd = decl.net_type_token().is_some_and(|it| it.text() == kw::raw::ground);
         for (name_idx, name) in decl.names().enumerate() {
             let name = name.as_name();
             let id = self.tree.data.nets.push_and_get_key(Net {

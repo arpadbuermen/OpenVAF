@@ -14,6 +14,12 @@ pub struct NDATable {
     pub discipline_name_map: std::collections::HashMap<String, Idx<Discipline>>,
 }
 
+impl Default for NDATable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NDATable {
     pub fn new() -> Self {
         Self { nature_name_map: HashMap::new(), discipline_name_map: HashMap::new() }

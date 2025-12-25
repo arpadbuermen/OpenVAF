@@ -107,7 +107,7 @@ type max_align_t = u128;
 const MAX_ALIGN: usize = align_of::<max_align_t>();
 
 fn aligned_size(size: usize) -> usize {
-    (size + (MAX_ALIGN - 1)) / MAX_ALIGN
+    size.div_ceil(MAX_ALIGN)
 }
 
 fn max_align_layout(size: usize) -> Layout {
