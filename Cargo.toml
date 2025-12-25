@@ -45,3 +45,23 @@ mir_opt.opt-level = 2
 [patch.crates-io]
 salsa = { git = 'https://github.com/pascalkuthe/salsa'}
 
+# Workspace-wide lint configuration
+# Crates that inherit these lints should add `lints.workspace = true` to their Cargo.toml
+[workspace.lints.rust]
+# unsafe_code is common in this compiler codebase due to FFI
+
+[workspace.lints.clippy]
+# These are intentional patterns in the codebase
+manual_c_str_literals = "allow"  # We use b"\0" pattern extensively for LLVM FFI
+multiple_bound_locations = "allow"  # Style choice for readability
+missing_safety_doc = "allow"  # TODO: Add safety docs incrementally
+to_string_trait_impl = "allow"  # BitSet has custom ToString implementation
+non_canonical_partial_ord_impl = "allow"  # Idx uses explicit comparison
+doc_lazy_continuation = "allow"  # Doc formatting style choice
+incompatible_msrv = "allow"  # We target modern Rust
+# Allow some patterns that would require significant refactoring
+too_many_arguments = "allow"  # Some internal APIs need many parameters
+type_complexity = "allow"  # Complex types in compiler internals are acceptable
+transmute_undefined_repr = "allow"  # Used carefully in FFI code
+box_collection = "allow"  # Sometimes Box<T> is intentional
+
