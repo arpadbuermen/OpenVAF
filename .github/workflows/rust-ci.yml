@@ -5,51 +5,39 @@ on:
     branches:
       - master
       - main
-      - llvm18
-      - branches/macos-patches-v3
   pull_request:
     branches:
       - '**'
 
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
 jobs:
-  format:
+  # Quick checks that run fast
+  lint:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        components: rustfmt
-    - name: Check code formatting
+        components: rustfmt, clippy
+
+    - name: Check formatting
       run: cargo fmt -- --check
-
-  machete:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Setup sccache
-      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
-      uses: mozilla-actions/sccache-action@v0.0.9
-
-    - name: Configure sccache
-      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
-      run: |
-        echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-
-    - uses: actions/checkout@v4
-
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
 
     - name: Install cargo-machete
       run: cargo install cargo-machete
 
-    - name: Run cargo machete
+    - name: Check for unused dependencies
       run: cargo machete
 
-  ubuntu-build-test:
+  # Linux build and test
+  linux:
     runs-on: ubuntu-latest
-    needs: [format, machete]
+    needs: [lint]
     steps:
     - uses: actions/checkout@v4
 
@@ -57,21 +45,17 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         components: clippy
-        targets: x86_64-pc-windows-gnu
 
     - name: Setup sccache
-      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Configure sccache
-      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
       run: |
         echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
         echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
 
-    - name: "Cache cargo"
-      id: cache-cargo
-      uses: "actions/cache@v4"
+    - name: Cache cargo
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/bin/
@@ -80,50 +64,26 @@ jobs:
           ~/.cargo/git/db/
           target/
         save-always: true
-        key: ${{ runner.os }}-${{ runner.arch  }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: ${{ runner.os }}-${{ runner.arch }}-cargo-
 
-    - name: Install LLVM 18 and Windows cross-compilation tools
+    - name: Install LLVM 18
       run: |
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
         sudo ./llvm.sh 18
         sudo apt-get install -y llvm-18 llvm-18-dev libclang-18-dev
-        
-        # Install llvm-lib for Windows cross-compilation
-        sudo apt-get install -y mingw-w64
-        
-        # Create symlink for llvm-lib
-        sudo ln -s /usr/bin/llvm-ar-18 /usr/local/bin/llvm-lib
-        
-        # Verify installation
-        which llvm-lib
-        llvm-lib --version
 
     - name: Set LLVM environment variables
       run: |
-        {
-          echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18"
-          echo "CLANG_PATH=/usr/lib/llvm-18/bin/clang"
-          echo "PATH=/usr/lib/llvm-18/bin:$PATH"
-          echo "RUST_BACKTRACE=1" 
-        }>> "$GITHUB_ENV"
-
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential
+        echo "LLVM_SYS_181_PREFIX=/usr/lib/llvm-18" >> "$GITHUB_ENV"
+        echo "PATH=/usr/lib/llvm-18/bin:$PATH" >> "$GITHUB_ENV"
 
     - name: Build
       run: cargo build --release
 
-    - name: Show sccache stats
-      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
-      shell: bash
-      run: ${SCCACHE_PATH} --show-stats
-    # someone has to fix the errors
-    # - name: Run Clippy
-    #   run: cargo clippy -- -D warnings
+    - name: Run clippy
+      run: cargo clippy --workspace
 
     - name: Run tests
       run: cargo test --release
@@ -131,15 +91,17 @@ jobs:
     - name: Run integration tests
       run: cargo test --release --test integration
 
-  msys2-build-test:
+  # Windows build and test (MSYS2)
+  windows:
     strategy:
       fail-fast: false
       matrix:
-        sys: [MINGW64, UCRT64]
+        sys: [UCRT64]
     runs-on: windows-latest
-    needs: [format, machete]
+    needs: [lint]
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup MSYS2
       uses: msys2/setup-msys2@v2
       with:
@@ -147,16 +109,11 @@ jobs:
         update: true
         install: base-devel git ca-certificates
         pacboy: >-
-          openssl:p
           clang:p
           llvm:p
           rust:p
           cc:p
           python:p
-          sccache:p
-    #- name: Configure Git to use Schannel
-    #  shell: msys2 {0}
-    #  run: git config --global http.sslBackend schannel
 
     - name: Configure Cargo to use CLI Git
       shell: bash
@@ -165,24 +122,54 @@ jobs:
         echo '[net]' > .cargo/config.toml
         echo 'git-fetch-with-cli = true' >> .cargo/config.toml
 
-    - name: Cache sccache
+    - name: Cache cargo
       uses: actions/cache@v4
       with:
-        path: ~/.cache/sccache
-        key: ${{ runner.os }}-${{ runner.arch }}}-sccache-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ runner.arch }}-sccache-
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        save-always: true
+        key: ${{ runner.os }}-${{ matrix.sys }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-${{ matrix.sys }}-cargo-
 
-    - name: Locate and configure sccache
+    - name: Build
       shell: msys2 {0}
-      run: |
-        # export SCCACHE_PATH=$(which sccache)
-        # echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-        echo "RUSTC_WRAPPER=${SCCACHE_PATH}" >> $GITHUB_ENV
+      run: cargo build --release
 
-    - name: "Cache cargo"
-      id: cache-cargo
-      uses: "actions/cache@v4"
+    - name: Run tests
+      shell: msys2 {0}
+      run: cargo test --release
+
+  # macOS build and test
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: macos-15          # ARM64 (Apple Silicon)
+          - image: macos-15-intel    # Intel (macos-13 is retired)
+    runs-on: ${{ matrix.image }}
+    needs: [lint]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies with Homebrew
+      run: brew install llvm@18 sccache
+
+    - name: Set LLVM environment variables
+      run: |
+        echo "$(brew --prefix llvm@18)/bin" >> "$GITHUB_PATH"
+        echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)" >> "$GITHUB_ENV"
+        echo "RUSTC_WRAPPER=$(which sccache)" >> "$GITHUB_ENV"
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/bin/
@@ -194,72 +181,6 @@ jobs:
         key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: ${{ runner.os }}-${{ runner.arch }}-cargo-
 
-    - name: Run cargo
-      shell: msys2 {0}
-      run: cargo build --release
-    #- name: Show sccache stats
-    #  if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
-    #  shell: msys2 {0}
-    #  run: $SCCACHE_PATH --show-stats
-
-    - name: Run tests
-      shell: msys2 {0}
-      run: cargo test --release
-
-  macos-build-test:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Intel
-          - image: macos-15-intel
-          # ARM64
-          - image: macos-15
-          - image: macos-14
-
-    runs-on: ${{ matrix.image }}
-    needs: [format, machete]
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Install dependencies with Homebrew
-      uses: tecolicom/actions-use-homebrew-tools@v1
-      with:
-        tools: pkg-config sccache llvm@18
-        cache: yes
-
-    - name: Set LLVM environment variables
-      run: |
-        echo "$(brew --prefix llvm@18)/bin" >> "$GITHUB_PATH"
-        {
-          echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm@18)"
-          echo "RUST_BACKTRACE=1"
-          echo "RUN_DEV_TESTS=1"
-        } >> "$GITHUB_ENV"
-
-    - name: sccache setup
-      run: |
-        # echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-        echo "RUSTC_WRAPPER=$(which sccache)" >> "$GITHUB_ENV"
-
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: "Cache cargo"
-      id: cache-cargo
-      uses: "actions/cache@v4"
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-        save-always: true
-        key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-${{ runner.arch }}=cargo-
-   
     - name: Build
       run: cargo build --release
 
@@ -268,4 +189,3 @@ jobs:
 
     - name: Run integration tests
       run: cargo test --release --test integration
-
