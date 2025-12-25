@@ -1,0 +1,66 @@
+`include "disciplines.va"
+
+// Test case for --allow-analog-in-cond flag
+// This model uses analog operators (limexp, ddt, idt) inside conditionals
+// which is non-standard Verilog-A but required by some foundry models
+module diode_with_conditionals(anode, cathode);
+    inout anode, cathode;
+    electrical anode, cathode;
+
+    parameter real is = 1e-14;           // Saturation current
+    parameter real vth = 0.026;          // Thermal voltage
+    parameter real n = 1.0;              // Ideality factor
+    parameter real cj0 = 1e-12;          // Junction capacitance
+    parameter real use_dynamic = 1;      // Enable dynamic behavior
+    parameter real use_smooth = 1;       // Enable smoothing
+    parameter real temp_coeff = 0.0;     // Temperature coefficient
+
+    real v_diode, i_static, i_dynamic, q_charge;
+    real temp_factor, smooth_factor;
+
+    analog begin
+        v_diode = V(anode, cathode);
+
+        // Signal-dependent conditional with limexp (smoothing function)
+        // This pattern is common in foundry models
+        if (use_smooth > 0.5) begin
+            // Use limexp for smooth exponential to avoid numerical issues
+            temp_factor = limexp(v_diode / (n * vth));
+            i_static = is * (temp_factor - 1.0);
+        end else begin
+            // Use regular exponential
+            i_static = is * (exp(v_diode / (n * vth)) - 1.0);
+        end
+
+        // Dynamic behavior with conditional ddt/idt
+        if (use_dynamic > 0.5) begin
+            // Time-derivative for capacitive current
+            q_charge = cj0 * v_diode;
+            i_dynamic = ddt(q_charge);
+        end else begin
+            i_dynamic = 0.0;
+        end
+
+        // Temperature-dependent behavior using idt in conditional
+        if (temp_coeff > 0.0) begin
+            // Integrate temperature effect
+            smooth_factor = idt(temp_coeff * i_static);
+        end else begin
+            smooth_factor = 0.0;
+        end
+
+        // Case statement with analog operator
+        case (use_smooth)
+            1.0: begin
+                // Another limexp usage in case block
+                temp_factor = limexp(-v_diode / vth);
+            end
+            default: begin
+                temp_factor = 1.0;
+            end
+        endcase
+
+        // Total current contribution
+        I(anode, cathode) <+ i_static + i_dynamic + smooth_factor;
+    end
+endmodule

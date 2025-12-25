@@ -39,7 +39,7 @@ pub use crate::attributes::AstCache;
 pub use crate::body::{
     AssignmentLhs, Body, BodyRef, ContributeKind, Expr, ExprId, Ref, ResolvedFun, Stmt, StmtId,
 };
-pub use crate::db::CompilationDB;
+pub use crate::db::{CompilationDB, CompilationOpts};
 
 mod attributes;
 mod body;

@@ -9,7 +9,8 @@ use basedb::{BaseDB, FileId, VfsPath};
 use camino::Utf8Path;
 pub use hir::CompilationDB;
 use hir::{
-    Branch, BranchKind, Module, Node, Parameter, PathResolveError, ScopeDef, Type, Variable,
+    Branch, BranchKind, CompilationOpts, Module, Node, Parameter, PathResolveError, ScopeDef, Type,
+    Variable,
 };
 use hir_lower::CurrentKind;
 use indexmap::IndexMap;
@@ -46,6 +47,7 @@ pub(crate) fn new(root_file: &Utf8Path, opts: &Opts) -> Result<CompilationDB> {
         opts.include_dirs().map(|path| path.map(VfsPath::from)),
         opts.macro_flags(),
         lints,
+        &CompilationOpts::default(),
     )
 }
 

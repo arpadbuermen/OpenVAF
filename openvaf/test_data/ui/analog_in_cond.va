@@ -1,0 +1,46 @@
+`include "disciplines.va"
+
+module analog_in_cond(a, c);
+    inout a, c;
+    electrical a, c;
+    real v_internal, i_internal, temp_factor;
+    real use_limexp;
+    parameter real vth = 0.026;
+    parameter real is = 1e-14;
+
+    analog begin
+        use_limexp = 1.0;
+        v_internal = V(a, c);
+
+        // This is valid: analog operators in analog block
+        temp_factor = limexp(v_internal / vth);
+        i_internal = is * temp_factor;
+
+        // These should produce errors without --allow-analog-in-cond flag:
+        // Analog operators (limexp, ddt, idt) in signal-dependent conditionals
+
+        if (v_internal > 0) begin
+            // Error: limexp in conditional
+            temp_factor = limexp(v_internal / vth);
+        end else begin
+            temp_factor = 1.0;
+        end
+
+        if (use_limexp > 0.5) begin
+            // Error: ddt in conditional
+            i_internal = ddt(v_internal);
+        end
+
+        case (use_limexp)
+            1.0: begin
+                // Error: idt in conditional (case statement)
+                v_internal = idt(i_internal);
+            end
+            default: begin
+                v_internal = 0.0;
+            end
+        endcase
+
+        I(a, c) <+ i_internal;
+    end
+endmodule
