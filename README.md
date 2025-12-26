@@ -72,12 +72,6 @@ If the binary is named `openvaf` it comes from the `branches/osdi_0.3` branch an
 
 ## LLVM Version Support
 
-Everything was tested under Debian 13. First, install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-During installation select "Customize installation" and set profile to "complete". 
-
 OpenVAF-reloaded supports multiple LLVM versions from 18 to 21. You can choose which version to use at build time via Cargo features:
 
 | Feature | LLVM Version | Environment Variable | llvm-sys crate |
@@ -92,6 +86,14 @@ OpenVAF-reloaded supports multiple LLVM versions from 18 to 21. You can choose w
 **Note:** The llvm-sys crate version follows the pattern `MAJORminor.patch`, where MAJOR is the LLVM major version and minor is the minor version (e.g., 181 = LLVM 18.1, 211 = LLVM 21.1).
 
 ## Setting up the dependencies under Debian/Ubuntu
+
+Everything was tested under Debian 13. First, install Rust as ordinary user (files will go to `~/.cargo` and `~/.rustup`). 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+During installation select "Customize installation" and set profile to "complete". 
+
+Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
 
 ### Using LLVM 18 (recommended for Ubuntu Noble)
 
@@ -134,14 +136,6 @@ Enter the build directory and type:
 make -j <number of processors to use>
 make install
 ```
-
-Install Rust if not already installed:
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-During installation select "Customize installation" and set profile to "complete".
-
-Make sure the Bash login script is read again (either log out and in again, or type `source ~/.bashrc`) Now you are good to go. 
 
 ## Setting up the dependencies under Windows
 
