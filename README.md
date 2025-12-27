@@ -79,7 +79,9 @@ OpenVAF-reloaded supports multiple LLVM versions from 18 to 21. You can choose w
 | `llvm18` | LLVM 18.1.x | `LLVM_SYS_181_PREFIX` | 181.2.0 |
 | `llvm19` | LLVM 19.1.x | `LLVM_SYS_191_PREFIX` | 191.0.0 |
 | `llvm20` | LLVM 20.1.x | `LLVM_SYS_201_PREFIX` | 201.0.1 |
-| `llvm21` (default) | LLVM 21.1.x | `LLVM_SYS_211_PREFIX` | 211.0.0 |
+| `llvm21` | LLVM 21.1.x | `LLVM_SYS_211_PREFIX` | 211.0.0 |
+
+**Note:** There is no default LLVM version. You must specify the version explicitly using `--features llvmXX` or use the `./configure` script for auto-detection (see Building section).
 
 **Ubuntu Noble (24.04)** ships with LLVM 18 as a system package, making it a convenient choice for those platforms.
 
@@ -192,25 +194,42 @@ Now you are good to go.
 
 ## Building
 
-### Quick Build (macOS only)
+### Quick Start (Recommended)
 
-On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
+The easiest way to build is using the configure script which auto-detects your LLVM installation:
+
 ```bash
-cargo xtask cargo-build --release
+./configure           # Auto-detect LLVM version
+./build.sh --release  # Build release version
 ```
 
-This will configure LLVM 21 paths and build the release version.
+The configure script will:
+1. Search for LLVM installations (via environment variables, PATH, or Homebrew on macOS)
+2. Select the newest available version (21 > 20 > 19 > 18)
+3. Save the configuration to `.llvm-version`
+
+You can also force a specific version:
+```bash
+./configure --llvm=18   # Force LLVM 18
+```
 
 ### Manual Build
 
-To build the release version (`target/release/openvaf-r`), type
+If you prefer not to use the configure script, specify the LLVM version explicitly:
+
 ```bash
-cargo build --release --bin openvaf-r
+# Set environment variable for your LLVM version
+export LLVM_SYS_211_PREFIX=/path/to/llvm-21   # For LLVM 21
+# Or: export LLVM_SYS_181_PREFIX=/path/to/llvm-18  # For LLVM 18
+
+# Build with explicit feature flag
+cargo build --release --features llvm21 --bin openvaf-r
+# Or: cargo build --release --features llvm18 --bin openvaf-r
 ```
 
-To build the debug version (`target/debug/openvaf-r`), type
+To build the debug version:
 ```bash
-cargo build --bin openvaf-r
+cargo build --features llvm21 --bin openvaf-r
 ```
 
 # Debugging OpenVAF-reloaded in Visual Studio Code 
@@ -224,25 +243,24 @@ The debug configuration disables rayon running the .osdi file build process in p
 
 Pascal has set up a test suite for OpenVAF.
 
-## Quick Test (macOS only)
+## Quick Test (Recommended)
 
-On macOS, you can use the xtask command which automatically detects LLVM 18 via Homebrew:
+If you've run `./configure`, use the build script:
 ```bash
-cargo xtask cargo-test --release
+./build.sh --test              # Debug tests
+./build.sh --test --release    # Release tests
 ```
-
-This will configure LLVM 21 paths and run all tests including integration tests.
 
 ## Manual Testing
 
-To run the tests on the debug version of the binary type
-```bash
-cargo test
-```
+To run the tests, specify the LLVM version explicitly:
 
-To run the tests on the release version type
 ```bash
-cargo test --release
+# Debug tests
+cargo test --features llvm21
+
+# Release tests
+cargo test --release --features llvm21
 ```
 
 By default only fast tests are run. To run all tests set the `RUN_SLOW_TEST` variable to 1, e.g.
@@ -254,10 +272,13 @@ RUN_SLOW_TESTS=1 cargo test
 
 Integration tests compile real-world Verilog-A models (BSIM, HiSIM, PSP, MEXTRAM, etc.) and verify the generated OSDI libraries. These tests are disabled by default but can be enabled with:
 ```bash
-RUN_DEV_TESTS=1 cargo test --release --test integration
+RUN_DEV_TESTS=1 cargo test --release --features llvm21 --test integration
 ```
 
-On macOS with LLVM 21, all integration tests should pass.
+Or using the build script:
+```bash
+RUN_DEV_TESTS=1 ./build.sh --test --release -- --test integration
+```
 
 ## Updating Expected Test Results
 

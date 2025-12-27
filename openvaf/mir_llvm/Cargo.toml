@@ -9,7 +9,7 @@ license = "GPL-3.0"
 doctest = false
 
 [features]
-default = ["llvm21"]
+# No default - user must specify --features llvm18/llvm19/llvm20/llvm21
 llvm18 = ["dep:llvm-sys-181"]
 llvm19 = ["dep:llvm-sys-191"]
 llvm20 = ["dep:llvm-sys-201"]

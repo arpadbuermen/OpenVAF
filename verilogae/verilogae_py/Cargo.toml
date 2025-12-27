@@ -25,7 +25,8 @@ pyo3-build-config = { version = "0.19", features = ["resolve-config"] }
 
 [features]
 
-default = ["static", "llvm21"]
+default = ["static"]
+# No default LLVM - user must specify --features llvm18/llvm19/llvm20/llvm21
 static = ["verilogae_ffi/static"]
 llvm18 = ["verilogae_ffi/llvm18"]
 llvm19 = ["verilogae_ffi/llvm19"]
