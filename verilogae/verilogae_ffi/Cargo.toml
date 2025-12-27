@@ -16,7 +16,8 @@ doctest = false
 verilogae = { version = "1.0.0", path = "../verilogae", optional = true, default-features = false }
 
 [features]
-default = ["static", "llvm21"]
+default = ["static"]
+# No default LLVM - user must specify --features llvm18/llvm19/llvm20/llvm21
 static = ["verilogae"]
 llvm18 = ["verilogae?/llvm18"]
 llvm19 = ["verilogae?/llvm19"]

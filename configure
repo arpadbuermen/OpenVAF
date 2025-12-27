@@ -1,0 +1,244 @@
+#!/bin/sh
+# Auto-detect LLVM version and configure the build
+#
+# This script detects available LLVM installations and creates a
+# .llvm-version file that build.sh uses to select the right features.
+#
+# Usage:
+#   ./configure              # Auto-detect LLVM
+#   ./configure --llvm=18    # Force specific version
+#   ./configure --help       # Show help
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VERSION_FILE="$SCRIPT_DIR/.llvm-version"
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS]
+
+Auto-detect LLVM version and configure the build.
+
+Options:
+  --llvm=VERSION    Force specific LLVM version (18, 19, 20, or 21)
+  --help            Show this help message
+
+After running configure, use ./build.sh to build with auto-detected settings,
+or use 'cargo build --features llvmXX' directly.
+
+Environment variables:
+  LLVM_SYS_181_PREFIX   Path to LLVM 18 installation
+  LLVM_SYS_191_PREFIX   Path to LLVM 19 installation
+  LLVM_SYS_201_PREFIX   Path to LLVM 20 installation
+  LLVM_SYS_211_PREFIX   Path to LLVM 21 installation
+
+Examples:
+  ./configure                           # Auto-detect
+  ./configure --llvm=18                 # Use LLVM 18
+  LLVM_SYS_181_PREFIX=/opt/llvm ./configure  # Detect from env var
+EOF
+    exit 0
+}
+
+# Parse arguments
+FORCE_VERSION=""
+for arg in "$@"; do
+    case "$arg" in
+        --llvm=*)
+            FORCE_VERSION="${arg#--llvm=}"
+            ;;
+        --help|-h)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $arg"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if an LLVM version is available
+check_llvm_version() {
+    version=$1
+    case "$version" in
+        18) env_var="LLVM_SYS_181_PREFIX" ;;
+        19) env_var="LLVM_SYS_191_PREFIX" ;;
+        20) env_var="LLVM_SYS_201_PREFIX" ;;
+        21) env_var="LLVM_SYS_211_PREFIX" ;;
+        *) return 1 ;;
+    esac
+
+    # Check environment variable
+    eval "prefix=\${$env_var:-}"
+    if [ -n "$prefix" ] && [ -d "$prefix" ]; then
+        if [ -x "$prefix/bin/llvm-config" ]; then
+            echo "$version"
+            return 0
+        fi
+    fi
+
+    # Check for llvm-config in PATH
+    for cmd in "llvm-config-$version" "llvm-config$version" "llvm-config"; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            detected=$("$cmd" --version 2>/dev/null | cut -d. -f1)
+            if [ "$detected" = "$version" ]; then
+                echo "$version"
+                return 0
+            fi
+        fi
+    done
+
+    # macOS: Check Homebrew
+    if [ "$(uname)" = "Darwin" ]; then
+        brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
+        if [ ! -d "$brew_prefix" ]; then
+            brew_prefix="/usr/local"
+        fi
+
+        # Check versioned formula first (llvm@18, llvm@19, etc.)
+        if [ -x "$brew_prefix/opt/llvm@$version/bin/llvm-config" ]; then
+            echo "$version"
+            return 0
+        fi
+
+        # Check default llvm formula
+        if [ -x "$brew_prefix/opt/llvm/bin/llvm-config" ]; then
+            detected=$("$brew_prefix/opt/llvm/bin/llvm-config" --version 2>/dev/null | cut -d. -f1)
+            if [ "$detected" = "$version" ]; then
+                echo "$version"
+                return 0
+            fi
+        fi
+    fi
+
+    return 1
+}
+
+# Get the LLVM prefix for a version
+get_llvm_prefix() {
+    version=$1
+    case "$version" in
+        18) env_var="LLVM_SYS_181_PREFIX" ;;
+        19) env_var="LLVM_SYS_191_PREFIX" ;;
+        20) env_var="LLVM_SYS_201_PREFIX" ;;
+        21) env_var="LLVM_SYS_211_PREFIX" ;;
+        *) return 1 ;;
+    esac
+
+    # Check environment variable first
+    eval "prefix=\${$env_var:-}"
+    if [ -n "$prefix" ] && [ -d "$prefix" ]; then
+        echo "$prefix"
+        return 0
+    fi
+
+    # Check for llvm-config in PATH
+    for cmd in "llvm-config-$version" "llvm-config$version"; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            detected=$("$cmd" --version 2>/dev/null | cut -d. -f1)
+            if [ "$detected" = "$version" ]; then
+                # Get prefix from llvm-config
+                "$cmd" --prefix 2>/dev/null
+                return 0
+            fi
+        fi
+    done
+
+    # Check default llvm-config
+    if command -v llvm-config >/dev/null 2>&1; then
+        detected=$(llvm-config --version 2>/dev/null | cut -d. -f1)
+        if [ "$detected" = "$version" ]; then
+            llvm-config --prefix 2>/dev/null
+            return 0
+        fi
+    fi
+
+    # macOS: Check Homebrew
+    if [ "$(uname)" = "Darwin" ]; then
+        brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
+        if [ ! -d "$brew_prefix" ]; then
+            brew_prefix="/usr/local"
+        fi
+
+        if [ -x "$brew_prefix/opt/llvm@$version/bin/llvm-config" ]; then
+            echo "$brew_prefix/opt/llvm@$version"
+            return 0
+        fi
+
+        if [ -x "$brew_prefix/opt/llvm/bin/llvm-config" ]; then
+            detected=$("$brew_prefix/opt/llvm/bin/llvm-config" --version 2>/dev/null | cut -d. -f1)
+            if [ "$detected" = "$version" ]; then
+                echo "$brew_prefix/opt/llvm"
+                return 0
+            fi
+        fi
+    fi
+
+    return 1
+}
+
+# Detect available LLVM versions (prefer newer)
+detect_llvm() {
+    for ver in 21 20 19 18; do
+        if check_llvm_version "$ver" >/dev/null 2>&1; then
+            echo "$ver"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Main logic
+if [ -n "$FORCE_VERSION" ]; then
+    case "$FORCE_VERSION" in
+        18|19|20|21)
+            LLVM_VERSION="$FORCE_VERSION"
+            ;;
+        *)
+            echo "Error: Invalid LLVM version '$FORCE_VERSION'"
+            echo "Supported versions: 18, 19, 20, 21"
+            exit 1
+            ;;
+    esac
+else
+    echo "Detecting LLVM installation..."
+    if ! LLVM_VERSION=$(detect_llvm); then
+        echo ""
+        echo "Error: No supported LLVM version found."
+        echo ""
+        echo "Please install LLVM 18, 19, 20, or 21 and either:"
+        echo "  1. Add llvm-config to your PATH"
+        echo "  2. Set LLVM_SYS_XXX_PREFIX environment variable"
+        echo ""
+        echo "Installation examples:"
+        echo "  macOS:  brew install llvm"
+        echo "  Ubuntu: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 21"
+        echo "  Manual: export LLVM_SYS_211_PREFIX=/path/to/llvm"
+        exit 1
+    fi
+fi
+
+LLVM_PREFIX=$(get_llvm_prefix "$LLVM_VERSION")
+
+echo ""
+echo "Detected LLVM $LLVM_VERSION at: $LLVM_PREFIX"
+echo ""
+
+# Write configuration
+cat > "$VERSION_FILE" <<EOF
+# Auto-generated by ./configure - do not edit
+# Re-run ./configure to update
+LLVM_VERSION=$LLVM_VERSION
+LLVM_PREFIX=$LLVM_PREFIX
+EOF
+
+echo "Configuration written to .llvm-version"
+echo ""
+echo "To build:"
+echo "  ./build.sh                    # Uses detected LLVM $LLVM_VERSION"
+echo "  ./build.sh --release          # Release build"
+echo ""
+echo "Or manually:"
+echo "  cargo build --features llvm$LLVM_VERSION"

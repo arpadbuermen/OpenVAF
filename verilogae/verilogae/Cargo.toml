@@ -11,7 +11,7 @@ crate-type = ["lib", "cdylib"]
 name = "verilogae"
 
 [features]
-default = ["llvm21"]
+# No default - user must specify --features llvm18/llvm19/llvm20/llvm21
 llvm18 = ["dep:llvm-sys-181", "mir_llvm/llvm18"]
 llvm19 = ["dep:llvm-sys-191", "mir_llvm/llvm19"]
 llvm20 = ["dep:llvm-sys-201", "mir_llvm/llvm20"]
