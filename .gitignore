@@ -36,3 +36,4 @@ markus_notes
 .env
 **.swp
 **.swo
+.llvm-version

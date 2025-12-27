@@ -272,7 +272,7 @@ jobs:
 
     - name: Run cargo
       shell: msys2 {0}
-      run: cargo build --release
+      run: cargo build --release --features llvm21
     #- name: Show sccache stats
     #  if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
     #  shell: msys2 {0}
@@ -280,7 +280,7 @@ jobs:
 
     - name: Run tests
       shell: msys2 {0}
-      run: cargo test --release
+      run: cargo test --release --features llvm21
 
   macos-build-test:
     strategy:
@@ -333,10 +333,10 @@ jobs:
         restore-keys: ${{ runner.os }}-${{runner.arch}}-llvm-cargo-
 
     - name: Build
-      run: cargo build --release
+      run: cargo build --release --features llvm21
 
     - name: Run tests
-      run: cargo test --release
+      run: cargo test --release --features llvm21
 
     - name: Run integration tests
-      run: cargo test --release --test integration
+      run: cargo test --release --features llvm21 --test integration
