@@ -222,15 +222,19 @@ If you prefer not to use the configure script, specify the LLVM version explicit
 export LLVM_SYS_211_PREFIX=/path/to/llvm-21   # For LLVM 21
 # Or: export LLVM_SYS_181_PREFIX=/path/to/llvm-18  # For LLVM 18
 
+# Make sure LLVM binaries are in the system path
+
 # Build with explicit feature flag
-cargo build --release --features llvm21 --bin openvaf-r
-# Or: cargo build --release --features llvm18 --bin openvaf-r
+cargo build --release --features llvm21
+# Or: cargo build --release --features llvm18
 ```
 
 To build the debug version:
 ```bash
-cargo build --features llvm21 --bin openvaf-r
+cargo build --features llvm21
 ```
+
+The release binary can be found in `target/release` while the debug binary is built in `target/debug`. 
 
 # Debugging OpenVAF-reloaded in Visual Studio Code 
 
@@ -253,7 +257,7 @@ If you've run `./configure`, use the build script:
 
 ## Manual Testing
 
-To run the tests, specify the LLVM version explicitly:
+To run the tests manually, specify the LLVM version explicitly:
 
 ```bash
 # Debug tests
@@ -284,7 +288,7 @@ RUN_DEV_TESTS=1 ./build.sh --test --release -- --test integration
 
 Your changes may fail some tests although they are correct. Consider the case you changed the MIR generator. The expected test results assume MIR is generated the way Pascal did it. If you are sure your changes are correct you can update the expected values (stored in `openvaf/test_data` as files ending with .snap). To do this set the `UPDATE_EXPECT` variable 1, e.g.
 ```bash
-UPDATE_EXPECT=1 cargo test
+UPDATE_EXPECT=1 cargo test --release --features llvm21
 ```
 
 Unfortunately not all expected results are in .snap files. Some are hard-coded in the test sources, e.g. see `openvaf/mir_autodiff/src/builder/tests.rs`. You will have to update these expected values manually. 
@@ -298,7 +302,7 @@ Geoffrey Coram and Dietmar Warning are authors of several bugfixes included in O
 
 Kreijstal ported OpenVAF to LLVM 18. 
 
-Rob Taylor contributed CI improvements and MACOS support. 
+Rob Taylor contributed CI improvements, MACOS support, and LLVM version support beyond LLVM 18. 
 
 
 # Copyright
