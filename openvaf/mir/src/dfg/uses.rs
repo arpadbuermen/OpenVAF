@@ -63,6 +63,7 @@ impl UseCursor {
         Some(res)
     }
 
+    // creates a UseIter from UseCursor
     pub fn into_iter<D: Borrow<DfgValues>>(self, dfg: &D) -> UseIter<'_> {
         UseIter { cursor: self, dfg: dfg.borrow() }
     }
@@ -80,12 +81,14 @@ impl From<PackedOption<Use>> for UseCursor {
     }
 }
 
+// Use iterator based on UseCursor
 #[derive(Clone)]
 pub struct UseIter<'a> {
     pub cursor: UseCursor,
     dfg: &'a DfgValues,
 }
 
+// Iterator trait definition for UseIter
 impl Iterator for UseIter<'_> {
     type Item = Use;
 
@@ -165,22 +168,29 @@ impl DfgValues {
         (self.uses[use_].parent, self.uses[use_].parent_idx)
     }
 
+    /// Creates a new use of Value val that occurs at Inst parent, operand index parent_ndx
     pub fn make_use(&mut self, val: Value, parent: Inst, parent_idx: u16) -> Use {
+        // Get Value data for val
         let def = &mut self.defs[val];
         let use_ = self.uses.push_and_get_key(UseData {
             parent,
             parent_idx,
             attached: true,
-            next: def.uses_head,
-            prev: None.into(),
+            next: def.uses_head, // Add to the chain of uses of val
+            prev: None.into(),   // Add at the beginning of the chain
         });
 
         if let Some(old_head) = def.uses_head.expand() {
+            // This value already has a list of uses
+            // Set old head use's prev use index to the new use index
             self.uses[old_head].prev = use_.into();
         } else {
+            // This value has no uses list
+            // Set tail use index in Value data to the new use index
             def.uses_tail = use_.into();
         }
 
+        // Set head use index in Value data to the new use index
         def.uses_head = use_.into();
         use_
     }
@@ -319,6 +329,7 @@ impl DataFlowGraph {
         self.attach_use(use_, val);
     }
 
+    // Returns an iterator to instruction's uses
     pub fn inst_uses(&self, inst: Inst) -> InstUseIter {
         let mut vals = self.inst_results(inst).iter();
         let cursor = vals.next().map(|res| self.uses_head_cursor(*res)).unwrap_or_default();

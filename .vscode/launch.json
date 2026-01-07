@@ -12,18 +12,20 @@
                 "args": [
                     "build",
                     "--bin=openvaf-r",
-                    "--package=openvaf-driver"
+                    "--package=openvaf-driver", 
+                    "--features", "llvm18"
                 ],
                 "filter": {
                     "name": "openvaf-r",
                     "kind": "bin"
                 }
             },
-            "args": [ "--dump-mir", /*"--dump-unopt-mir", "--dump-ir", */ "simp1.va" ],
+            // "args": [ "--dump-mir", /*"--dump-unopt-mir", "--dump-ir", */ "simp1.va" ],
             // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "${workspaceFolder}/integration_tests/HiSIMHV/hisimhv.va" ],
             // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "/home/arpadb/rram/hisim/hisimhv.va" ],
             // "args": [ "--dump-mir", "--dump-unopt-mir", /* "--dump-ir", */ "resistor.va" ],
             // "args": [ "--dump-mir", /*"--dump-unopt-mir", "--dump-ir", */ "/home/arpadb/sim/VACASK/devices/opamp.va" ],
+            "args": [ "--dump-unopt-mir", /*"--dump-unopt-mir", "--dump-ir", */ "/home/arpadb/OpenVAF/jfet2.va" ],
             "cwd": "${workspaceFolder}/..",
             "env": {
                 "RAYON_NUM_THREADS": "1" 
