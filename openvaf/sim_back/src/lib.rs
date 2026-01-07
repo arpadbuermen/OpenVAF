@@ -178,12 +178,13 @@ impl<'a> CompiledModule<'a> {
         let topology = Topology::new(&mut cx);
         debug_assert!(cx.func.validate());
         let mut dae_system = DaeSystem::new(&mut cx, topology);
-        debug_assert!(cx.func.validate());
 
         if dump_unopt_mir {
             println!("Partially optimized MIR (with DAE) of {}", module.module.name(db));
             print_mir(literals, &cx.func);
         }
+
+        debug_assert!(cx.func.validate());
 
         // Optimization
         cx.compute_cfg();

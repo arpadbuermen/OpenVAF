@@ -65,6 +65,7 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
         let mut post_order =
             Postorder::from_parts(&self.func.dfg, take(&mut self.post_order_parts), self.intern);
 
+        // Find all instructions that depend on unknowns
         for (unknown, param) in self.intern.unknowns.iter_enumerated() {
             post_order.populate(*param);
             post_order.traverse_successor();
@@ -77,7 +78,7 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
         self.post_order_parts = post_order.into_parts();
     }
 
-    /// This function deterimes where a derivative (of higher order) is reachable in the DFG.
+    /// This function determines where a derivative (of higher order) is reachable in the DFG.
     /// If a derivative is not reachable at a certain instruction it can be assumed that its value is 0 here.
     /// The results are stored in `self.reachable_derivatives`.
     ///
@@ -144,6 +145,7 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
         self.post_order_parts = post_order.into_parts();
     }
 
+    /// Add all instructions that depend on unknowns to workqueue
     fn initial_live_derivative_workque(&mut self) -> WorkQueue<Inst> {
         let mut post_order =
             Postorder::from_parts(&self.func.dfg, take(&mut self.post_order_parts), self.intern);
@@ -177,6 +179,8 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
         let func = self.func;
         while let Some(inst) = workqueue.pop() {
             let mut dst = self.live_derivatives.compute_inst(inst, func, self.intern);
+
+            // Handle Call (ddx)
             if let InstructionData::Call { func_ref, .. } = func.dfg.insts[inst] {
                 if self.intern.ddx_calls.contains_key(&func_ref) {
                     let old = dst.clone();
@@ -205,12 +209,19 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
                 }
             }
 
+            // Do we have some derivatives for instruction inst
             if !dst.is_empty() {
+                // Make sure there is a row for inst in live_derivatives
                 let old = self.live_derivatives.mat.ensure_row(inst);
+                // If the derivatives list for inst changed
                 if old != &dst {
+                    // Go through arguments of inst
                     for val in func.dfg.instr_args(inst) {
+                        // Find the instruction where the argument is assigned
                         if let Some(inst) = func.dfg.value_def(*val).inst() {
+                            // Is it in the list of visited instructions (the ones that were initially added to the workqueue)
                             if self.visited.contains(inst) {
+                                // Add instruction where argument is assigned to the workqueue
                                 workqueue.insert(inst);
                             }
                         }
@@ -221,7 +232,7 @@ impl<'a, 'b> LiveDerivativeBuilder<'a, 'b> {
         }
     }
 
-    /// This function strip unneeded live derivatives by taking an intersection with the reachable
+    /// This function strips unneeded live derivatives by taking an intersection with the reachable
     /// derivatives
     fn strip_unneeded_derivatives(&mut self) {
         let mut reachable_derivatives = take(&mut self.reachable_derivatives);
@@ -251,6 +262,18 @@ pub struct LiveDerivatives {
 }
 
 impl LiveDerivatives {
+    fn print_d_matrix(builder: &LiveDerivativeBuilder, mat: &SparseBitMatrix<Inst, Derivative>) {
+        for inst in mat.rows() {
+            print!("{:?} -> {:?} : ", inst, builder.func.dfg.inst_results(inst));
+            for d in mat.iter(inst) {
+                let u = builder.intern.get_unknown(d);
+                let v = builder.intern.unknowns[u];
+                print!("{:?} ", v);
+            }
+            println!();
+        }
+    }
+
     pub fn build(
         func: &Function,
         intern: &mut DerivativeIntern,
@@ -258,13 +281,23 @@ impl LiveDerivatives {
         dom_tree: &DominatorTree,
     ) -> LiveDerivatives {
         let mut builder = LiveDerivativeBuilder::new(func, intern);
+
+        // Mark all instructions that have a nonzero derivative wrt. unknowns in a sparse bit matrix reachable_derivatives
         builder.populate_reachable_unknowns();
+
+        // Add extra derivatives to live_derivatives
         builder.insert_extra_derivative(extra_derivatives);
+
+        // Solve for all possible live_derivatives
         let mut workqueue = builder.initial_live_derivative_workque();
         builder.live_derivative_fixpoint(&mut workqueue);
+
+        // Keep only those live_derivatives that are in reachable_derivatives
         builder.strip_unneeded_derivatives();
+
         let (mut res, buf) = builder.finish();
 
+        // Optimize common subgraphs
         res.run_subgraph_opt(func, intern, extra_derivatives, dom_tree, buf);
 
         res
@@ -281,10 +314,16 @@ impl LiveDerivatives {
         unknowns: &DerivativeIntern,
     ) -> HybridBitSet<Derivative> {
         let mut dst = HybridBitSet::new_empty();
+        // Go through all instruction results
         for val in func.dfg.inst_results(inst) {
+            // For each result go through its uses
             for use_ in func.dfg.uses(*val) {
+                // Get instruction (user) where a result is used
                 let user = func.dfg.use_to_operand(use_).0;
+                // Get row corresponding to user, columns are derivatives
                 if let Some(row) = self.mat.row(user) {
+                    // Compute union of dst and row
+                    // Whatever derivatives are in the row (user) become also derivatives of inst
                     dst.union(row, unknowns.num_derivatives());
                 }
             }

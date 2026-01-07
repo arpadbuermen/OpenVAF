@@ -62,6 +62,7 @@ impl<'a, 'b, 'c> Postorder<'a, 'b, 'c> {
 
     pub fn clear(&mut self) {
         self.visited.clear();
+        // self.visit_stack.clear();
     }
 
     pub fn traverse_successor(&mut self) {

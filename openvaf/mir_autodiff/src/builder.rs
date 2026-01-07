@@ -322,7 +322,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                         let unknown = self.intern.get_unknown(derivative);
                         self.derivative_values.insert((prev_order, unknown), val);
                     }
-
+                    /*
                     // Before calling insert_conversions, ensure any derivative values it will
                     // access that are defined in calculate_derivative_block have phi nodes.
                     // This fixes dominance violations when chain rule conversions reference
@@ -375,7 +375,7 @@ impl<'a, 'u> DerivativeBuilder<'a, 'u> {
                             self.derivative_values.insert(key, checked_val);
                         }
                     }
-
+                    */
                     self.insert_conversions(inst);
                     self.new_block.take();
                 }

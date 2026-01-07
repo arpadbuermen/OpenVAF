@@ -110,6 +110,11 @@ impl<'a, 'b> SubGraphExplorer<'a, 'b> {
         self.curr_subgraph.insert(inst);
 
         while let Some(inst) = self.workqueue.pop() {
+            // Do not include phis in subgraphs. Stop at phi.
+            if self.func.dfg.insts[inst].is_phi() {
+                continue;
+            }
+
             if zero_derivative(&self.func.dfg, inst)
                 || self.func.dfg.insts[inst].opcode() == Opcode::Call
             {
