@@ -30,6 +30,8 @@ param "tnom", "tref"
 units = "", desc = "Parameter measurement temperature", flags = ParameterFlags(0x0)
 param "rs"
 units = "", desc = "Ohmic resistance", flags = ParameterFlags(0x0)
+param "rsw"
+units = "", desc = "Ohmic resistance sidewall", flags = ParameterFlags(0x0)
 param "trs", "trs1"
 units = "", desc = "Ohmic resistance 1st order temp. coeff.", flags = ParameterFlags(0x0)
 param "trs2"
@@ -64,6 +66,8 @@ param "ikf", "ik"
 units = "", desc = "Forward Knee current", flags = ParameterFlags(0x0)
 param "ikr"
 units = "", desc = "Reverse Knee current", flags = ParameterFlags(0x0)
+param "ikp"
+units = "", desc = "Forward Sw Knee current", flags = ParameterFlags(0x0)
 param "nbv", "nz"
 units = "", desc = "Breakdown Emission Coefficient", flags = ParameterFlags(0x0)
 param "model_area"
@@ -151,22 +155,43 @@ units = "", desc = "Masking and etching effects (level=3)", flags = ParameterFla
 node "a" units = "V", runits = "A"
 node "c" units = "V", runits = "A"
 node "a_int" units = "V", runits = "A"
+node "sw_int" units = "V", runits = "A"
 node "implicit_equation_0" units = "", runits = ""
+node "implicit_equation_1" units = "", runits = ""
 jacobian (a, a) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (a, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (a, sw_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (c, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (c, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c, sw_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (c, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (c, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (a_int, a) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (a_int, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (a_int, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (a_int, sw_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (a_int, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sw_int, a) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sw_int, c) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sw_int, a_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sw_int, sw_int) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (sw_int, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_REACT_CONST)
 jacobian (implicit_equation_0, c) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
 jacobian (implicit_equation_0, a_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_0, sw_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
 jacobian (implicit_equation_0, implicit_equation_0) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+jacobian (implicit_equation_1, c) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, a_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, sw_int) JacobianFlags(JACOBIAN_ENTRY_REACT | JACOBIAN_ENTRY_RESIST_CONST)
+jacobian (implicit_equation_1, implicit_equation_1) JacobianFlags(JACOBIAN_ENTRY_RESIST | JACOBIAN_ENTRY_RESIST_CONST | JACOBIAN_ENTRY_REACT_CONST)
+collapsible (implicit_equation_1, gnd)
 collapsible (a_int, a)
+collapsible (sw_int, a_int)
 noise "rs" (a_int, a)
 noise "id" (a_int, c)
 noise "flicker" (a_int, c)
-1 states
+noise "rsw" (sw_int, a)
+noise "idsw" (sw_int, c)
+noise "flickersw" (sw_int, c)
+2 states
 has bound_step false
