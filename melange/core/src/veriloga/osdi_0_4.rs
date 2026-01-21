@@ -59,6 +59,9 @@ pub const NATREF_DISCIPLINE_POTENTIAL: u32 = 3;
 pub const DOMAIN_NOT_GIVEN: u32 = 0;
 pub const DOMAIN_DISCRETE: u32 = 1;
 pub const DOMAIN_CONTINUOUS: u32 = 2;
+pub const NOISE_TYPE_WHITE: u32 = 0;
+pub const NOISE_TYPE_FLICKER: u32 = 1;
+pub const NOISE_TYPE_TABLE: u32 = 2;
 
 #[repr(C)]
 pub struct OsdiLimFunction {
@@ -190,6 +193,8 @@ pub struct OsdiDescriptor {
     pub load_jacobian_with_offset_react: fn(*mut c_void, *mut c_void, usize),
     pub unknown_nature: *mut OsdiNatureRef,
     pub residual_nature: *mut OsdiNatureRef,
+    pub noise_source_type: *mut u32,
+    pub load_noise_params: fn(*mut c_void, *mut c_void, *mut f64, *mut f64),
 }
 impl OsdiDescriptor {
     pub fn access(
@@ -317,6 +322,15 @@ impl OsdiDescriptor {
         offset: usize,
     ) {
         (self.load_jacobian_with_offset_react)(inst, model, offset)
+    }
+    pub fn load_noise_params(
+        &self,
+        inst: *mut c_void,
+        model: *mut c_void,
+        power: *mut f64,
+        exponent: *mut f64,
+    ) {
+        (self.load_noise_params)(inst, model, power, exponent)
     }
 }
 #[repr(C)]

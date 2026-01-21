@@ -164,6 +164,110 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
         llfunc
     }
 
+    pub fn load_noise_params(&self) -> &'ll llvm_sys::LLVMValue {
+        let OsdiCompilationUnit { cx, module, .. } = self;
+        let void_ptr = cx.ty_ptr();
+        let f64_ptr_ty = cx.ty_ptr();
+        let fun_ty = cx.ty_func(&[void_ptr, void_ptr, f64_ptr_ty, f64_ptr_ty], cx.ty_void());
+        let name = &format!("load_noise_params_{}", module.sym);
+        let llfunc = cx.declare_int_c_fn(name, fun_ty);
+
+        unsafe {
+            let entry = LLVMAppendBasicBlockInContext(
+                NonNull::from(cx.llcx).as_ptr(),
+                NonNull::from(llfunc).as_ptr(),
+                UNNAMED,
+            );
+            let llbuilder = LLVMCreateBuilderInContext(NonNull::from(cx.llcx).as_ptr());
+            LLVMPositionBuilderAtEnd(llbuilder, entry);
+            let inst = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 0);
+            let model = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 1);
+            let dst_dens = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 2);
+            let dst_exp = LLVMGetParam(NonNull::from(llfunc).as_ptr(), 3);
+
+            for (i, (src, eval_outputs)) in
+                zip(&module.dae_system.noise_sources, &self.inst_data.noise).enumerate()
+            {
+                // Factor and power
+                let fac = self.load_eval_output(eval_outputs.factor, &*inst, &*model, &*llbuilder);
+                let mut pwr = match src.kind {
+                    NoiseSourceKind::WhiteNoise { .. } => {
+                        self.load_eval_output(eval_outputs.args[0], &*inst, &*model, &*llbuilder)
+                    }
+                    NoiseSourceKind::FlickerNoise { .. } => {
+                        self.load_eval_output(eval_outputs.args[0], &*inst, &*model, &*llbuilder)
+                    }
+                    NoiseSourceKind::NoiseTable { .. } => unimplemented!("noise tables"),
+                };
+
+                // Multiply with squared factor because factor is in terms of signal, but
+                // we are computing the power, which is scaled by factor**2.
+                pwr = &*LLVMBuildFMul(
+                    llbuilder,
+                    NonNull::from(pwr).as_ptr(),
+                    NonNull::from(fac).as_ptr(),
+                    UNNAMED,
+                );
+                let fast_math_flags: c_uint = 0x1F; // This represents all flags set
+                llvm_sys::core::LLVMSetFastMathFlags(NonNull::from(pwr).as_ptr(), fast_math_flags);
+                pwr = &*LLVMBuildFMul(
+                    llbuilder,
+                    NonNull::from(pwr).as_ptr(),
+                    NonNull::from(fac).as_ptr(),
+                    UNNAMED,
+                );
+                llvm_sys::core::LLVMSetFastMathFlags(NonNull::from(pwr).as_ptr(), fast_math_flags);
+
+                // Exponent
+                let exp = match src.kind {
+                    NoiseSourceKind::WhiteNoise { .. } => cx.const_real(0.0),
+                    NoiseSourceKind::FlickerNoise { .. } => {
+                        self.load_eval_output(eval_outputs.args[1], &*inst, &*model, &*llbuilder)
+                    }
+                    NoiseSourceKind::NoiseTable { .. } => unimplemented!("noise tables"),
+                };
+
+                // Store power
+                let index_val =
+                    cx.const_unsigned_int(i as u32) as *const llvm_sys::LLVMValue as *mut _;
+                let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 1] = [index_val];
+                let gep_ptr = gep_indices.as_mut_ptr();
+
+                let dst_dens = LLVMBuildGEP2(
+                    llbuilder,
+                    NonNull::from(cx.ty_double()).as_ptr(),
+                    dst_dens,
+                    gep_ptr,
+                    1,
+                    UNNAMED,
+                );
+                LLVMBuildStore(llbuilder, NonNull::from(pwr).as_ptr(), dst_dens);
+
+                // Store exponent
+                let index_val =
+                    cx.const_unsigned_int(i as u32) as *const llvm_sys::LLVMValue as *mut _;
+                let mut gep_indices: [llvm_sys::prelude::LLVMValueRef; 1] = [index_val];
+                let gep_ptr = gep_indices.as_mut_ptr();
+
+                let dst_exp = LLVMBuildGEP2(
+                    llbuilder,
+                    NonNull::from(cx.ty_double()).as_ptr(),
+                    dst_exp,
+                    gep_ptr,
+                    1,
+                    UNNAMED,
+                );
+                LLVMBuildStore(llbuilder, NonNull::from(exp).as_ptr(), dst_exp);
+            }
+
+            // TODO noise
+            LLVMBuildRetVoid(llbuilder);
+            LLVMDisposeBuilder(llbuilder);
+        }
+
+        llfunc
+    }
+
     pub fn load_residual(&self, reactive: bool) -> &'ll llvm_sys::LLVMValue {
         let OsdiCompilationUnit { inst_data, cx, module, .. } = self;
         let ptr_ty = cx.ty_ptr();

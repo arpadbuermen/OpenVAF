@@ -88,6 +88,9 @@ pub const NATREF_DISCIPLINE_POTENTIAL: u32 = 3;
 pub const DOMAIN_NOT_GIVEN: u32 = 0;
 pub const DOMAIN_DISCRETE: u32 = 1;
 pub const DOMAIN_CONTINUOUS: u32 = 2;
+pub const NOISE_TYPE_WHITE: u32 = 0;
+pub const NOISE_TYPE_FLICKER: u32 = 1;
+pub const NOISE_TYPE_TABLE: u32 = 2;
 
 pub struct OsdiLimFunction<'ll> {
     pub name: String,
@@ -410,6 +413,8 @@ pub struct OsdiDescriptor<'ll> {
     pub load_jacobian_with_offset_react: &'ll llvm_sys::LLVMValue,
     pub unknown_nature: Vec<OsdiNatureRef>,
     pub residual_nature: Vec<OsdiNatureRef>,
+    pub noise_source_type: Vec<u32>,
+    pub load_noise_params: &'ll llvm_sys::LLVMValue,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(
@@ -425,6 +430,8 @@ impl<'ll> OsdiDescriptor<'ll> {
         let arr_43: Vec<_> = self.inputs.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_46: Vec<_> = self.unknown_nature.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
         let arr_47: Vec<_> = self.residual_nature.iter().map(|it| it.to_ll_val(ctx, tys)).collect();
+        let arr_48: Vec<_> =
+            self.noise_source_type.iter().map(|it| ctx.const_unsigned_int(*it)).collect();
         let fields = [
             ctx.const_str_uninterned(&self.name),
             ctx.const_unsigned_int(self.num_nodes),
@@ -474,6 +481,8 @@ impl<'ll> OsdiDescriptor<'ll> {
             self.load_jacobian_with_offset_react,
             ctx.const_arr_ptr(tys.osdi_nature_ref, &arr_46),
             ctx.const_arr_ptr(tys.osdi_nature_ref, &arr_47),
+            ctx.const_arr_ptr(ctx.ty_int(), &arr_48),
+            self.load_noise_params,
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)
@@ -526,6 +535,8 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_int(),
+            ctx.ty_ptr(),
+            ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),

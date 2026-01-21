@@ -53,6 +53,7 @@ Some internals of the OpenVAF compiler are documented in the [internals.md](inte
 - Natures of unknowns and residuals exposed in OSDI descriptor. TODO: switch branches and implicit equations. 
 - $bound_step() fixed. 
 - Initalization of instance parameters from model defaults now works. 
+- Access to noise source type and parameters (white and flicker noise). 
 
 
 # What about binaries? 

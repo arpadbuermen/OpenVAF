@@ -18,9 +18,10 @@ use llvm_sys::target::{
 use llvm_sys::LLVMValue;
 use mir::{ValueDef, F_ZERO};
 use mir_llvm::CodegenCx;
-use sim_back::dae::{MatrixEntry, ResidualNatureKind};
+use sim_back::dae::{MatrixEntry, NoiseSourceKind, ResidualNatureKind};
 use sim_back::SimUnknownKind;
 use smol_str::SmolStr;
+use stdx::iter::zip;
 
 use crate::compilation_unit::{OsdiCompilationUnit, OsdiModule};
 use crate::inst_data::{
@@ -31,8 +32,9 @@ use crate::metadata::osdi_0_4::{
     OsdiDescriptor, OsdiJacobianEntry, OsdiNatureRef, OsdiNode, OsdiNodePair, OsdiNoiseSource,
     OsdiParamOpvar, OsdiTys, JACOBIAN_ENTRY_REACT, JACOBIAN_ENTRY_REACT_CONST,
     JACOBIAN_ENTRY_RESIST, JACOBIAN_ENTRY_RESIST_CONST, NATREF_DISCIPLINE_FLOW,
-    NATREF_DISCIPLINE_POTENTIAL, NATREF_NONE, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR,
-    PARA_TY_INT, PARA_TY_REAL, PARA_TY_STR,
+    NATREF_DISCIPLINE_POTENTIAL, NATREF_NONE, NOISE_TYPE_FLICKER, NOISE_TYPE_TABLE,
+    NOISE_TYPE_WHITE, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT, PARA_TY_REAL,
+    PARA_TY_STR,
 };
 use crate::ty_len;
 
@@ -389,6 +391,15 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 })
                 .collect();
 
+            let noise_source_type: Vec<_> =
+                zip(&module.dae_system.noise_sources, &self.inst_data.noise)
+                    .map(|(src, eval_outputs)| match src.kind {
+                        NoiseSourceKind::WhiteNoise { .. } => NOISE_TYPE_WHITE,
+                        NoiseSourceKind::FlickerNoise { .. } => NOISE_TYPE_FLICKER,
+                        NoiseSourceKind::NoiseTable { .. } => NOISE_TYPE_TABLE,
+                    })
+                    .collect();
+
             let (uvec, rvec) = self.unknown_residual_natures(db);
             OsdiDescriptor {
                 name: module.info.module.name(db),
@@ -444,6 +455,8 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 load_jacobian_with_offset_react: self.load_jacobian(JacobianLoadType::React, true),
                 unknown_nature: uvec,
                 residual_nature: rvec,
+                noise_source_type,
+                load_noise_params: self.load_noise_params(),
             }
         }
     }

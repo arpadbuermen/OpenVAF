@@ -76,6 +76,9 @@
 #define DOMAIN_DISCRETE 1
 #define DOMAIN_CONTINUOUS 2
 
+#define NOISE_TYPE_WHITE 0
+#define NOISE_TYPE_FLICKER 1
+#define NOISE_TYPE_TABLE 2
 
 typedef struct OsdiLimFunction {
   char *name;
@@ -221,6 +224,8 @@ typedef struct OsdiDescriptor {
   void (*load_jacobian_with_offset_react)(void *inst, void* model, size_t offset);
   OsdiNatureRef* unknown_nature;
   OsdiNatureRef* residual_nature;
+  uint32_t *noise_source_type;
+  void (*load_noise_params)(void *inst, void *model, double *power, double *exponent);
 }OsdiDescriptor;
 
 typedef struct OsdiNature {
