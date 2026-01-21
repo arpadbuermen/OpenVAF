@@ -1,5 +1,12 @@
 name: Rust CI
 
+permissions:
+  actions: write
+  contents: read
+
+env:
+  PURGE_ENABLED: "false"  
+
 on:
   push:
     branches:
@@ -104,7 +111,7 @@ jobs:
             llvm_env_var: "LLVM_SYS_211_PREFIX"
             cargo_features: "--no-default-features --features llvm21"
     runs-on: ubuntu-latest
-    needs: [format, machete]
+    needs: [format, machete, purge-caches]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -215,7 +222,7 @@ jobs:
       matrix:
         sys: [MINGW64, UCRT64]
     runs-on: windows-latest
-    needs: [format, machete]
+    needs: [format, machete, purge-caches]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -234,9 +241,6 @@ jobs:
           cc:p
           python:p
           sccache:p
-    #- name: Configure Git to use Schannel
-    #  shell: msys2 {0}
-    #  run: git config --global http.sslBackend schannel
 
     - name: Configure Cargo to use CLI Git
       shell: bash
@@ -249,7 +253,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.cache/sccache
-        key: ${{ runner.os }}-${{ runner.arch }}}-sccache-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-sccache-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-sccache-
 
@@ -294,7 +298,7 @@ jobs:
         image: [macos-15-intel, macos-15, macos-14]
 
     runs-on: ${{ matrix.image }}
-    needs: [format, machete]
+    needs: [format, machete, purge-caches]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -346,3 +350,42 @@ jobs:
 
     - name: Run integration tests
       run: cargo test --release --features llvm21 --test integration
+
+  purge-caches:
+    runs-on: ubuntu-latest
+    outputs:
+      deleted: true
+    steps:
+    - name: Checkout
+      if: env.PURGE_ENABLED == 'true'
+      uses: actions/checkout@v4
+
+    - name: Delete all Actions caches for this repo
+      if: env.PURGE_ENABLED == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        OWNER_REPO="${{ github.repository }}"
+        PAGE=1
+        echo "Deleting Actions caches for $OWNER_REPO"
+        while :; do
+          RESP=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER_REPO/actions/caches?per_page=100&page=$PAGE")
+          IDS=$(echo "$RESP" | jq -r '.actions_caches[]?.id' || true)
+          if [ -z "$IDS" ]; then
+            echo "No more caches on page $PAGE"
+            break
+          fi
+          for id in $IDS; do
+            echo "Deleting cache id: $id"
+            curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$OWNER_REPO/actions/caches/$id"
+          done
+          PAGE=$((PAGE+1))
+        done
+        echo "All repo Actions caches deleted (if any existed)."
+    
+    - name: No-op purge
+      if: env.PURGE_ENABLED != 'true'
+      run: echo "Purge disabled"

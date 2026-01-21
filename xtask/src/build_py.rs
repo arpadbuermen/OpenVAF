@@ -97,7 +97,7 @@ impl crate::flags::Publish {
 }
 
 const MIN_PYTHON_MINOR: u32 = 8;
-const MAX_PYTHON_MINOR: u32 = 11;
+const MAX_PYTHON_MINOR: u32 = 14;
 // const MAX_PYPY_MINOR: u32 = 8;
 
 fn find_py(windows: bool) -> Vec<(String, String, String)> {
