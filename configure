@@ -213,7 +213,10 @@ else
         echo "  2. Set LLVM_SYS_XXX_PREFIX environment variable"
         echo ""
         echo "Installation examples:"
-        echo "  macOS:  brew install llvm"
+        echo "  macOS (Homebrew): brew install llvm"
+        echo "  macOS (MacPorts): sudo port install llvm-21 clang-21"
+        echo "                    sudo port select --set llvm mp-llvm-21"
+        echo "                    sudo port select --set clang mp-clang-21"
         echo "  Ubuntu: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh 21"
         echo "  Manual: export LLVM_SYS_211_PREFIX=/path/to/llvm"
         exit 1
