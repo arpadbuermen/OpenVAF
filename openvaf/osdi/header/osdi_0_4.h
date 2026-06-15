@@ -226,6 +226,8 @@ typedef struct OsdiDescriptor {
   OsdiNatureRef* residual_nature;
   uint32_t *noise_source_type;
   void (*load_noise_params)(void *inst, void *model, double *power, double *exponent);
+
+  uint32_t device_flags;
 }OsdiDescriptor;
 
 typedef struct OsdiNature {
