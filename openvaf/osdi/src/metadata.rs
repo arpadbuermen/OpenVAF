@@ -4,7 +4,7 @@ use std::iter::once;
 use hir::{CompilationDB, ParamSysFun, Type};
 use hir_def::db::HirDefDB;
 use hir_def::ndatable::NDATable;
-use hir_lower::CurrentKind;
+use hir_lower::{CurrentKind, ParamKind};
 use lasso::{Rodeo, Spur};
 use llvm_sys::core::{
     LLVMConstArray2, LLVMConstInt, LLVMConstPtrToInt, LLVMGetArrayLength2, LLVMGetDataLayoutStr,
@@ -401,6 +401,15 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                     .collect();
 
             let (uvec, rvec) = self.unknown_residual_natures(db);
+
+            let mut device_flags = 0u32;
+            const FLAG_HAS_ABSTIME: u32 = 1 << 0;
+            module.intern.params.iter().for_each(|(p, _)| {
+                if let ParamKind::Abstime = p {
+                    device_flags |= FLAG_HAS_ABSTIME;
+                }            
+            });
+
             OsdiDescriptor {
                 name: module.info.module.name(db),
                 num_nodes: module.dae_system.unknowns.len() as u32,
@@ -457,6 +466,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 residual_nature: rvec,
                 noise_source_type,
                 load_noise_params: self.load_noise_params(),
+                device_flags: device_flags,
             }
         }
     }
