@@ -2,8 +2,8 @@ param "$mfactor"
 units = "", desc = "Multiplier (Verilog-A $mfactor)", flags = ParameterFlags(PARA_KIND_INST)
 param "r"
 units = "Ohm", desc = "Resistance", flags = ParameterFlags(PARA_KIND_INST)
-param "has_noise"
-units = "", desc = "Noise switch", flags = ParameterFlags(PARA_TY_INT)
+param "noisy"
+units = "", desc = "Noise switch", flags = ParameterFlags(PARA_TY_INT | PARA_KIND_INST)
 
 2 terminals
 node "A" units = "V", runits = "A"
