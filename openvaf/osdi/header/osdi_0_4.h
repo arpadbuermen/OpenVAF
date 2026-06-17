@@ -80,6 +80,8 @@
 #define NOISE_TYPE_FLICKER 1
 #define NOISE_TYPE_TABLE 2
 
+#define MODULEFLAG_ABSTIME 1
+
 typedef struct OsdiLimFunction {
   char *name;
   uint32_t num_args;
@@ -226,8 +228,7 @@ typedef struct OsdiDescriptor {
   OsdiNatureRef* residual_nature;
   uint32_t *noise_source_type;
   void (*load_noise_params)(void *inst, void *model, double *power, double *exponent);
-
-  uint32_t device_flags;
+  uint32_t module_flags;
 }OsdiDescriptor;
 
 typedef struct OsdiNature {
