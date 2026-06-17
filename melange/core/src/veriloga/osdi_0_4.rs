@@ -62,6 +62,7 @@ pub const DOMAIN_CONTINUOUS: u32 = 2;
 pub const NOISE_TYPE_WHITE: u32 = 0;
 pub const NOISE_TYPE_FLICKER: u32 = 1;
 pub const NOISE_TYPE_TABLE: u32 = 2;
+pub const MODULEFLAG_ABSTIME: u32 = 1;
 
 #[repr(C)]
 pub struct OsdiLimFunction {
@@ -195,6 +196,7 @@ pub struct OsdiDescriptor {
     pub residual_nature: *mut OsdiNatureRef,
     pub noise_source_type: *mut u32,
     pub load_noise_params: fn(*mut c_void, *mut c_void, *mut f64, *mut f64),
+    pub module_flags: u32,
 }
 impl OsdiDescriptor {
     pub fn access(

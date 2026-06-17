@@ -34,7 +34,7 @@ use crate::metadata::osdi_0_4::{
     JACOBIAN_ENTRY_RESIST, JACOBIAN_ENTRY_RESIST_CONST, NATREF_DISCIPLINE_FLOW,
     NATREF_DISCIPLINE_POTENTIAL, NATREF_NONE, NOISE_TYPE_FLICKER, NOISE_TYPE_TABLE,
     NOISE_TYPE_WHITE, PARA_KIND_INST, PARA_KIND_MODEL, PARA_KIND_OPVAR, PARA_TY_INT, PARA_TY_REAL,
-    PARA_TY_STR,
+    PARA_TY_STR,MODULEFLAG_ABSTIME,
 };
 use crate::ty_len;
 
@@ -402,11 +402,10 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
 
             let (uvec, rvec) = self.unknown_residual_natures(db);
 
-            let mut device_flags = 0u32;
-            const FLAG_HAS_ABSTIME: u32 = 1 << 0;
+            let mut module_flags = 0u32;
             module.intern.params.iter().for_each(|(p, _)| {
                 if let ParamKind::Abstime = p {
-                    device_flags |= FLAG_HAS_ABSTIME;
+                    module_flags |= MODULEFLAG_ABSTIME;
                 }            
             });
 
@@ -466,7 +465,7 @@ impl<'ll> OsdiCompilationUnit<'_, '_, 'll> {
                 residual_nature: rvec,
                 noise_source_type,
                 load_noise_params: self.load_noise_params(),
-                device_flags: device_flags,
+                module_flags: module_flags,
             }
         }
     }

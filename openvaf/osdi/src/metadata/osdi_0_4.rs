@@ -91,6 +91,7 @@ pub const DOMAIN_CONTINUOUS: u32 = 2;
 pub const NOISE_TYPE_WHITE: u32 = 0;
 pub const NOISE_TYPE_FLICKER: u32 = 1;
 pub const NOISE_TYPE_TABLE: u32 = 2;
+pub const MODULEFLAG_ABSTIME: u32 = 1;
 
 pub struct OsdiLimFunction<'ll> {
     pub name: String,
@@ -415,6 +416,7 @@ pub struct OsdiDescriptor<'ll> {
     pub residual_nature: Vec<OsdiNatureRef>,
     pub noise_source_type: Vec<u32>,
     pub load_noise_params: &'ll llvm_sys::LLVMValue,
+    pub module_flags: u32,
 }
 impl<'ll> OsdiDescriptor<'ll> {
     pub fn to_ll_val(
@@ -483,6 +485,7 @@ impl<'ll> OsdiDescriptor<'ll> {
             ctx.const_arr_ptr(tys.osdi_nature_ref, &arr_47),
             ctx.const_arr_ptr(ctx.ty_int(), &arr_48),
             self.load_noise_params,
+            ctx.const_unsigned_int(self.module_flags),
         ];
         let ty = tys.osdi_descriptor;
         ctx.const_struct(ty, &fields)
@@ -542,6 +545,7 @@ impl OsdiTyBuilder<'_, '_, '_> {
             ctx.ty_ptr(),
             ctx.ty_ptr(),
             ctx.ty_ptr(),
+            ctx.ty_int(),
         ];
         let ty = ctx.ty_struct("OsdiDescriptor", &fields);
         self.osdi_descriptor = Some(ty);
